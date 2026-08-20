@@ -1,0 +1,1366 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// المستخدمون والمصادقة
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  phone         String?   @unique
+  password      String?
+  nationalId    String?   @unique
+  avatar        String?
+  roleId        String?
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  emailVerified DateTime?
+  phoneVerified DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  member           Member?
+  volunteer        Volunteer?
+  beneficiary      Beneficiary?
+  donor            Donor?
+  assignedTasks    Task[]           @relation("TaskAssignee")
+  taskComments     TaskComment[]
+  createdTasks     Task[]           @relation("TaskCreator")
+  evaluations      Evaluation[]     @relation("Evaluator")
+  receivedEvals    Evaluation[]     @relation("EvaluatedEmployee")
+  auditLogs        AuditLog[]
+  notifications    Notification[]
+  role             Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  permissions      UserPermission[]
+  createdNews      News[]           @relation("NewsAuthor")
+  createdProjects  Project[]        @relation("ProjectCreator")
+  boardMemberships BoardMember[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  users       User[]
+  permissions RolePermission[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("roles")
+}
+
+// ============================================
+// إدارة الصلاحيات
+// ============================================
+
+model Permission {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  module      String
+  action      String
+
+  users UserPermission[]
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserPermission {
+  userId       String
+  permissionId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([userId, permissionId])
+  @@map("user_permissions")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ============================================
+// إدارة الجمعية
+// ============================================
+
+model Organization {
+  id             String    @id @default(cuid())
+  name           String
+  nameEn         String?
+  description    String?
+  logo           String?
+  phone          String?
+  email          String?
+  website        String?
+  address        String?
+  city           String?
+  postalCode     String?
+  registrationNo String?   @unique
+  ncnpRef        String?   @unique
+  taxNumber      String?
+  foundedDate    DateTime?
+  primaryColor   String    @default("#0D9488")
+  secondaryColor String    @default("#115E59")
+  accentColor    String    @default("#F59E0B")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  boardMembers      BoardMember[]
+  assemblyMeetings  AssemblyMeeting[]
+  financialAccounts FinancialAccount[]
+  settings          SiteSetting[]
+
+  @@map("organizations")
+}
+
+model BoardMember {
+  id             String    @id @default(cuid())
+  organizationId String
+  userId         String?
+  name           String
+  position       String
+  startDate      DateTime
+  endDate        DateTime?
+  isActive       Boolean   @default(true)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("board_members")
+}
+
+model AssemblyMeeting {
+  id             String        @id @default(cuid())
+  organizationId String
+  title          String
+  description    String?
+  meetingDate    DateTime
+  meetingTime    String?
+  location       String?
+  status         MeetingStatus @default(SCHEDULED)
+  agenda         Json?
+  minutes        String?
+  decisions      Json?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("assembly_meetings")
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================
+// إدارة الأعضاء
+// ============================================
+
+model Member {
+  id                   String           @id @default(cuid())
+  userId               String           @unique
+  membershipType       MembershipType   @default(REGULAR)
+  status               MembershipStatus @default(ACTIVE)
+  startDate            DateTime         @default(now())
+  membershipExpiryDate DateTime?
+  membershipFee        Float            @default(0)
+  paidAmount           Float            @default(0)
+  paymentStatus        PaymentStatus    @default(PENDING)
+
+  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments MembershipPayment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("members")
+}
+
+enum MembershipType {
+  FOUNDER
+  REGULAR
+  HONORARY
+  ASSOCIATE
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  EXPIRED
+  SUSPENDED
+  PENDING_RENEWAL
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  PARTIAL
+  OVERDUE
+}
+
+model MembershipPayment {
+  id             String        @id @default(cuid())
+  memberId       String
+  amount         Float
+  paymentMethod  String?
+  transactionRef String?
+  receiptNo      String?
+  paidAt         DateTime?
+  status         PaymentStatus @default(PENDING)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("membership_payments")
+}
+
+// ============================================
+// إدارة المتطوعين
+// ============================================
+
+model Volunteer {
+  id           String          @id @default(cuid())
+  userId       String          @unique
+  skills       String[]
+  availability String          @default("flexible")
+  totalHours   Float           @default(0)
+  status       VolunteerStatus @default(ACTIVE)
+
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activities VolunteerActivity[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("volunteers")
+}
+
+enum VolunteerStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model VolunteerActivity {
+  id           String   @id @default(cuid())
+  volunteerId  String
+  eventId      String?
+  projectId    String?
+  description  String
+  hours        Float
+  activityDate DateTime
+
+  volunteer Volunteer @relation(fields: [volunteerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("volunteer_activities")
+}
+
+// ============================================
+// قاعدة بيانات المستفيدين
+// ============================================
+
+model Beneficiary {
+  id            String            @id @default(cuid())
+  userId        String?           @unique
+  name          String
+  nationalId    String?
+  phone         String
+  email         String?
+  address       String?
+  city          String?
+  gender        Gender            @default(MALE)
+  dateOfBirth   DateTime?
+  familyMembers Int?
+  incomeLevel   String?
+  needCategory  String?
+  status        BeneficiaryStatus @default(ACTIVE)
+  notes         String?
+
+  user      User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  documents BeneficiaryDocument[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nationalId])
+  @@index([status])
+  @@map("beneficiaries")
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum BeneficiaryStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  COMPLETED
+}
+
+model BeneficiaryDocument {
+  id            String   @id @default(cuid())
+  beneficiaryId String
+  name          String
+  fileType      String
+  fileUrl       String
+  uploadedAt    DateTime @default(now())
+
+  beneficiary Beneficiary @relation(fields: [beneficiaryId], references: [id], onDelete: Cascade)
+
+  @@map("beneficiary_documents")
+}
+
+// ============================================
+// إدارة المانحين
+// ============================================
+
+model Donor {
+  id             String      @id @default(cuid())
+  userId         String?     @unique
+  name           String
+  phone          String?
+  email          String?
+  address        String?
+  donorType      DonorType   @default(INDIVIDUAL)
+  totalDonations Float       @default(0)
+  lastDonationAt DateTime?
+  notes          String?
+  status         DonorStatus @default(ACTIVE)
+
+  user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  communications     DonorCommunication[]
+  donations          Donation[]
+  recurringDonations RecurringDonation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("donors")
+}
+
+enum DonorType {
+  INDIVIDUAL
+  CORPORATE
+  GOVERNMENT
+}
+
+enum DonorStatus {
+  ACTIVE
+  INACTIVE
+  POTENTIAL
+}
+
+model DonorCommunication {
+  id          String   @id @default(cuid())
+  donorId     String
+  type        String
+  subject     String?
+  notes       String
+  contactDate DateTime @default(now())
+
+  donor Donor @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("donor_communications")
+}
+
+// ============================================
+// التبرعات والفواتير الإلكترونية
+// ============================================
+
+model Donation {
+  id            String         @id @default(cuid())
+  donorId       String?
+  campaignId    String?
+  projectId     String?
+  amount        Float
+  currency      String         @default("SAR")
+  paymentMethod String?
+  paymentRef    String?
+  status        DonationStatus @default(PENDING)
+  isAnonymous   Boolean        @default(false)
+  isGuest       Boolean        @default(false)
+  guestName     String?
+  guestPhone    String?
+  guestEmail    String?
+
+  donor    Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  campaign DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  project  Project?          @relation(fields: [projectId], references: [id])
+  invoice  Invoice?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([donorId])
+  @@index([campaignId])
+  @@index([projectId])
+  @@index([status])
+  @@map("donations")
+}
+
+enum DonationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model DonationCampaign {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  imageUrl        String?
+  targetAmount    Float
+  collectedAmount Float          @default(0)
+  startDate       DateTime
+  endDate         DateTime?
+  status          CampaignStatus @default(ACTIVE)
+  displayOrder    Int            @default(0)
+
+  donations Donation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("donation_campaigns")
+}
+
+enum CampaignStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+model RecurringDonation {
+  id            String    @id @default(cuid())
+  donorId       String
+  amount        Float
+  frequency     String
+  paymentMethod String
+  startDate     DateTime
+  endDate       DateTime?
+  isActive      Boolean   @default(true)
+  lastChargedAt DateTime?
+
+  donor Donor @relation(fields: [donorId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("recurring_donations")
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  invoiceNo   String        @unique
+  donationId  String?       @unique
+  memberId    String?
+  orderId     String?       @unique
+  amount      Float
+  taxAmount   Float         @default(0)
+  totalAmount Float
+  taxNumber   String
+  buyerName   String?
+  buyerPhone  String?
+  buyerEmail  String?
+  status      InvoiceStatus @default(ISSUED)
+  issuedAt    DateTime      @default(now())
+  pdfUrl      String?
+
+  donation Donation? @relation(fields: [donationId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+// ============================================
+// إدارة المشاريع
+// ============================================
+
+model Project {
+  id                String        @id @default(cuid())
+  title             String
+  description       String?
+  imageUrl          String?
+  targetAmount      Float
+  collectedAmount   Float         @default(0)
+  completionPercent Float         @default(0)
+  startDate         DateTime
+  endDate           DateTime?
+  status            ProjectStatus @default(PLANNING)
+  category          String?
+  location          String?
+  creatorId         String?
+
+  creator   User?      @relation("ProjectCreator", fields: [creatorId], references: [id])
+  donations Donation[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("projects")
+}
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+  SUSPENDED
+  CANCELLED
+}
+
+// ============================================
+// الأخبار
+// ============================================
+
+model News {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  content     String     @db.Text
+  summary     String?
+  imageUrl    String?
+  category    String?
+  status      NewsStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String?
+
+  author User? @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("news")
+}
+
+enum NewsStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// ============================================
+// مكتبة الصور والفيديو
+// ============================================
+
+model PhotoAlbum {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  coverUrl    String?
+  sortOrder   Int     @default(0)
+
+  photos Photo[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("photo_albums")
+}
+
+model Photo {
+  id           String  @id @default(cuid())
+  albumId      String
+  title        String?
+  url          String
+  thumbnailUrl String?
+  sortOrder    Int     @default(0)
+
+  album PhotoAlbum @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("photos")
+}
+
+model VideoCategory {
+  id        String @id @default(cuid())
+  name      String
+  sortOrder Int    @default(0)
+
+  videos Video[]
+
+  @@map("video_categories")
+}
+
+model Video {
+  id           String  @id @default(cuid())
+  categoryId   String
+  title        String
+  description  String?
+  url          String
+  thumbnailUrl String?
+  duration     String?
+  sortOrder    Int     @default(0)
+
+  category VideoCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("videos")
+}
+
+// ============================================
+// الأنظمة والتعليمات
+// ============================================
+
+model ContentPage {
+  id          String  @id @default(cuid())
+  title       String
+  slug        String  @unique
+  content     String  @db.Text
+  category    String
+  sortOrder   Int     @default(0)
+  isPublished Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("content_pages")
+}
+
+// ============================================
+// الإعلانات
+// ============================================
+
+model Announcement {
+  id         String    @id @default(cuid())
+  title      String
+  content    String?
+  imageUrl   String?
+  link       String?
+  startDate  DateTime
+  endDate    DateTime?
+  isFeatured Boolean   @default(false)
+  sortOrder  Int       @default(0)
+  isActive   Boolean   @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("announcements")
+}
+
+// ============================================
+// إدارة الفعاليات
+// ============================================
+
+model Event {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  imageUrl    String?
+  startDate   DateTime
+  endDate     DateTime?
+  location    String?
+  capacity    Int?
+  status      EventStatus @default(UPCOMING)
+
+  attendees EventAttendance[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("events")
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+model EventAttendance {
+  id            String           @id @default(cuid())
+  eventId       String
+  userId        String?
+  beneficiaryId String?
+  name          String?
+  phone         String?
+  status        AttendanceStatus @default(REGISTERED)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@map("event_attendances")
+}
+
+enum AttendanceStatus {
+  REGISTERED
+  ATTENDED
+  ABSENT
+  CANCELLED
+}
+
+// ============================================
+// إدارة المهام
+// ============================================
+
+model Task {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus   @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  completedAt DateTime?
+  creatorId   String?
+  assigneeId  String
+  department  String?
+  tags        String[]
+
+  creator  User? @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  assignee User  @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
+
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([assigneeId, status])
+  @@index([status])
+  @@map("tasks")
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model TaskComment {
+  id      String @id @default(cuid())
+  taskId  String
+  userId  String
+  content String
+
+  task        Task             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments TaskAttachment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id        String  @id @default(cuid())
+  commentId String?
+  taskId    String
+  name      String
+  url       String
+  fileType  String
+  size      Int
+
+  comment TaskComment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  task    Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
+}
+
+// ============================================
+// الاستبيانات
+// ============================================
+
+model Survey {
+  id          String       @id @default(cuid())
+  title       String
+  description String?
+  status      SurveyStatus @default(DRAFT)
+  startDate   DateTime?
+  endDate     DateTime?
+  isPublic    Boolean      @default(false)
+
+  questions SurveyQuestion[]
+  responses SurveyResponse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("surveys")
+}
+
+enum SurveyStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+model SurveyQuestion {
+  id        String  @id @default(cuid())
+  surveyId  String
+  question  String
+  type      String
+  options   Json?
+  sortOrder Int     @default(0)
+  required  Boolean @default(false)
+
+  survey  Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers SurveyAnswer[]
+
+  @@map("survey_questions")
+}
+
+model SurveyResponse {
+  id              String  @id @default(cuid())
+  surveyId        String
+  respondentName  String?
+  respondentPhone String?
+  respondentId    String? // Can be userId, memberId, etc.
+  respondentEmail String?
+
+  survey  Survey         @relation(fields: [surveyId], references: [id], onDelete: Cascade)
+  answers SurveyAnswer[]
+
+  createdAt DateTime @default(now())
+
+  @@map("survey_responses")
+}
+
+model SurveyAnswer {
+  id            String  @id @default(cuid())
+  responseId    String
+  questionId    String
+  answer        String?
+  answerNumeric Float?
+
+  response SurveyResponse @relation(fields: [responseId], references: [id], onDelete: Cascade)
+  question SurveyQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("survey_answers")
+}
+
+// ============================================
+// مؤشرات الأداء الرئيسية KPI
+// ============================================
+
+model KPI {
+  id            String          @id @default(cuid())
+  title         String
+  description   String?
+  targetEntity  KPITargetEntity
+  targetId      String?
+  unit          String
+  targetValue   Float
+  strategicGoal String?
+  frequency     String          @default("monthly")
+  status        KPIStatus       @default(ACTIVE)
+
+  records KPIRecord[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("kpis")
+}
+
+enum KPITargetEntity {
+  DEPARTMENT
+  PROJECT
+  EMPLOYEE
+}
+
+enum KPIStatus {
+  ACTIVE
+  INACTIVE
+  ACHIEVED
+  BEHIND
+}
+
+model KPIRecord {
+  id          String  @id @default(cuid())
+  kpiId       String
+  period      String
+  actualValue Float
+  targetValue Float
+  percent     Float
+  notes       String?
+
+  kpi KPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([kpiId, period])
+  @@map("kpi_records")
+}
+
+// ============================================
+// تقييمات الموظفين
+// ============================================
+
+model Evaluation {
+  id          String           @id @default(cuid())
+  employeeId  String
+  evaluatorId String
+  period      String
+  startDate   DateTime
+  endDate     DateTime?
+  status      EvaluationStatus @default(DRAFT)
+  finalScore  Float?
+  notes       String?
+
+  employee     User                   @relation("EvaluatedEmployee", fields: [employeeId], references: [id], onDelete: Cascade)
+  evaluator    User                   @relation("Evaluator", fields: [evaluatorId], references: [id])
+  goals        EvaluationGoal[]
+  competencies EvaluationCompetency[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("evaluations")
+}
+
+enum EvaluationStatus {
+  DRAFT
+  IN_PROGRESS
+  COMPLETED
+  APPROVED
+  REJECTED
+}
+
+model EvaluationGoal {
+  id            String  @id @default(cuid())
+  evaluationId  String
+  title         String
+  description   String?
+  weight        Float
+  score         Float?
+  weightedScore Float?
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@map("evaluation_goals")
+}
+
+model EvaluationCompetency {
+  id            String  @id @default(cuid())
+  evaluationId  String
+  title         String
+  description   String?
+  weight        Float
+  score         Float?
+  weightedScore Float?
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  @@map("evaluation_competencies")
+}
+
+// ============================================
+// المتجر الإلكتروني
+// ============================================
+
+model StoreProduct {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  stock       Int     @default(0)
+  imageUrl    String?
+  isDigital   Boolean @default(false)
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("store_products")
+}
+
+model StoreOrder {
+  id            String      @id @default(cuid())
+  customerId    String?
+  customerName  String?
+  customerPhone String?
+  customerEmail String?
+  status        OrderStatus @default(PENDING)
+  totalAmount   Float
+  paymentRef    String?     @unique
+  paidAt        DateTime?
+
+  items OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("store_orders")
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+model OrderItem {
+  id         String @id @default(cuid())
+  orderId    String
+  productId  String
+  quantity   Int
+  unitPrice  Float
+  totalPrice Float
+
+  order   StoreOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product StoreProduct @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+// ============================================
+// الشؤون المالية
+// ============================================
+
+model FinancialAccount {
+  id               String  @id @default(cuid())
+  organizationId   String
+  name             String
+  accountType      String
+  accountCode      String?
+  balance          Float   @default(0)
+  isFundRestricted Boolean @default(false)
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@map("financial_accounts")
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  accountId       String
+  amount          Float
+  transactionType TransactionType
+  description     String?
+  referenceNo     String?
+  transactionDate DateTime        @default(now())
+
+  account FinancialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+model Budget {
+  id          String       @id @default(cuid())
+  title       String
+  fiscalYear  String
+  totalAmount Float
+  spentAmount Float        @default(0)
+  status      BudgetStatus @default(DRAFT)
+
+  items BudgetItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("budgets")
+}
+
+enum BudgetStatus {
+  DRAFT
+  APPROVED
+  ACTIVE
+  CLOSED
+}
+
+model BudgetItem {
+  id          String  @id @default(cuid())
+  budgetId    String
+  category    String
+  description String?
+  allocated   Float
+  spent       Float   @default(0)
+
+  budget   Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  expenses Expense[] @relation("BudgetItemToExpense") // العلاقة المعاكس
+
+  @@map("budget_items")
+}
+
+model Expense {
+  id           String        @id @default(cuid())
+  title        String
+  description  String?
+  amount       Float
+  category     String?
+  status       ExpenseStatus @default(PENDING)
+  expenseDate  DateTime      @default(now())
+  approvedById String?
+  invoiceUrl   String?
+  budgetItemId String?
+
+  budgetItem BudgetItem? @relation("BudgetItemToExpense", fields: [budgetItemId], references: [id], onDelete: SetNull)
+
+  @@map("expenses")
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+}
+
+// ============================================
+// التنبيهات والإشعارات
+// ============================================
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  title   String
+  content String?
+  type    NotificationType @default(INFO)
+  isRead  Boolean          @default(false)
+  link    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  DONATION
+  TASK
+  EVENT
+  MEMBERSHIP
+}
+
+// ============================================
+// رسائل SMS
+// ============================================
+
+model SMSTemplate {
+  id       String  @id @default(cuid())
+  name     String
+  content  String
+  category String
+  isActive Boolean @default(true)
+
+  @@map("sms_templates")
+}
+
+model SMSLog {
+  id         String    @id @default(cuid())
+  phone      String
+  message    String
+  templateId String?
+  status     SMSStatus @default(SENT)
+  provider   String?
+  cost       Float?
+  sentAt     DateTime  @default(now())
+
+  @@index([phone])
+  @@index([sentAt])
+  @@map("sms_logs")
+}
+
+enum SMSStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+// ============================================
+// إعدادات النظام
+// ============================================
+
+model SiteSetting {
+  id             String @id @default(cuid())
+  organizationId String
+  key            String
+  value          String
+  type           String @default("string")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@map("site_settings")
+}
+
+model MenuItem {
+  id        String  @id @default(cuid())
+  title     String
+  url       String?
+  icon      String?
+  parentId  String?
+  sortOrder Int     @default(0)
+  isOpen    Boolean @default(true)
+  isVisible Boolean @default(true)
+  target    String?
+
+  children MenuItem[] @relation("MenuItemHierarchy")
+  parent   MenuItem?  @relation("MenuItemHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+
+  @@map("menu_items")
+}
+
+// ============================================
+// سجل التدقيق
+// ============================================
+
+model AuditLog {
+  id        String  @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  details   Json?
+  ipAddress String?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@map("audit_logs")
+}
+
+// ============================================
+// طلبات تجربة النظام
+// ============================================
+
+model TrialRequest {
+  id      String      @id @default(cuid())
+  name    String
+  email   String
+  phone   String
+  orgName String?
+  message String?
+  status  TrialStatus @default(PENDING)
+
+  @@map("trial_requests")
+}
+
+enum TrialStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+// ============================================
+// مشاركة التقارير
+// ============================================
+
+model ReportShare {
+  id         String    @id @default(cuid())
+  title      String
+  reportType String
+  data       Json
+  sharedById String
+  sharedWith String[]
+  expiresAt  DateTime?
+
+  @@map("report_shares")
+}
+
+// ============================================
+// المستندات العامة
+// ============================================
+
+model Document {
+  id            String  @id @default(cuid())
+  name          String
+  fileUrl       String
+  fileType      String
+  size          Int
+  category      String?
+  relatedEntity String? // e.g., "User", "Project"
+  relatedId     String?
+  uploadedById  String?
+
+  @@map("documents")
+}
