@@ -30,7 +30,7 @@ const formSchema = z.object({
     ),
   category: z.string().min(2, "يجب تحديد الفئة"),
   content: z.string().min(10, "يجب أن يكون المحتوى 10 أحرف على الأقل"),
-  isPublished: z.boolean().default(false),
+  isPublished: z.boolean(),
 });
 
 type ContentPageFormValues = z.infer<typeof formSchema>;
@@ -154,8 +154,8 @@ export function ContentPageForm({ initialData }: ContentPageFormProps) {
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
                 <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
+                  checked={Boolean(field.value)}
+                  onChange={(event) => field.onChange(event.target.checked)}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">

@@ -6,12 +6,21 @@ interface S3Config {
   region: string;
 }
 
+function environmentValue(name: string, developmentFallback?: string): string {
+  const value = process.env[name];
+  if (value) return value;
+  if (process.env.NODE_ENV === "production" || developmentFallback === undefined) {
+    throw new Error(`متغير البيئة ${name} مطلوب لإعداد التخزين.`);
+  }
+  return developmentFallback;
+}
+
 function getS3Config(): S3Config {
   return {
-    endpoint: process.env.S3_ENDPOINT || "http://localhost:9000",
-    accessKey: process.env.S3_ACCESS_KEY || "minioadmin",
-    secretKey: process.env.S3_SECRET_KEY || "minioadmin123",
-    bucket: process.env.S3_BUCKET || "asas",
+    endpoint: environmentValue("S3_ENDPOINT", "http://localhost:9000"),
+    accessKey: environmentValue("S3_ACCESS_KEY", "minioadmin"),
+    secretKey: environmentValue("S3_SECRET_KEY", "minioadmin123"),
+    bucket: environmentValue("S3_BUCKET", "asas"),
     region: process.env.S3_REGION || "sa-east-1",
   };
 }

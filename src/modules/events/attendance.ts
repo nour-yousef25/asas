@@ -36,9 +36,6 @@ export async function updateAttendance(id: string, data: Partial<AttendanceCreat
 export async function getAttendanceByEvent(eventId: string) {
   return prisma.eventAttendance.findMany({
     where: { eventId },
-    include: {
-      user: true, // تضمين معلومات المستخدم
-    },
   });
 }
 

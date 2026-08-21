@@ -1,16 +1,11 @@
 /**
  * إدارة الأنشطة التطوعية.
  */
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export type VolunteerActivityCreateInput = {
-  volunteerId: string;
-  description: string;
-  hours: number;
-  date: Date;
-};
+export type VolunteerActivityCreateInput = Prisma.VolunteerActivityUncheckedCreateInput;
 
 /**
  * إضافة نشاط جديد لمتطوع معين.
@@ -33,7 +28,7 @@ export async function getVolunteerActivities(volunteerId: string) {
 /**
  * تحديث نشاط تطوعي معين.
  */
-export async function updateActivity(id: string, data: Partial<VolunteerActivityCreateInput>) {
+export async function updateActivity(id: string, data: Prisma.VolunteerActivityUncheckedUpdateInput) {
   return prisma.volunteerActivity.update({
     where: { id },
     data,

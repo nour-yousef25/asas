@@ -1,20 +1,13 @@
 /**
  * وظائف إدارة الميزانية.
  */
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export type BudgetCreateInput = {
-  name: string;
-  totalAmount: number;
-};
+export type BudgetCreateInput = Prisma.BudgetUncheckedCreateInput;
 
-export type BudgetItemCreateInput = {
-  budgetId: string;
-  name: string;
-  amount: number;
-};
+export type BudgetItemCreateInput = Prisma.BudgetItemUncheckedCreateInput;
 
 /**
  * إنشاء ميزانية جديدة.
@@ -48,7 +41,7 @@ export async function getAllBudgets() {
 /**
  * تحديث ميزانية موجودة.
  */
-export async function updateBudget(id: string, data: Partial<BudgetCreateInput>) {
+export async function updateBudget(id: string, data: Prisma.BudgetUncheckedUpdateInput) {
   return prisma.budget.update({
     where: { id },
     data,

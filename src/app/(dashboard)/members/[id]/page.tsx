@@ -18,9 +18,10 @@ const statusMap: Record<string, { label: string; variant: any }> = {
   SUSPENDED: { label: "موقوف", variant: "secondary" },
 };
 
-export default async function MemberDetailPage({ params }: { params: { id: string } }) {
+export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const member = await prisma.member.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       user: { select: { id: true, name: true, email: true, phone: true } },
       payments: { orderBy: { createdAt: "desc" } },

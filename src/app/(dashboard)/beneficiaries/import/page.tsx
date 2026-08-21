@@ -63,7 +63,7 @@ export default function ImportBeneficiariesPage() {
           </div>
           <div className="flex gap-2">
             <Label htmlFor="file" className="cursor-pointer">
-              <Button asChild={false} disabled={uploading}>
+              <Button disabled={uploading}>
                 {uploading ? "جارٍ الرفع والاستيراد..." : "اختيار ملف Excel"}
               </Button>
               <input id="file" type="file" accept=".xlsx,.xls" onChange={handleFile} className="hidden" />

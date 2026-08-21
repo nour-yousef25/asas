@@ -26,9 +26,13 @@ export default function SMSPage() {
   const handleTemplateSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const body = Object.fromEntries(formData.entries());
-    body.isFeatured = formData.get("isFeatured") === "on";
-    body.isActive = formData.get("isActive") === "on";
+    const body = {
+      name: formData.get("name")?.toString() ?? "",
+      category: formData.get("category")?.toString() ?? "",
+      content: formData.get("content")?.toString() ?? "",
+      isFeatured: formData.get("isFeatured") === "on",
+      isActive: formData.get("isActive") === "on",
+    };
     const res = await fetch("/api/sms", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

@@ -11,17 +11,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 
-export default function EditNewsPage({ params }: { params: { id: string } }) {
+export default function EditNewsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { addToast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [data, setData] = React.useState<any>(null);
 
   React.useEffect(() => {
-    fetch(`/api/news/${params.id}`)
+    fetch(`/api/news/${id}`)
       .then((r) => r.json())
       .then(setData);
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -29,7 +30,7 @@ export default function EditNewsPage({ params }: { params: { id: string } }) {
     const formData = new FormData(e.currentTarget);
     const body = Object.fromEntries(formData.entries());
     try {
-      const res = await fetch(`/api/news/${params.id}`, {
+      const res = await fetch(`/api/news/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

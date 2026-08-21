@@ -19,7 +19,7 @@ model User {
   password      String?
   nationalId    String?   @unique
   avatar        String?
-  roleId        String?
+  role          Role      @default(MEMBER)
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
   emailVerified DateTime?
@@ -28,38 +28,41 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  member           Member?
-  volunteer        Volunteer?
-  beneficiary      Beneficiary?
-  donor            Donor?
-  assignedTasks    Task[]           @relation("TaskAssignee")
-  taskComments     TaskComment[]
-  createdTasks     Task[]           @relation("TaskCreator")
-  evaluations      Evaluation[]     @relation("Evaluator")
-  receivedEvals    Evaluation[]     @relation("EvaluatedEmployee")
-  auditLogs        AuditLog[]
-  notifications    Notification[]
-  role             Role?            @relation(fields: [roleId], references: [id], onDelete: SetNull)
-  permissions      UserPermission[]
-  createdNews      News[]           @relation("NewsAuthor")
-  createdProjects  Project[]        @relation("ProjectCreator")
-  boardMemberships BoardMember[]
+  member                  Member?
+  volunteer               Volunteer?
+  beneficiary             Beneficiary?
+  donor                   Donor?
+  assignedTasks           Task[]                     @relation("TaskAssignee")
+  taskComments            TaskComment[]
+  createdTasks            Task[]                     @relation("TaskCreator")
+  evaluations             Evaluation[]               @relation("Evaluator")
+  receivedEvals           Evaluation[]               @relation("EvaluatedEmployee")
+  auditLogs               AuditLog[]
+  notifications           Notification[]
+  permissions             UserPermission[]
+  createdNews             News[]                     @relation("NewsAuthor")
+  createdProjects         Project[]                  @relation("ProjectCreator")
+  boardMemberships        BoardMember[]
+  organizationMemberships OrganizationMembership[]
+  connectedChannels       ConnectedChannel[]         @relation("ChannelCreator")
+  communicationContent    CommunicationContentItem[] @relation("CommunicationContentCreator")
+  communicationCampaigns  CommunicationCampaign[]    @relation("CommunicationCampaignOwner")
+  communicationReviews    CommunicationReview[]      @relation("ReviewAuthor")
+  approvedPublications    PublicationPlan[]          @relation("PublicationApprover")
+  aiProposals             AIProposal[]               @relation("AIProposalAuthor")
 
   @@map("users")
 }
 
-model Role {
-  id          String  @id @default(cuid())
-  name        String  @unique
-  description String?
-
-  users       User[]
-  permissions RolePermission[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("roles")
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  MEMBER
+  DONOR
+  VOLUNTEER
+  BENEFICIARY
+  EMPLOYEE
 }
 
 // ============================================
@@ -74,7 +77,6 @@ model Permission {
   action      String
 
   users UserPermission[]
-  roles RolePermission[]
 
   @@map("permissions")
 }
@@ -88,19 +90,6 @@ model UserPermission {
 
   @@id([userId, permissionId])
   @@map("user_permissions")
-}
-
-model RolePermission {
-  roleId       String
-  permissionId String
-
-  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-
-  @@id([roleId, permissionId])
-  @@map("role_permissions")
 }
 
 // ============================================
@@ -130,12 +119,394 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  boardMembers      BoardMember[]
-  assemblyMeetings  AssemblyMeeting[]
-  financialAccounts FinancialAccount[]
-  settings          SiteSetting[]
+  boardMembers           BoardMember[]
+  assemblyMeetings       AssemblyMeeting[]
+  financialAccounts      FinancialAccount[]
+  settings               SiteSetting[]
+  memberships            OrganizationMembership[]
+  connectedChannels      ConnectedChannel[]
+  brandVoiceKit          BrandVoiceKit?
+  communicationCampaigns CommunicationCampaign[]
+  communicationContent   CommunicationContentItem[]
+  publicationPlans       PublicationPlan[]
+  webhookEvents          WebhookEvent[]
+  metricSnapshots        MetricSnapshot[]
+  auditLogs              AuditLog[]
 
   @@map("organizations")
+}
+
+// ============================================
+// سياق الجمعيات والاتصال الرقمي
+// ============================================
+
+model OrganizationMembership {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  role           Role     @default(MEMBER)
+  isDefault      Boolean  @default(false)
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId, isActive])
+  @@index([organizationId, isActive])
+  @@map("organization_memberships")
+}
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TIKTOK
+  YOUTUBE
+  X
+}
+
+enum ConnectedChannelStatus {
+  CONFIGURATION_REQUIRED
+  READY
+  NEEDS_REAUTH
+  RESTRICTED
+  DISCONNECTED
+  ERROR
+}
+
+enum CommunicationContentType {
+  NEWS
+  EVENT
+  PROJECT
+  DONATION_CAMPAIGN
+  ACHIEVEMENT
+  SUCCESS_STORY
+  INDEPENDENT
+}
+
+enum CommunicationWorkflowStatus {
+  DRAFT
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+  CANCELLED
+  ARCHIVED
+}
+
+enum PublicationErrorClass {
+  TOKEN_EXPIRED
+  PERMISSION_DENIED
+  RATE_LIMIT
+  INVALID_MEDIA
+  UNSUPPORTED_FORMAT
+  PROVIDER_TIMEOUT
+  PROVIDER_OUTAGE
+  ACCESS_REVOKED
+  ACCOUNT_REMOVED
+  APP_REVIEW_RESTRICTION
+  CONFIGURATION_REQUIRED
+  UNKNOWN
+}
+
+enum MetricKind {
+  VIEWS
+  REACH
+  ENGAGEMENT
+  LIKES
+  COMMENTS
+  SHARES
+  CLICKS
+  FOLLOWERS
+  VIDEO_VIEWS
+}
+
+enum AIProposalType {
+  DRAFT
+  REWRITE
+  CHANNEL_ADAPTATION
+  TITLE
+  CTA
+  HASHTAGS
+  CAMPAIGN
+  SCHEDULE
+}
+
+model ConnectedChannel {
+  id             String                 @id @default(cuid())
+  organizationId String
+  platform       SocialPlatform
+  externalId     String
+  displayName    String
+  accountType    String?
+  status         ConnectedChannelStatus @default(CONFIGURATION_REQUIRED)
+  scopes         String[]               @default([])
+  capabilities   Json
+  lastSyncedAt   DateTime?
+  reauthReason   String?
+  metadata       Json?
+  createdById    String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?              @relation("ChannelCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  credential   ChannelCredential?
+  variants     ChannelVariant[]
+  metrics      MetricSnapshot[]
+
+  @@unique([organizationId, platform, externalId])
+  @@index([organizationId, platform, status])
+  @@map("connected_channels")
+}
+
+model ChannelCredential {
+  id                    String    @id @default(cuid())
+  connectedChannelId    String    @unique
+  encryptedAccessToken  String    @db.Text
+  encryptedRefreshToken String?   @db.Text
+  encryptionVersion     Int       @default(1)
+  expiresAt             DateTime?
+  refreshExpiresAt      DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  connectedChannel ConnectedChannel @relation(fields: [connectedChannelId], references: [id], onDelete: Cascade)
+
+  @@map("channel_credentials")
+}
+
+model BrandVoiceKit {
+  id                 String   @id @default(cuid())
+  organizationId     String   @unique
+  tone               String?
+  preferredTerms     String[] @default([])
+  forbiddenTerms     String[] @default([])
+  officialHashtags   String[] @default([])
+  contactInformation String?
+  defaultCta         String?
+  identityNotes      String?  @db.Text
+  templates          Json?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("brand_voice_kits")
+}
+
+model CommunicationCampaign {
+  id                String    @id @default(cuid())
+  organizationId    String
+  title             String
+  objective         String?
+  relatedEntityType String?
+  relatedEntityId   String?
+  startDate         DateTime?
+  endDate           DateTime?
+  ownerId           String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  organization Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner        User?                      @relation("CommunicationCampaignOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  contentItems CommunicationContentItem[]
+
+  @@index([organizationId, startDate])
+  @@map("communication_campaigns")
+}
+
+model CommunicationContentItem {
+  id             String                      @id @default(cuid())
+  organizationId String
+  campaignId     String?
+  sourceType     String?
+  sourceId       String?
+  type           CommunicationContentType
+  title          String
+  body           String                      @db.Text
+  status         CommunicationWorkflowStatus @default(DRAFT)
+  tags           String[]                    @default([])
+  assetUrls      String[]                    @default([])
+  createdById    String?
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     CommunicationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  createdBy    User?                  @relation("CommunicationContentCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  variants     ChannelVariant[]
+  aiProposals  AIProposal[]
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, sourceType, sourceId])
+  @@map("communication_content_items")
+}
+
+model ChannelVariant {
+  id                 String                      @id @default(cuid())
+  contentItemId      String
+  connectedChannelId String
+  platform           SocialPlatform
+  title              String?
+  copy               String                      @db.Text
+  payload            Json?
+  assetUrls          String[]                    @default([])
+  status             CommunicationWorkflowStatus @default(DRAFT)
+  version            Int                         @default(1)
+  validation         Json?
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+
+  contentItem      CommunicationContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  connectedChannel ConnectedChannel         @relation(fields: [connectedChannelId], references: [id], onDelete: Cascade)
+  reviews          CommunicationReview[]
+  publicationPlans PublicationPlan[]
+
+  @@unique([contentItemId, connectedChannelId])
+  @@index([connectedChannelId, status])
+  @@map("channel_variants")
+}
+
+model CommunicationReview {
+  id               String                      @id @default(cuid())
+  channelVariantId String
+  reviewerId       String
+  decision         CommunicationWorkflowStatus
+  comment          String?                     @db.Text
+  createdAt        DateTime                    @default(now())
+
+  channelVariant ChannelVariant @relation(fields: [channelVariantId], references: [id], onDelete: Cascade)
+  reviewer       User           @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: Cascade)
+
+  @@index([channelVariantId, createdAt])
+  @@map("communication_reviews")
+}
+
+model PublicationPlan {
+  id               String                      @id @default(cuid())
+  organizationId   String
+  channelVariantId String
+  scheduledAt      DateTime?
+  timezone         String                      @default("Asia/Riyadh")
+  status           CommunicationWorkflowStatus @default(APPROVED)
+  approvedById     String?
+  cancelledAt      DateTime?
+  createdAt        DateTime                    @default(now())
+  updatedAt        DateTime                    @updatedAt
+
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  channelVariant ChannelVariant       @relation(fields: [channelVariantId], references: [id], onDelete: Cascade)
+  approvedBy     User?                @relation("PublicationApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  attempts       PublicationAttempt[]
+
+  @@index([organizationId, status, scheduledAt])
+  @@index([channelVariantId, scheduledAt])
+  @@map("publication_plans")
+}
+
+model PublicationAttempt {
+  id                    String                      @id @default(cuid())
+  publicationPlanId     String
+  attemptNumber         Int
+  idempotencyKey        String                      @unique
+  providerPublicationId String?
+  providerUrl           String?
+  status                CommunicationWorkflowStatus
+  errorClass            PublicationErrorClass?
+  errorCode             String?
+  userMessage           String?
+  technicalMessage      String?                     @db.Text
+  providerTraceId       String?
+  startedAt             DateTime                    @default(now())
+  completedAt           DateTime?
+
+  publicationPlan PublicationPlan @relation(fields: [publicationPlanId], references: [id], onDelete: Cascade)
+
+  @@unique([publicationPlanId, attemptNumber])
+  @@index([publicationPlanId, status])
+  @@map("publication_attempts")
+}
+
+model WebhookEvent {
+  id                         String         @id @default(cuid())
+  organizationId             String
+  platform                   SocialPlatform
+  externalEventId            String
+  connectedChannelExternalId String?
+  signatureValid             Boolean        @default(false)
+  payload                    Json
+  receivedAt                 DateTime       @default(now())
+  processedAt                DateTime?
+  processingError            String?        @db.Text
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, platform, externalEventId])
+  @@index([platform, receivedAt])
+  @@map("webhook_events")
+}
+
+model MetricSnapshot {
+  id                 String     @id @default(cuid())
+  organizationId     String
+  connectedChannelId String
+  channelVariantId   String?
+  metric             MetricKind
+  value              Float
+  providerPeriodFrom DateTime?
+  providerPeriodTo   DateTime?
+  collectedAt        DateTime   @default(now())
+  raw                Json?
+
+  organization     Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  connectedChannel ConnectedChannel @relation(fields: [connectedChannelId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, metric, collectedAt])
+  @@index([connectedChannelId, collectedAt])
+  @@map("metric_snapshots")
+}
+
+model AIProposal {
+  id            String         @id @default(cuid())
+  contentItemId String
+  requestedById String
+  type          AIProposalType
+  input         Json?
+  output        Json
+  status        String         @default("DRAFT")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  contentItem CommunicationContentItem @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  requestedBy User                     @relation("AIProposalAuthor", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([contentItemId, type, createdAt])
+  @@map("ai_proposals")
+}
+
+model OAuthState {
+  id              String         @id @default(cuid())
+  organizationId  String
+  userId          String
+  platform        SocialPlatform
+  state           String         @unique
+  codeVerifier    String?
+  redirectUri     String
+  requestedScopes String[]       @default([])
+  expiresAt       DateTime
+  consumedAt      DateTime?
+  createdAt       DateTime       @default(now())
+
+  @@index([organizationId, platform, expiresAt])
+  @@index([userId, expiresAt])
+  @@map("oauth_states")
 }
 
 model BoardMember {
@@ -190,15 +561,15 @@ enum MeetingStatus {
 // ============================================
 
 model Member {
-  id                   String           @id @default(cuid())
-  userId               String           @unique
-  membershipType       MembershipType   @default(REGULAR)
-  status               MembershipStatus @default(ACTIVE)
-  startDate            DateTime         @default(now())
-  membershipExpiryDate DateTime?
-  membershipFee        Float            @default(0)
-  paidAmount           Float            @default(0)
-  paymentStatus        PaymentStatus    @default(PENDING)
+  id             String           @id @default(cuid())
+  userId         String           @unique
+  membershipType MembershipType   @default(REGULAR)
+  status         MembershipStatus @default(ACTIVE)
+  startDate      DateTime         @default(now())
+  endDate        DateTime?
+  membershipFee  Float            @default(0)
+  paidAmount     Float            @default(0)
+  paymentStatus  PaymentStatus    @default(PENDING)
 
   user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   payments MembershipPayment[]
@@ -1291,20 +1662,23 @@ model MenuItem {
 // ============================================
 
 model AuditLog {
-  id        String  @id @default(cuid())
-  userId    String?
-  action    String
-  entity    String
-  entityId  String?
-  details   Json?
-  ipAddress String?
+  id             String  @id @default(cuid())
+  userId         String?
+  organizationId String?
+  action         String
+  entity         String
+  entityId       String?
+  details        Json?
+  ipAddress      String?
 
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
 
   @@index([entity, entityId])
   @@index([userId])
+  @@index([organizationId, createdAt])
   @@map("audit_logs")
 }
 

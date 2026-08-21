@@ -8,13 +8,13 @@ const smsSendSchema = z.object({
   phones: z.array(z.string()).min(1, "رقم واحد على الأقل"),
   message: z.string().optional(),
   templateId: z.string().optional(),
-  phrases: z.record(z.string()).optional(),
+  phrases: z.record(z.string(), z.string()).optional(),
 });
 
 export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-  const templates = await prisma.smsTemplate.findMany({
+  const templates = await prisma.sMSTemplate.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },
   });
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   let message = validated.message || "";
   if (validated.templateId) {
-    const template = await prisma.smsTemplate.findUnique({ where: { id: validated.templateId } });
+    const template = await prisma.sMSTemplate.findUnique({ where: { id: validated.templateId } });
     if (template) {
       message = template.content.replace(/{{([^}]+)}}/g, (_, key) => validated.phrases?.[key] ?? `{{${key}}}`);
     }

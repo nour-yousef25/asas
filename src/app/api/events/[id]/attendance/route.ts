@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as AttendanceService from "@/src/modules/events/attendance";
+import * as AttendanceService from "@/modules/events/attendance";
 
 // استرجاع قائمة الحضور لفعالية معينة
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const attendanceList = await AttendanceService.getAttendanceByEvent(id);
     return NextResponse.json(attendanceList, { status: 200 });
   } catch (error: any) {
@@ -18,10 +18,10 @@ export async function GET(
 // تسجيل حضور جديد
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const newAttendance = await AttendanceService.createAttendance({

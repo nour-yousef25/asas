@@ -15,9 +15,10 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 };
 const genderMap: Record<string, string> = { MALE: "ذكر", FEMALE: "أنثى" };
 
-export default async function BeneficiaryDetailPage({ params }: { params: { id: string } }) {
+export default async function BeneficiaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const b = await prisma.beneficiary.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { documents: true },
   });
   if (!b) return notFound();

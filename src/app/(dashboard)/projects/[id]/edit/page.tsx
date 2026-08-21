@@ -11,19 +11,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select } from "@/components/ui/select";
 import { useToast } from "@/components/ui/toast";
 
-export default function EditProjectPage({ params }: { params: { id: string } }) {
+export default function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { addToast } = useToast();
   const [loading, setLoading] = React.useState(false);
   const [data, setData] = React.useState<any>(null);
 
   React.useEffect(() => {
-    fetch(`/api/projects/${params.id}`).then((r) => r.json()).then((d) => {
+    fetch(`/api/projects/${id}`).then((r) => r.json()).then((d) => {
       if (d.startDate) d.startDate = d.startDate.split("T")[0];
       if (d.endDate) d.endDate = d.endDate.split("T")[0];
       setData(d);
     });
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,7 +32,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     const formData = new FormData(e.currentTarget);
     const body = Object.fromEntries(formData.entries());
     try {
-      const res = await fetch(`/api/projects/${params.id}`, {
+      const res = await fetch(`/api/projects/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),

@@ -1,8 +1,31 @@
-import { Queue, Worker } from "bullmq";
+import { JobsOptions, Queue, Worker } from "bullmq";
 import { getRedis } from "@/lib/redis";
 
 function getQueueConnection() {
   return getRedis();
+}
+
+type QueueLike<T> = {
+  add(name: string, data: T, options?: JobsOptions): Promise<{ id: string }>;
+};
+
+class InMemoryQueue<T> implements QueueLike<T> {
+  constructor(private readonly queueName: string) {}
+
+  async add(name: string, _data: T, _options?: JobsOptions) {
+    return { id: `${this.queueName}-${name}-${crypto.randomUUID()}` };
+  }
+}
+
+function createQueue<T>(name: string): QueueLike<T> {
+  if (!process.env.REDIS_URL) return new InMemoryQueue<T>(name);
+  return new Queue<T>(name, {
+    connection: getQueueConnection(),
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: { type: "exponential", delay: 2000 },
+    },
+  }) as unknown as QueueLike<T>;
 }
 
 export interface SMSJobData {
@@ -25,31 +48,23 @@ export interface NotificationJobData {
   type: "INFO" | "SUCCESS" | "WARNING" | "ERROR";
 }
 
-export const smsQueue = new Queue<SMSJobData>("sms", {
-  connection: getQueueConnection(),
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: { type: "exponential", delay: 2000 },
-  },
-});
+export interface PublicationJobData {
+  publicationPlanId: string;
+}
 
-export const emailQueue = new Queue<EmailJobData>("email", {
-  connection: getQueueConnection(),
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: { type: "exponential", delay: 2000 },
-  },
-});
+export function hasDurableQueue() {
+  return Boolean(process.env.REDIS_URL);
+}
 
-export const notificationQueue = new Queue<NotificationJobData>("notification", {
-  connection: getQueueConnection(),
-  defaultJobOptions: {
-    attempts: 2,
-    backoff: { type: "fixed", delay: 1000 },
-  },
-});
+export const smsQueue = createQueue<SMSJobData>("sms");
+export const emailQueue = createQueue<EmailJobData>("email");
+export const notificationQueue = createQueue<NotificationJobData>("notification");
+export const publicationQueue = createQueue<PublicationJobData>("communications-publication");
 
 export function createSMSWorker() {
+  if (!process.env.REDIS_URL) {
+    throw new Error("REDIS_URL مطلوب لتشغيل عامل الرسائل في الخلفية.");
+  }
   return new Worker<SMSJobData>(
     "sms",
     async (job) => {
@@ -78,6 +93,9 @@ export function createSMSWorker() {
 }
 
 export function createNotificationWorker() {
+  if (!process.env.REDIS_URL) {
+    throw new Error("REDIS_URL مطلوب لتشغيل عامل الإشعارات في الخلفية.");
+  }
   return new Worker<NotificationJobData>(
     "notification",
     async (job) => {
@@ -87,7 +105,7 @@ export function createNotificationWorker() {
       // TODO: Save to database and push via WebSocket
       const { prisma } = await import("@/lib/db");
       await prisma.notification.create({
-        data: { userId, title, message, type },
+        data: { userId, title, content: message, type },
       });
 
       return { success: true };

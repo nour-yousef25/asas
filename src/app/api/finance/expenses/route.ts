@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as ExpenseService from "@/src/modules/finance/expenses";
+import * as ExpenseService from "@/modules/finance/expenses";
 
 // استرجاع المصروفات المرتبطة ببند ميزانية معين
 export async function GET(request: NextRequest) {

@@ -31,20 +31,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json();
     const validated = projectSchema.partial().parse(body);
 
-    // تحديث نسبة الإكمال تلقائياً
-    if ("collectedAmount" in validated || "targetAmount" in validated) {
-      const project = await prisma.project.findUnique({ where: { id } });
-      if (project) {
-        const collected = validated.collectedAmount ?? project.collectedAmount;
-        const target = validated.targetAmount ?? project.targetAmount;
-        validated.completionPercent = target > 0 ? Math.round((collected / target) * 100) : 0;
-      }
-    }
-
     const project = await prisma.project.update({ where: { id }, data: validated });
     return NextResponse.json(project);
   } catch (error: any) {
-    if (error.name === "ZodError") return NextResponse.json({ error: error.errors }, { status: 400 });
+    if (error.name === "ZodError") return NextResponse.json({ error: error.issues }, { status: 400 });
     return NextResponse.json({ error: "خطأ في تحديث المشروع" }, { status: 500 });
   }
 }

@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useParams } from "next/navigation";
-import { prisma } from "@/lib/db";
+import Link from "next/link";
 import { PageHeader } from "@/components/shared/data-table";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +16,7 @@ import { useToast } from "@/components/ui/toast";
 export default function TasksPage() {
   const { addToast } = useToast();
   const [tasks, setTasks] = React.useState<any[]>([]);
+  const [assigneeOptions, setAssigneeOptions] = React.useState<Array<{ value: string; label: string }>>([]);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [isEdit, setIsEdit] = React.useState(false);
   const [currentTask, setCurrentTask] = React.useState<any>(null);
@@ -26,14 +26,45 @@ export default function TasksPage() {
     setTasks(await res.json());
   };
   React.useEffect(() => { load(); }, []);
+  React.useEffect(() => {
+    const loadAssignees = async () => {
+      try {
+        const response = await fetch("/api/users");
+        if (!response.ok) return;
+        const payload = await response.json();
+        const users = Array.isArray(payload) ? payload : payload.data ?? payload.users ?? [];
+        setAssigneeOptions(
+          users.map((user: { id: string; name?: string; email?: string }) => ({
+            value: user.id,
+            label: user.name || user.email || user.id,
+          })),
+        );
+      } catch {
+        setAssigneeOptions([]);
+      }
+    };
+    loadAssignees();
+  }, []);
 
   const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    const body = Object.fromEntries(formData.entries());
-    body.dueDate = body.dueDate ? new Date(body.dueDate).toISOString() : undefined;
-    body.status = body.status || "TODO";
-    body.priority = body.priority || "MEDIUM";
+    const dueDate = formData.get("dueDate")?.toString();
+    const body = {
+      title: formData.get("title")?.toString() ?? "",
+      description: formData.get("description")?.toString() || null,
+      status: formData.get("status")?.toString() || "TODO",
+      priority: formData.get("priority")?.toString() || "MEDIUM",
+      assigneeId: formData.get("assigneeId")?.toString() || null,
+      department: formData.get("department")?.toString() || null,
+      tags: formData
+        .get("tags")
+        ?.toString()
+        .split(",")
+        .map((tag) => tag.trim())
+        .filter(Boolean) ?? [],
+      ...(dueDate ? { dueDate: new Date(dueDate).toISOString() } : {}),
+    };
     
     try {
       if (isEdit && currentTask) {
@@ -117,16 +148,13 @@ export default function TasksPage() {
             <div className="space-y-2"><Label htmlFor="priority">الأولوية</Label><Select name="priority" defaultValue="MEDIUM" options={[
               { value: "LOW", label: "Low" }, { value: "MEDIUM", label: "Medium" }, { value: "HIGH", label: "High" }, { value: "URGENT", label: "Urgent" }]} /></div>
             <div className="space-y-2"><Label htmlFor="dueDate">تاريخ الاستحقاق</Label><Input id="dueDate" name="dueDate" type="date" /></div>
-            <div className="space-y-2"><Label htmlFor="assigneeId">المسؤول</Label><Select name="assigneeId" options={[
-              { value: "", label: "لا assigning" },
-              ...(await fetch("/api/users").then(r => r.json()).then(u => u)),
-            ]} /></div>
+            <div className="space-y-2"><Label htmlFor="assigneeId">المسؤول</Label><Select name="assigneeId" options={assigneeOptions} /></div>
             <div className="space-y-2"><Label htmlFor="department">القسم</Label><Input id="department" name="department" /></div>
             <div className="space-y-2"><Label htmlFor="tags">الكلمات المفتاحية (مفصولة بفاصلة)</Label><Input id="tags" name="tags" placeholder="مثال: عاجل,إدارة,اجتماع" /></div>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => { setModalOpen(false); setIsEdit(false); setCurrentTask(null); }}>إلغاء</Button>
-            <Button type="submit" disabled={modalOpen && !formValid}>{isEdit ? "تحديث" : "إضافة مهمة"}</Button>
+            <Button type="submit">{isEdit ? "تحديث" : "إضافة مهمة"}</Button>
           </div>
         </form>
       </Modal>

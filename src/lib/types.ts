@@ -1,6 +1,6 @@
-import { Role, MemberStatus, PaymentStatus, DonationStatus, ProjectStatus, TaskStatus, TaskPriority, EventStatus, AnnouncementStatus } from "@prisma/client";
+import { Role, MembershipStatus, PaymentStatus, DonationStatus, ProjectStatus, TaskStatus, TaskPriority, EventStatus, NewsStatus } from "@prisma/client";
 
-export type { Role, MemberStatus, PaymentStatus, DonationStatus, ProjectStatus, TaskStatus, TaskPriority, EventStatus, AnnouncementStatus };
+export type { Role, MembershipStatus, PaymentStatus, DonationStatus, ProjectStatus, TaskStatus, TaskPriority, EventStatus, NewsStatus };
 
 export interface UserSession {
   id: string;
@@ -24,7 +24,7 @@ export interface MemberWithUser {
   id: string;
   userId: string;
   membershipType: string;
-  status: MemberStatus;
+  status: MembershipStatus;
   paymentStatus: PaymentStatus;
   membershipFee: number;
   paidAmount: number;
@@ -152,7 +152,7 @@ export interface NewsArticle {
   summary: string | null;
   imageUrl: string | null;
   category: string | null;
-  status: AnnouncementStatus;
+  status: NewsStatus;
   publishedAt: Date | null;
   createdAt: Date;
   author: {

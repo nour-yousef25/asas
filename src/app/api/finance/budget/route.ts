@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as BudgetService from "@/src/modules/finance/budget";
+import * as BudgetService from "@/modules/finance/budget";
 
 // الحصول على جميع الميزانيات
 export async function GET() {

@@ -38,24 +38,25 @@ export async function PUT(
     const body = await req.json();
     const validated = newsSchema.partial().parse(body);
 
+    let generatedSlug: string | undefined;
     if (validated.title) {
-      let slug = slugify(validated.title);
-      const existing = await prisma.news.findUnique({ where: { slug } });
-      if (existing && existing.id !== id) slug = `${slug}-${Date.now()}`;
-      validated.slug = slug;
+      generatedSlug = slugify(validated.title);
+      const existing = await prisma.news.findUnique({ where: { slug: generatedSlug } });
+      if (existing && existing.id !== id) generatedSlug = `${generatedSlug}-${Date.now()}`;
     }
 
     const news = await prisma.news.update({
       where: { id },
       data: {
         ...validated,
+        ...(generatedSlug ? { slug: generatedSlug } : {}),
         publishedAt: validated.status === "PUBLISHED" ? new Date() : undefined,
       },
     });
     return NextResponse.json(news);
   } catch (error: any) {
     if (error.name === "ZodError") {
-      return NextResponse.json({ error: error.errors }, { status: 400 });
+      return NextResponse.json({ error: error.issues }, { status: 400 });
     }
     return NextResponse.json({ error: "خطأ في تحديث الخبر" }, { status: 500 });
   }

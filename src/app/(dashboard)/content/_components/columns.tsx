@@ -26,7 +26,7 @@ async function deleteContentPage(id: string) {
   alert(`سيتم حذف الصفحة رقم: ${id}`);
 }
 
-export const columns: ColumnDef<ContentPage>[] = [
+export const columns: ColumnDef<{}, ContentPage, unknown>[] = [
   {
     accessorKey: "title",
     header: "العنوان",

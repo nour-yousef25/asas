@@ -1,10 +1,9 @@
 "use client";
-
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
-import { VolunteerActivityCreateInput } from "@/src/modules/volunteers/activities";
+import { VolunteerActivityCreateInput } from "@/modules/volunteers/activities";
 
 interface Activity {
   id: string;
@@ -13,7 +12,8 @@ interface Activity {
   date: string; // Expecting ISO String from the backend
 }
 
-export default function VolunteerActivitiesPage({ params }: { params: { id: string } }) {
+export default function VolunteerActivitiesPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const [activities, setActivities] = useState<Activity[]>([]);
 
@@ -21,7 +21,7 @@ export default function VolunteerActivitiesPage({ params }: { params: { id: stri
   useEffect(() => {
     const loadActivities = async () => {
       try {
-        const response = await fetch(`/api/volunteers/${params.id}/activities`);
+        const response = await fetch(`/api/volunteers/${id}/activities`);
         if (!response.ok) {
           throw new Error("Failed to fetch activities");
         }
@@ -33,12 +33,12 @@ export default function VolunteerActivitiesPage({ params }: { params: { id: stri
     };
 
     loadActivities();
-  }, [params.id]);
+  }, [id]);
 
   // Add a new activity (placeholder function for form submission)
   const addActivity = async (activity: VolunteerActivityCreateInput) => {
     try {
-      const response = await fetch(`/api/volunteers/${params.id}/activities`, {
+      const response = await fetch(`/api/volunteers/${id}/activities`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +58,7 @@ export default function VolunteerActivitiesPage({ params }: { params: { id: stri
     <div className="container mx-auto p-6">
       <h1 className="text-xl font-bold mb-4">الأنشطة التطوعية</h1>
 
-      <Button onClick={() => router.push(`/volunteers/${params.id}/activities/new`)}>
+      <Button onClick={() => router.push(`/volunteers/${id}/activities/new`)}>
         إضافة نشاط جديد
       </Button>
 

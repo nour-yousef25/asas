@@ -5,7 +5,11 @@ import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 const publicPaths = ["/login", "/api/auth", "/donate", "/store"];
 
 function getClientIp(request: NextRequest): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.ip || "unknown";
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown"
+  );
 }
 
 function applyRateLimit(request: NextRequest, pathname: string): NextResponse | null {
@@ -61,7 +65,9 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const sessionToken = request.cookies.get("authjs.session-token")?.value;
+  const sessionToken =
+    request.cookies.get("__Secure-authjs.session-token")?.value ??
+    request.cookies.get("authjs.session-token")?.value;
 
   if (pathname.startsWith("/api/")) {
     if (!sessionToken) {

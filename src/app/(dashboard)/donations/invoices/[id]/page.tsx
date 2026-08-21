@@ -5,9 +5,10 @@ import { formatDate, formatCurrency } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
-export default async function InvoicePage({ params }: { params: { id: string } }) {
+export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const donation = await prisma.donation.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { invoice: true, donor: true, project: true, campaign: true },
   });
   if (!donation || !donation.invoice) return notFound();

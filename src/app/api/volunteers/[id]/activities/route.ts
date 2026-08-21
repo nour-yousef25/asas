@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as VolunteerService from "@/src/modules/volunteers/activities";
+import * as VolunteerService from "@/modules/volunteers/activities";
 
 // استرجاع كل الأنشطة المرتبطة بمتطوع معين
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const activities = await VolunteerService.getVolunteerActivities(id);
     return NextResponse.json(activities, { status: 200 });
   } catch (error: any) {
@@ -18,10 +18,10 @@ export async function GET(
 // إضافة نشاط جديد
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const newActivity = await VolunteerService.createActivity({
@@ -38,10 +38,10 @@ export async function POST(
 // تحديث نشاط موجود
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const updatedActivity = await VolunteerService.updateActivity(id, body);
@@ -55,10 +55,10 @@ export async function PUT(
 // حذف نشاط
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     await VolunteerService.deleteActivity(id);
 
     return NextResponse.json({ message: "Activity deleted successfully" }, { status: 200 });

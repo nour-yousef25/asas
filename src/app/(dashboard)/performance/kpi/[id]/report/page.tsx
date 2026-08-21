@@ -10,9 +10,10 @@ export const dynamic = "force-dynamic";
 
 const entityMap: Record<string, string> = { DEPARTMENT: "وحدة عمل", PROJECT: "مشروع", EMPLOYEE: "فرد / موظف" };
 
-export default async function KPIReportPage({ params }: { params: { id: string } }) {
+export default async function KPIReportPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const kpi = await prisma.kPI.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { records: { orderBy: { period: "asc" } } },
   });
   if (!kpi) return notFound();

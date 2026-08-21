@@ -18,7 +18,7 @@ export async function generateFinancialReport() {
   // إعداد بيانات التقرير
   const reportData = budgets.map((budget) => {
     return {
-      name: budget.name,
+      name: budget.title,
       totalAmount: budget.totalAmount,
       totalExpenses: budget.items.reduce(
         (sum, item) =>
@@ -40,21 +40,23 @@ export async function generateFinancialReport() {
     ]),
   });
 
-  return doc.save("financial-report.pdf"); // يمكن التكيف حسب الحاجة
+  return doc.output("arraybuffer");
 }
 
 /**
  * إنشاء تقرير تبرعات.
  */
 export async function generateDonationsReport() {
-  const donations = await prisma.donation.findMany();
+  const donations = await prisma.donation.findMany({
+    include: { donor: { select: { name: true } } },
+  });
 
   // إعداد بيانات التقرير
   const reportData = donations.map((donation) => {
     return {
-      donor: donation.donorName,
+      donor: donation.donor?.name ?? donation.guestName ?? "متبرع مجهول",
       amount: donation.amount,
-      date: donation.date.toISOString().split("T")[0],
+      date: donation.createdAt.toISOString().split("T")[0],
     };
   });
 
@@ -70,5 +72,5 @@ export async function generateDonationsReport() {
     ]),
   });
 
-  return doc.save("donations-report.pdf");
+  return doc.output("arraybuffer");
 }

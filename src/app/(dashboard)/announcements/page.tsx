@@ -37,10 +37,14 @@ export default function AnnouncementsPage() {
   React.useEffect(() => { load(); }, []);
 
   const handleSave = async (formData: FormData) => {
-    const body = Object.fromEntries(formData.entries());
-    body.startDate = body.startDate || new Date().toISOString();
-    body.isFeatured = formData.get("isFeatured") === "on";
-    body.isActive = formData.get("isActive") === "on";
+    const body = {
+      title: formData.get("title")?.toString() ?? "",
+      content: formData.get("content")?.toString() ?? "",
+      startDate: formData.get("startDate")?.toString() || new Date().toISOString(),
+      endDate: formData.get("endDate")?.toString() || null,
+      isFeatured: formData.get("isFeatured") === "on",
+      isActive: formData.get("isActive") === "on",
+    };
     try {
       const url = editing ? `/api/announcements/${editing.id}` : "/api/announcements";
       const method = editing ? "PUT" : "POST";

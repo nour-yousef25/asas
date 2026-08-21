@@ -61,7 +61,7 @@ export async function paginatedQuery<T>(
   const { page, pageSize, sortBy, sortOrder } = params;
   const skip = (page - 1) * pageSize;
 
-  const orderBy = buildOrderBy(sortBy, sortOrder, defaultSort);
+  const orderBy = buildOrderBy(sortBy, sortOrder ?? "desc", defaultSort);
   const [data, total] = await Promise.all([
     findMany({ where, orderBy, skip, take: pageSize }),
     count({ where }),

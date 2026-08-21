@@ -1,16 +1,11 @@
 /**
  * وظائف إدارة الفعاليات.
  */
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export type EventCreateInput = {
-  name: string;
-  date: Date;
-  location: string;
-  description?: string;
-};
+export type EventCreateInput = Prisma.EventUncheckedCreateInput;
 
 /**
  * إنشاء فعالية جديدة.
@@ -40,7 +35,7 @@ export async function getEventById(id: string) {
 /**
  * تحديث بيانات فعالية موجودة.
  */
-export async function updateEvent(id: string, data: Partial<EventCreateInput>) {
+export async function updateEvent(id: string, data: Prisma.EventUncheckedUpdateInput) {
   return prisma.event.update({
     where: { id },
     data,

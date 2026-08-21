@@ -17,10 +17,11 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 export default async function NewsDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
   const news = await prisma.news.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { author: { select: { name: true } } },
   });
 

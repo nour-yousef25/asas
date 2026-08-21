@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import * as EventService from "@/src/modules/events/events";
+import * as EventService from "@/modules/events/events";
 
 // استرجاع جميع الفعاليات
 export async function GET() {

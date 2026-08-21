@@ -3,10 +3,11 @@ import { getPageById, updatePage, deletePage } from "@/modules/content/pages";
 
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const page = await getPageById(params.id);
+    const { id } = await params;
+    const page = await getPageById(id);
 
     if (!page) {
       return new NextResponse("Page not found", { status: 404 });
@@ -21,13 +22,14 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await req.json();
     const { title, slug, content, category, isPublished } = body;
 
-    const page = await updatePage(params.id, {
+    const page = await updatePage(id, {
       title,
       slug,
       content,
@@ -48,10 +50,11 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const page = await deletePage(params.id);
+    const { id } = await params;
+    const page = await deletePage(id);
 
     if (!page) {
       return new NextResponse("Page not found", { status: 404 });

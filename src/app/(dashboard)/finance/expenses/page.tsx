@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { DataTable } from "@/components/ui/data-table";
@@ -12,7 +12,8 @@ interface Expense {
   date: string;
 }
 
-export default function ExpensesPage({ params }: { params: { budgetItemId: string } }) {
+export default function ExpensesPage({ params }: { params: Promise<{ budgetItemId: string }> }) {
+  const { budgetItemId } = use(params);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const router = useRouter();
 
@@ -20,7 +21,7 @@ export default function ExpensesPage({ params }: { params: { budgetItemId: strin
   useEffect(() => {
     const fetchExpenses = async () => {
       try {
-        const response = await fetch(`/api/finance/expenses?budgetItemId=${params.budgetItemId}`);
+        const response = await fetch(`/api/finance/expenses?budgetItemId=${budgetItemId}`);
         if (!response.ok) {
           throw new Error("فشل في جلب المصروفات");
         }
@@ -32,7 +33,7 @@ export default function ExpensesPage({ params }: { params: { budgetItemId: strin
     };
 
     fetchExpenses();
-  }, [params.budgetItemId]);
+  }, [budgetItemId]);
 
   return (
     <div className="container mx-auto p-6">

@@ -7,7 +7,23 @@ const Form = ({ children, ...props }: React.FormHTMLAttributes<HTMLFormElement>)
   <form {...props}>{children}</form>
 );
 
-const FormField = ({ render, name, control }: any) => {
+type FormFieldProps = {
+  name: string;
+  control?: {
+    _formValues?: Record<string, unknown>;
+    setValue?: (name: string, value: unknown) => void;
+  };
+  render: (props: {
+    field: {
+      name: string;
+      value: any;
+      onChange: (value: unknown) => void;
+      onBlur: () => void;
+    };
+  }) => React.ReactNode;
+};
+
+const FormField = ({ render, name, control }: FormFieldProps) => {
   const field = {
     name,
     value: control?._formValues?.[name] ?? "",

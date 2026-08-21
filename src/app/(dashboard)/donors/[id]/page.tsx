@@ -9,9 +9,10 @@ export const dynamic = "force-dynamic";
 
 const typeMap: Record<string, string> = { INDIVIDUAL: "فردي", CORPORATE: "مؤسسي", GOVERNMENT: "حكومي" };
 
-export default async function DonorDetailPage({ params }: { params: { id: string } }) {
+export default async function DonorDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const donor = await prisma.donor.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       donations: { orderBy: { createdAt: "desc" }, include: { project: { select: { title: true } }, campaign: { select: { title: true } } } },
       communications: { orderBy: { createdAt: "desc" } },

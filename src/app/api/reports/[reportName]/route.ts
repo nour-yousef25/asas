@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateFinancialReport, generateDonationsReport } from "@/src/modules/reports/generator";
+import { generateFinancialReport, generateDonationsReport } from "@/modules/reports/generator";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { reportName: string } }
+  { params }: { params: Promise<{ reportName: string }> }
 ) {
   try {
-    const { reportName } = params;
+    const { reportName } = await params;
     let response;
 
     // اختيار التقرير بناءً على الاسم

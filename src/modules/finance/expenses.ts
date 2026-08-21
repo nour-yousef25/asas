@@ -1,16 +1,11 @@
 /**
  * وظائف إدارة المصروفات.
  */
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export type ExpenseCreateInput = {
-  budgetItemId: string;
-  description: string;
-  amount: number;
-  date: Date;
-};
+export type ExpenseCreateInput = Prisma.ExpenseUncheckedCreateInput;
 
 /**
  * إضافة مصروف جديد.
@@ -33,7 +28,7 @@ export async function getExpensesForBudgetItem(budgetItemId: string) {
 /**
  * تحديث مصروف معين.
  */
-export async function updateExpense(id: string, data: Partial<ExpenseCreateInput>) {
+export async function updateExpense(id: string, data: Prisma.ExpenseUncheckedUpdateInput) {
   return prisma.expense.update({
     where: { id },
     data,
