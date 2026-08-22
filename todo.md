@@ -149,6 +149,14 @@
 - [ ] تشغيل analyze ثم apply لعقد backfill المصلح، وتدقيق ownership/data integrity/A-B isolation والـrollback.
 - [ ] مقارنة rehearsal #1 و#2، وتشغيل regression وحزمة evidence وإصدار قرار WP4 فقط؛ لا WP5.
 
+## W02-WP4-UPGRADE-REHEARSAL — RESTART AT a53c171
+
+- [ ] تدقيق commit `a53c171` وسلسلة migrations والعقود والتقارير وحالة Git قبل إنشاء قواعد التدقيق الجديدة.
+- [x] تنفيذ Rehearsal #1 من migrations الرسمية حتى WP3 ثم fixture A/B ثم WP4 upgrade وownership-graph analyze/apply/audit.
+- [x] إثبات العزل A/B والـforeign keys والـrow/null counts وfailure rollback على قاعدة التدقيق الأولى.
+- [x] تنفيذ Rehearsal #2 مستقلاً بالكامل ومقارنة evidence بالتجربة الأولى.
+- [x] تشغيل Prisma/TypeScript/Jest/communications/build وإصدار Evidence Pack وقرار WP4 دون WP5.
+
 ## W02-WP4-BACKFILL-OWNERSHIP-GRAPH-FIX — ONLY SCOPE
 
 - [x] تدقيق مصدر backfill وعقد Donation/Donor/Campaign/Project والـfixtures والتغييرات غير المثبتة.
