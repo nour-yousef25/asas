@@ -130,7 +130,16 @@
 - [x] تنفيذ وإغلاق WP1: Tenant Context وauthorization kernel وmembership/session/policy versioning وcross-tenant evidence.
 - [x] تنفيذ وإغلاق WP2: IAM data model وpolicy evaluator وSoD وplatform support boundary.
 - [x] تنفيذ وإغلاق WP3: instance identity وidentity audit وtamper/duplicate/restore evidence.
-- [x] تنفيذ وإغلاق WP4: migrations توسعية وlegacy backfill auditable على قواعد تدقيق clean/upgrade فقط.
+- [ ] تنفيذ وإغلاق WP4: migrations توسعية وlegacy backfill auditable على قواعد تدقيق clean/upgrade فقط. **BLOCKED: upgrade rehearsal missing.**
+
+## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
+
+- [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
+- [x] توثيق اختيار manifest صريح قابل للمراجعة بدلاً من أي default organization أو bulk assignment.
+- [x] تنفيذ مرحلتي analyze/apply fail-closed مع counters وأخطاء تشخيصية وtransaction واحدة للـapply.
+- [x] بناء fixture حقيقية لمنظمتي A/B واختبار mapped/unmapped/orphan/ambiguous/conflict/invalid-reference/no-write/atomicity.
+- [x] إثبات اختبار سلبي يمنع تعيين سجل B إلى A، ثم Prisma/TypeScript/backfill/W02 regression وإصدار التقرير النهائي.
+- [x] التوقف عند `W02-WP4-BACKFILL-CONTRACT-FIX COMPLETE`؛ لا Upgrade Rehearsal ولا WP5 تلقائياً.
 - [ ] تنفيذ وإغلاق WP5: repository/API cutover وRLS مرحلي وnegative direct-query evidence.
 - [ ] تنفيذ وإغلاق WP6: vault/secret records وprivate object storage وsigned URLs وvalidation/quarantine.
 - [ ] تنفيذ وإغلاق WP7: privacy classification/purpose/retention/legal hold/DSAR/export وAudit V2.

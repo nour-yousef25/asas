@@ -1,12 +1,12 @@
 # W02 WP4 — Tenant Keys and Legacy Backfill Final Report
 
-**الحالة:** `W02 WP4 COMPLETE`
+**الحالة:** `BLOCKED — independent upgrade rehearsal pending`
 **الفرع:** `w02-wp4`
 **الحد:** توسعة nullable وbackfill auditable فقط؛ لا `NOT NULL` أو composite uniqueness hardening أو RLS أو API cutover في WP4.
 
 ## Summary
 
-أضاف WP4 `organizationId` nullable مع FK وفهرس إلى root aggregates عالية المخاطر: Beneficiary، Donor، Donation، DonationCampaign، Project، News، Event، Task، Survey وDocument. لا تعدل migration بيانات legacy ولا تعين منظمة افتراضياً. أداة backfill تتطلب organization موجودة صراحة، وتنفذ dry-run، وترفض orphaned references، وتسجل audit عند apply، وتبقى idempotent عند الإعادة.
+أضاف WP4 `organizationId` nullable مع FK وفهرس إلى root aggregates عالية المخاطر: Beneficiary، Donor، Donation، DonationCampaign، Project، News، Event، Task، Survey وDocument. لا تعدل migration بيانات legacy ولا تعين منظمة افتراضياً. أصلح `W02-WP4-BACKFILL-CONTRACT-FIX` عقد backfill ليستخدم manifest صريحاً وتحليلاً fail-closed؛ راجع تقرير الإصلاح المنفصل. يبقى دليل upgrade المستقل مفقوداً.
 
 ## Evidence
 
@@ -26,4 +26,4 @@
 
 ## Next WP Readiness
 
-`W02 WP5 READY` لتنفيذ repositories/routes scoped وRLS phased بعد إعادة فحص كل root aggregate وتحويل API inventory. لا يبدأ RLS تلقائياً من هذا التقرير.
+لا يوجد `W02 WP5 READY`. يجب أولاً إنشاء قاعدة تدقيق pre-WP4، تنفيذ ترقية سلسلة migrations الرسمية مرتين، وتوثيق pre/post integrity والعزل وفق `W02-WP4-UPGRADE-REHEARSAL`.
