@@ -147,6 +147,14 @@
 - [x] إثبات unauthenticated/no-membership/disabled/revoked/stale/spoofing/switching/A-B/ audit negatives على قاعدة تدقيق.
 - [x] تشغيل Prisma/TypeScript/Jest/communications/build وتقرير WP5-1؛ التوقف دون WP5-2.
 
+## W02-WP5-2 — REPOSITORY/API CUTOVER ONLY
+
+- [ ] تدقيق baseline/source واختيار Beneficiary/Documents وDonor/Donation/Campaign كنطاق أولي أو توثيق blocker.
+- [ ] إعداد تصميم repository/API cutover ومصفوفة اختبار العزل والعلاقات/search/pagination.
+- [ ] تحويل repositories والمسارات المختارة إلى TenantContext → policy → repository دون Prisma مباشر حساس.
+- [ ] تشغيل دليل A/B وIDOR/read/write/delete/relation/search/pagination/audit حقيقي على قاعدة تدقيق.
+- [ ] تشغيل regression والتقرير النهائي؛ لا RLS ولا WP5-3 قبل القرار.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.

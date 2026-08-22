@@ -1,42 +1,25 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
 import { beneficiarySchema } from "@/lib/validations";
-import { auth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
-import { apiSuccess, apiUnauthorized, apiError, apiInternalError } from "@/lib/api-response";
-import { parsePaginationParams, buildSearchCondition, paginatedQuery } from "@/lib/pagination";
+import { apiSuccess, apiError, apiInternalError } from "@/lib/api-response";
+import { parsePaginationParams } from "@/lib/pagination";
+import { requireTenantContext, TenantAuthorizationError } from "@/lib/tenant-context";
+import { requirePermission, PolicyAuthorizationError } from "@/lib/policy";
+import { beneficiaryRepository } from "@/lib/beneficiary-repository";
 
 const log = logger.child("beneficiaries");
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) return apiUnauthorized();
-
     const { searchParams } = new URL(req.url);
     const params = parsePaginationParams(searchParams);
     const status = searchParams.get("status");
-
-    const searchFields = ["name", "phone", "email", "nationalId"];
-    const searchCondition = buildSearchCondition(params.search, searchFields);
-
-    const where: any = { ...searchCondition };
-    if (status) where.status = status;
-
-    const result = await paginatedQuery(
-      (args) =>
-        prisma.beneficiary.findMany({
-          ...args,
-          include: { documents: true },
-        }),
-      (args) => prisma.beneficiary.count(args),
-      where,
-      params,
-      "createdAt"
-    );
-
-    return apiSuccess(result.data, 200);
+    const context = await requireTenantContext();
+    await requirePermission(context, "beneficiary.read");
+    const result = await beneficiaryRepository.list(context, { skip: (params.page - 1) * params.pageSize, take: params.pageSize, search: params.search, status: status ?? undefined });
+    return apiSuccess({ data: result.data, pagination: { page: params.page, pageSize: params.pageSize, total: result.total, totalPages: Math.ceil(result.total / params.pageSize) } }, 200);
   } catch (error) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return apiError("غير مصرح", 403);
     log.error("Failed to fetch beneficiaries", error);
     return apiInternalError();
   }
@@ -44,21 +27,17 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) return apiUnauthorized();
-
     const body = await req.json();
     const validated = beneficiarySchema.parse(body);
-    const beneficiary = await prisma.beneficiary.create({
-      data: {
-        ...validated,
-        dateOfBirth: validated.dateOfBirth ? new Date(validated.dateOfBirth) : null,
-      },
-    });
+    const context = await requireTenantContext();
+    await requirePermission(context, "beneficiary.create");
+    const { organizationId: _ignoredOrganizationId, ...safe } = body as { organizationId?: unknown };
+    const beneficiary = await beneficiaryRepository.create(context, { ...safe, ...validated, dateOfBirth: validated.dateOfBirth ? new Date(validated.dateOfBirth) : null });
 
     log.info("Beneficiary created", { id: beneficiary.id, name: beneficiary.name });
     return apiSuccess(beneficiary, 201);
   } catch (error: any) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return apiError("غير مصرح", 403);
     if (error.name === "ZodError") {
       return apiError("بيانات غير صحيحة", 400);
     }
