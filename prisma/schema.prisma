@@ -1772,6 +1772,17 @@ model InstallationState {
   @@map("installation_state")
 }
 
+model InstanceIdentity {
+  id           String   @id @default("singleton")
+  instanceId   String   @unique
+  keyVersion   String   @default("v1")
+  integrityTag String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("instance_identity")
+}
+
 model MenuItem {
   id        String  @id @default(cuid())
   title     String
