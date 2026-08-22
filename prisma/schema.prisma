@@ -152,6 +152,9 @@ model Organization {
   tasks                  Task[]
   surveys                Survey[]
   documents              Document[]
+  budgets                Budget[]
+  budgetItems            BudgetItem[]
+  expenses               Expense[]
 
   @@map("organizations")
 }
@@ -1640,17 +1643,20 @@ enum TransactionType {
 }
 
 model Budget {
-  id          String       @id @default(cuid())
-  title       String
-  fiscalYear  String
-  totalAmount Float
-  spentAmount Float        @default(0)
-  status      BudgetStatus @default(DRAFT)
-
+  id             String       @id @default(cuid())
+  organizationId String?
+  title          String
+  fiscalYear     String
+  totalAmount    Float
+  spentAmount    Float        @default(0)
+  status         BudgetStatus @default(DRAFT)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   items BudgetItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
 
   @@map("budgets")
 }
@@ -1663,32 +1669,38 @@ enum BudgetStatus {
 }
 
 model BudgetItem {
-  id          String  @id @default(cuid())
-  budgetId    String
-  category    String
-  description String?
-  allocated   Float
-  spent       Float   @default(0)
-
+  id             String  @id @default(cuid())
+  organizationId String?
+  budgetId       String
+  category       String
+  description    String?
+  allocated      Float
+  spent          Float   @default(0)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   budget   Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
   expenses Expense[] @relation("BudgetItemToExpense") // العلاقة المعاكس
+
+  @@index([organizationId])
 
   @@map("budget_items")
 }
 
 model Expense {
-  id           String        @id @default(cuid())
-  title        String
-  description  String?
-  amount       Float
-  category     String?
-  status       ExpenseStatus @default(PENDING)
-  expenseDate  DateTime      @default(now())
-  approvedById String?
-  invoiceUrl   String?
-  budgetItemId String?
-
+  id             String        @id @default(cuid())
+  organizationId String?
+  title          String
+  description    String?
+  amount         Float
+  category       String?
+  status         ExpenseStatus @default(PENDING)
+  expenseDate    DateTime      @default(now())
+  approvedById   String?
+  invoiceUrl     String?
+  budgetItemId   String?
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   budgetItem BudgetItem? @relation("BudgetItemToExpense", fields: [budgetItemId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
 
   @@map("expenses")
 }

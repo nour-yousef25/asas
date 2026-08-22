@@ -155,6 +155,21 @@
 - [x] تشغيل دليل A/B وIDOR/read/write/delete/relation/search/pagination/audit حقيقي على قاعدة تدقيق.
 - [x] تشغيل regression والتقرير النهائي؛ لا RLS ولا WP5-3 قبل القرار.
 
+## W02-WP5-3 — OFFICIAL SCOPE LOCK + FIRST SUB-WORK PACKAGE ONLY
+
+- [ ] تدقيق W02 plan وWP0 ADRs وWP4/WP5 evidence وGit baseline القانوني وتسجيل نطاق WP5-3 الرسمي فقط. **BLOCKED: Financial Reports require Budget/Expense ownership absent from schema.**
+- [ ] تحديد أول sub-work package من الوثائق الرسمية وتوثيق repositories/routes/models/dependencies/migrations/DoD/acceptance tests.
+- [ ] تنفيذ واختبار وتوثيق أول sub-work package فقط مع commit مستقل.
+- [ ] التوقف قبل sub-work package التالي؛ لا WP5-4 ولا WP6 ولا RLS غير منصوص عليها.
+
+## W02-WP5-3 — BUDGET OWNERSHIP FOUNDATION ONLY
+
+- [x] تدقيق Budget/BudgetItem/Expense والعلاقات والمستدعين والوثائق وحالة Git وتثبيت ownership graph أو blocker.
+- [x] توثيق contract والمهاجرة وmanifest analyze/apply ومصفوفة الاختبار؛ لا تعديل لتقارير مالية.
+- [x] إضافة migration forward-only توسعية وbackfill explicit-mapping fail-closed وtransactional.
+- [x] تنفيذ clean/upgrade rehearsal وtwo-org graph/isolation/conflict/unmapped/orphan/rollback evidence على PostgreSQL تدقيقي.
+- [x] تشغيل Prisma/TypeScript/Jest/communications/build وإصدار التقرير؛ ثم التوقف دون Financial Reports/Exports أو WP5-4/WP6.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
