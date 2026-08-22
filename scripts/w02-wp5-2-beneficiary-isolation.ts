@@ -29,6 +29,7 @@ async function main() {
     const [docsA, docsB] = await Promise.all([beneficiaryRepository.listDocuments(contextA, beneficiaryA.id), beneficiaryRepository.listDocuments(contextA, beneficiaryB.id)]);
     record("NESTED_DOCUMENT_OWNERSHIP_BLOCKED", docsA?.length === 1 && docsB === null, `A=${docsA?.length};B=${docsB}`);
   } finally {
+    await prisma.auditLog.deleteMany({ where: { userId: { in: [userA.id, userB.id] } } });
     await prisma.beneficiary.deleteMany({ where: { organizationId: { in: [orgA.id, orgB.id] } } });
     await prisma.organizationMembership.deleteMany({ where: { userId: { in: [userA.id, userB.id] } } });
     await prisma.user.deleteMany({ where: { id: { in: [userA.id, userB.id] } } });

@@ -149,11 +149,11 @@
 
 ## W02-WP5-2 — REPOSITORY/API CUTOVER ONLY
 
-- [ ] تدقيق baseline/source واختيار Beneficiary/Documents وDonor/Donation/Campaign كنطاق أولي أو توثيق blocker.
-- [ ] إعداد تصميم repository/API cutover ومصفوفة اختبار العزل والعلاقات/search/pagination.
-- [ ] تحويل repositories والمسارات المختارة إلى TenantContext → policy → repository دون Prisma مباشر حساس.
-- [ ] تشغيل دليل A/B وIDOR/read/write/delete/relation/search/pagination/audit حقيقي على قاعدة تدقيق.
-- [ ] تشغيل regression والتقرير النهائي؛ لا RLS ولا WP5-3 قبل القرار.
+- [x] تدقيق baseline/source واختيار Beneficiary/Documents وDonor/Donation/Campaign كنطاق أولي أو توثيق blocker.
+- [x] إعداد تصميم repository/API cutover ومصفوفة اختبار العزل والعلاقات/search/pagination.
+- [x] تحويل repositories والمسارات المختارة إلى TenantContext → policy → repository دون Prisma مباشر حساس.
+- [x] تشغيل دليل A/B وIDOR/read/write/delete/relation/search/pagination/audit حقيقي على قاعدة تدقيق.
+- [x] تشغيل regression والتقرير النهائي؛ لا RLS ولا WP5-3 قبل القرار.
 
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
