@@ -17,6 +17,7 @@ export class TenantAuthorizationError extends Error {
     public readonly code:
       | "UNAUTHENTICATED"
       | "STALE_SESSION"
+      | "STALE_POLICY"
       | "NO_ACTIVE_MEMBERSHIP"
       | "FORBIDDEN_TENANT_RESOURCE",
     message: string,
@@ -59,7 +60,7 @@ export async function resolveTenantContextForUser(input: {
 
   const membership = user.activeOrganizationId
     ? user.organizationMemberships.find((item) => item.organizationId === user.activeOrganizationId)
-    : user.organizationMemberships[0];
+    : undefined;
   if (!membership) {
     throw new TenantAuthorizationError("NO_ACTIVE_MEMBERSHIP", "لا توجد عضوية نشطة في أي منظمة.");
   }
@@ -106,6 +107,15 @@ export async function switchActiveOrganization(input: {
     select: { id: true },
   });
   if (!membership) {
+    await prisma.auditLog.create({
+      data: {
+        organizationId: context.organizationId,
+        userId: context.userId,
+        action: "TENANT_CONTEXT_SWITCH_DENIED",
+        entity: "OrganizationMembership",
+        details: { requestedOrganizationId: input.organizationId, correlationId: context.correlationId },
+      },
+    });
     throw new TenantAuthorizationError("NO_ACTIVE_MEMBERSHIP", "لا تملك عضوية نشطة في المنظمة المطلوبة.");
   }
 
@@ -147,6 +157,22 @@ export async function bumpMembershipPolicyVersion(membershipId: string) {
     data: { policyVersion: { increment: 1 } },
     select: { id: true, policyVersion: true },
   });
+}
+
+export async function assertTenantPolicySnapshot(context: TenantContext) {
+  const membership = await prisma.organizationMembership.findFirst({
+    where: {
+      id: context.membershipId,
+      organizationId: context.organizationId,
+      userId: context.userId,
+      isActive: true,
+      revokedAt: null,
+    },
+    select: { policyVersion: true },
+  });
+  if (!membership || membership.policyVersion !== context.policySnapshotVersion) {
+    throw new TenantAuthorizationError("STALE_POLICY", "انتهت صلاحية سياق السياسة. أعد حل سياق المنظمة.");
+  }
 }
 
 export function assertTenantResource(context: TenantContext, resourceOrganizationId: string) {

@@ -139,6 +139,14 @@
 - [x] تسجيل baseline Prisma/TypeScript/Jest/communications/build من دون تعديل environment أو packages أو migrations.
 - [x] إعداد Inventory Report وScope Matrix وتسجيل blockers؛ التوقف دون WP5-1.
 
+## W02-WP5-1 — TENANT CONTEXT ENFORCEMENT ONLY
+
+- [x] تدقيق عقد TenantContext الحالي والمسارات والـfallbacks والمستدعين دون تعديل.
+- [x] توثيق canonical contract وresolution flow وsecurity boundary وpolicy snapshot/correlation behavior.
+- [x] توحيد boundary server-side وإزالة fallback آمن فقط إن وجد ضمن النطاق، بلا تحويل repositories/routes.
+- [x] إثبات unauthenticated/no-membership/disabled/revoked/stale/spoofing/switching/A-B/ audit negatives على قاعدة تدقيق.
+- [x] تشغيل Prisma/TypeScript/Jest/communications/build وتقرير WP5-1؛ التوقف دون WP5-2.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
