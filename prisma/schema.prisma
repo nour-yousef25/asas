@@ -1640,6 +1640,30 @@ model SiteSetting {
   @@map("site_settings")
 }
 
+// ============================================
+// W01 — حالة تهيئة النسخة (لا تتضمن ترخيصاً أو بيانات تشغيلية)
+// ============================================
+
+enum InstallationStateStatus {
+  UNCONFIGURED
+  PREFLIGHT_PASSED
+  COMPLETED
+  RECOVERY_UNLOCKED
+}
+
+model InstallationState {
+  id                     String                  @id @default("singleton")
+  status                 InstallationStateStatus @default(UNCONFIGURED)
+  releaseVersion         String?
+  lastPreflightAt        DateTime?
+  completedAt            DateTime?
+  recoveryUnlockExpiresAt DateTime?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+
+  @@map("installation_state")
+}
+
 model MenuItem {
   id        String  @id @default(cuid())
   title     String

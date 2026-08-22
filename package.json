@@ -12,6 +12,7 @@
     "start": "NODE_ENV=production next start",
     "check:env": "node scripts/check-env.mjs",
     "backup:verify": "node scripts/verify-backup-manifest.mjs",
+    "preflight": "tsx scripts/run-preflight.ts",
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",

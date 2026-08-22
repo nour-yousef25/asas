@@ -15,6 +15,16 @@ function getClientIp(request: NextRequest): string {
 function applyRateLimit(request: NextRequest, pathname: string): NextResponse | null {
   const ip = getClientIp(request);
 
+  if (pathname.startsWith("/api/installer")) {
+    const result = rateLimit(`installer:${ip}`, { maxRequests: 10, windowMs: 15 * 60 * 1000 });
+    if (!result.success) {
+      return NextResponse.json(
+        { error: "تم تجاوز الحد المسموح لمسار المثبت. حاول مرة أخرى لاحقاً" },
+        { status: 429 },
+      );
+    }
+  }
+
   if (pathname.startsWith("/api/auth")) {
     const result = rateLimit(`auth:${ip}`, RATE_LIMITS.auth);
     if (!result.success) {
@@ -60,6 +70,12 @@ function applyRateLimit(request: NextRequest, pathname: string): NextResponse | 
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/api/installer")) {
+    const rateLimitResponse = applyRateLimit(request, pathname);
+    if (rateLimitResponse) return rateLimitResponse;
+    return NextResponse.next();
+  }
 
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
