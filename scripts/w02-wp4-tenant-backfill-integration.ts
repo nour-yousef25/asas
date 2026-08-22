@@ -47,16 +47,28 @@ async function main() {
       record("CONFLICT_NO_WRITE", error instanceof LegacyTenantBackfillError && saved?.organizationId === null, `${error instanceof LegacyTenantBackfillError};owner=${saved?.organizationId}`);
     }
     await prisma.beneficiary.delete({ where: { id: unmapped.id } });
-    const orphanDonor = await prisma.donor.create({ data: { name: `Orphan ${suffix}` } });
-    const orphanDonation = await prisma.donation.create({ data: { amount: 1, donorId: orphanDonor.id } });
+    const graphDonor = await prisma.donor.create({ data: { name: `Graph Donor ${suffix}` } });
+    const graphCampaign = await prisma.donationCampaign.create({ data: { title: `Graph Campaign ${suffix}`, targetAmount: 10, startDate: new Date() } });
+    const graphProject = await prisma.project.create({ data: { title: `Graph Project ${suffix}`, targetAmount: 10, startDate: new Date() } });
+    const graphDonation = await prisma.donation.create({ data: { amount: 1, donorId: graphDonor.id, campaignId: graphCampaign.id, projectId: graphProject.id } });
     try {
-      await applyLegacyTenantBackfill([...mapping, { table: "donors", recordId: orphanDonor.id, organizationId: orgA.id, source: "FIXTURE" }, { table: "donations", recordId: orphanDonation.id, organizationId: orgA.id, source: "FIXTURE" }]);
-      record("ORPHAN_PARENT_NO_WRITE", false, "Donation with an unscoped parent was accepted.");
+      const graphApply = await applyLegacyTenantBackfill([...mapping, { table: "donors", recordId: graphDonor.id, organizationId: orgA.id, source: "GRAPH" }, { table: "donation_campaigns", recordId: graphCampaign.id, organizationId: orgA.id, source: "GRAPH" }, { table: "projects", recordId: graphProject.id, organizationId: orgA.id, source: "GRAPH" }, { table: "donations", recordId: graphDonation.id, organizationId: orgA.id, source: "GRAPH" }]);
+      const saved = await prisma.donation.findUnique({ where: { id: graphDonation.id } });
+      record("HISTORICAL_NULL_GRAPH_APPLY", graphApply.counters.updated === 4 && saved?.organizationId === orgA.id, `updated=${graphApply.counters.updated};owner=${saved?.organizationId}`);
     } catch (error) {
-      const saved = await prisma.donation.findUnique({ where: { id: orphanDonation.id } });
-      record("ORPHAN_PARENT_NO_WRITE", error instanceof LegacyTenantBackfillError && error.code === "ORPHAN_RECORD" && saved?.organizationId === null, `${error instanceof LegacyTenantBackfillError ? error.code : String(error)};owner=${saved?.organizationId}`);
+      record("HISTORICAL_NULL_GRAPH_APPLY", false, String(error));
     }
-    await prisma.donation.delete({ where: { id: orphanDonation.id } }); await prisma.donor.delete({ where: { id: orphanDonor.id } });
+    await prisma.donation.delete({ where: { id: graphDonation.id } }); await prisma.project.delete({ where: { id: graphProject.id } }); await prisma.donationCampaign.delete({ where: { id: graphCampaign.id } }); await prisma.donor.delete({ where: { id: graphDonor.id } });
+    const missingMappingDonor = await prisma.donor.create({ data: { name: `Missing Map Donor ${suffix}` } });
+    const missingMappingDonation = await prisma.donation.create({ data: { amount: 1, donorId: missingMappingDonor.id } });
+    try {
+      await applyLegacyTenantBackfill([...mapping, { table: "donations", recordId: missingMappingDonation.id, organizationId: orgA.id, source: "GRAPH" }]);
+      record("MISSING_PARENT_MAPPING_NO_WRITE", false, "Donation with missing parent mapping was accepted.");
+    } catch (error) {
+      const saved = await prisma.donation.findUnique({ where: { id: missingMappingDonation.id } });
+      record("MISSING_PARENT_MAPPING_NO_WRITE", error instanceof LegacyTenantBackfillError && error.code === "UNMAPPED_RECORD" && saved?.organizationId === null, `${error instanceof LegacyTenantBackfillError ? error.code : String(error)};owner=${saved?.organizationId}`);
+    }
+    await prisma.donation.delete({ where: { id: missingMappingDonation.id } }); await prisma.donor.delete({ where: { id: missingMappingDonor.id } });
     const donorA = await prisma.donor.create({ data: { name: `Donor A ${suffix}`, organizationId: orgA.id } });
     const campaignB = await prisma.donationCampaign.create({ data: { title: `Campaign B ${suffix}`, targetAmount: 10, startDate: new Date(), organizationId: orgB.id } });
     const conflictDonation = await prisma.donation.create({ data: { amount: 1, donorId: donorA.id, campaignId: campaignB.id } });

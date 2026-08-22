@@ -140,6 +140,22 @@
 - [x] بناء fixture حقيقية لمنظمتي A/B واختبار mapped/unmapped/orphan/ambiguous/conflict/invalid-reference/no-write/atomicity.
 - [x] إثبات اختبار سلبي يمنع تعيين سجل B إلى A، ثم Prisma/TypeScript/backfill/W02 regression وإصدار التقرير النهائي.
 - [x] التوقف عند `W02-WP4-BACKFILL-CONTRACT-FIX COMPLETE`؛ لا Upgrade Rehearsal ولا WP5 تلقائياً.
+
+## W02-WP4-UPGRADE-REHEARSAL — ONLY SCOPE
+
+- [ ] تدقيق commit `d4092fe` وسلسلة migrations والوثائق وتقارير WP4 وحالة Git قبل أي قاعدة تدقيق.
+- [ ] إنشاء قاعدتي تدقيق مستقلتين pre-WP4 عبر migrations الرسمية حتى WP3، مع fixture A/B وevidence قبل الترقية.
+- [ ] ترقية كل قاعدة عبر migration WP4 الرسمية فقط، والتحقق من schema/migration history/counts/constraints. **BLOCKED: Donation ownership graph cannot be analyzed before mapped parents are applied.**
+- [ ] تشغيل analyze ثم apply لعقد backfill المصلح، وتدقيق ownership/data integrity/A-B isolation والـrollback.
+- [ ] مقارنة rehearsal #1 و#2، وتشغيل regression وحزمة evidence وإصدار قرار WP4 فقط؛ لا WP5.
+
+## W02-WP4-BACKFILL-OWNERSHIP-GRAPH-FIX — ONLY SCOPE
+
+- [x] تدقيق مصدر backfill وعقد Donation/Donor/Campaign/Project والـfixtures والتغييرات غير المثبتة.
+- [x] توثيق ownership graph المبني على manifest الصريح، مع تعريف orphan/conflict وحدود عدم الاستنتاج.
+- [x] تنفيذ analyze graph-aware وترتيب apply parents قبل Donation داخل transaction واحدة.
+- [x] إثبات A/B positive وmissing-parent/conflict/unmapped/reversed-manifest/rollback negative tests.
+- [x] تشغيل Prisma/TypeScript/Harness/regression وتوثيق الإصلاح، ثم التوقف دون Upgrade Rehearsal أو WP5.
 - [ ] تنفيذ وإغلاق WP5: repository/API cutover وRLS مرحلي وnegative direct-query evidence.
 - [ ] تنفيذ وإغلاق WP6: vault/secret records وprivate object storage وsigned URLs وvalidation/quarantine.
 - [ ] تنفيذ وإغلاق WP7: privacy classification/purpose/retention/legal hold/DSAR/export وAudit V2.

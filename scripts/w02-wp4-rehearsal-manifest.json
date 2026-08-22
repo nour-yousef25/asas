@@ -1,0 +1,22 @@
+[
+  {"table":"beneficiaries","recordId":"rehearsal-beneficiary-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"beneficiaries","recordId":"rehearsal-beneficiary-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"donors","recordId":"rehearsal-donor-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"donors","recordId":"rehearsal-donor-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"donation_campaigns","recordId":"rehearsal-campaign-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"donation_campaigns","recordId":"rehearsal-campaign-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"projects","recordId":"rehearsal-project-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"projects","recordId":"rehearsal-project-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"donations","recordId":"rehearsal-donation-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"donations","recordId":"rehearsal-donation-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"news","recordId":"rehearsal-news-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"news","recordId":"rehearsal-news-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"events","recordId":"rehearsal-event-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"events","recordId":"rehearsal-event-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"tasks","recordId":"rehearsal-task-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"tasks","recordId":"rehearsal-task-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"surveys","recordId":"rehearsal-survey-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"surveys","recordId":"rehearsal-survey-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"},
+  {"table":"documents","recordId":"rehearsal-document-a","organizationId":"rehearsal-org-a","source":"W02_AUDIT_FIXTURE"},
+  {"table":"documents","recordId":"rehearsal-document-b","organizationId":"rehearsal-org-b","source":"W02_AUDIT_FIXTURE"}
+]
