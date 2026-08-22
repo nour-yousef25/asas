@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "backupId": "123e4567-e89b-12d3-a456-426614174000",
+  "createdAt": "2026-08-22T00:00:00.000Z",
+  "verifiedAt": "2026-08-22T00:01:00.000Z",
+  "edition": "SAAS",
+  "owner": "ASAS",
+  "location": "fixture://w01-backup-artifact.txt",
+  "checksum": "sha256:37592eff489e498c7ddfa6fe80252ab371ca9bbcb0791146ca82287e7054a0f4",
+  "encryption": { "enabled": true, "owner": "ASAS" },
+  "contents": { "database": true, "storage": false, "configuration": true }
+}
