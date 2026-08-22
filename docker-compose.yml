@@ -2,6 +2,7 @@ services:
   app:
     build:
       context: .
+      target: runner
       args:
         ASAS_RELEASE_VERSION: ${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
         ASAS_RELEASE_CHANNEL: ${ASAS_RELEASE_CHANNEL:-STABLE}
@@ -10,7 +11,8 @@ services:
     environment:
       NODE_ENV: production
       ASAS_EDITION: ${ASAS_EDITION:?Set ASAS_EDITION to SAAS, DEDICATED, or SELF_HOSTED}
-      ASAS_INSTANCE_ROLE: ${ASAS_INSTANCE_ROLE:-APP}
+      # يتوقع التطبيق heartbeat من خدمة worker المنفصلة.
+      ASAS_INSTANCE_ROLE: ${ASAS_APP_INSTANCE_ROLE:-ALL}
       ASAS_RELEASE_VERSION: ${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
       ASAS_RELEASE_CHANNEL: ${ASAS_RELEASE_CHANNEL:-STABLE}
       DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
@@ -23,6 +25,31 @@ services:
       S3_BUCKET: ${S3_BUCKET:?Set S3_BUCKET}
     ports:
       - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      target: worker
+      args:
+        ASAS_RELEASE_VERSION: ${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
+        ASAS_RELEASE_CHANNEL: ${ASAS_RELEASE_CHANNEL:-STABLE}
+    image: asas-platform-worker:${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      ASAS_EDITION: ${ASAS_EDITION:?Set ASAS_EDITION to SAAS, DEDICATED, or SELF_HOSTED}
+      ASAS_INSTANCE_ROLE: WORKER
+      ASAS_RELEASE_VERSION: ${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
+      ASAS_RELEASE_CHANNEL: ${ASAS_RELEASE_CHANNEL:-STABLE}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD}@redis:6379/0
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
+      INTEGRATIONS_ENCRYPTION_KEY: ${INTEGRATIONS_ENCRYPTION_KEY:?Set INTEGRATIONS_ENCRYPTION_KEY}
     depends_on:
       postgres:
         condition: service_healthy

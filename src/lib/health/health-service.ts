@@ -14,6 +14,8 @@ import { getRuntimeConfig, getRuntimeConfigurationSummary, type RuntimeConfig } 
 export type HealthDependencies = {
   database: () => Promise<void>;
   redis: () => Promise<void>;
+  storage?: () => Promise<void>;
+  backup?: () => Promise<void>;
   workerHeartbeat?: () => Promise<boolean>;
   now?: () => Date;
   disk?: () => Promise<{ available: number; total: number }>;
@@ -106,25 +108,28 @@ export async function collectHealthReport(
   }
 
   const storageConfigured = summary.dependencies.storage;
-  checks.push({
-    name: "storage",
-    required: config.NODE_ENV === "production",
-    status: storageConfigured ? "DEGRADED" : "NOT_CONFIGURED",
-    summary: storageConfigured
-      ? "Storage credentials are configured; provider connectivity must be verified by preflight."
-      : "Storage provider is not configured.",
-  });
+  if (!storageConfigured) {
+    checks.push({ name: "storage", required: config.NODE_ENV === "production", status: "NOT_CONFIGURED", summary: "Storage provider is not configured." });
+  } else if (dependencies.storage) {
+    checks.push(await measuredCheck("storage", config.NODE_ENV === "production", "Storage provider read-only probe verified.", dependencies.storage));
+  } else {
+    checks.push({ name: "storage", required: config.NODE_ENV === "production", status: "DEGRADED", summary: "Storage credentials are configured but no runtime provider probe is available." });
+  }
 
   const backupPolicy = getBackupPolicy(config.ASAS_EDITION, environment);
   const lastVerified = environment.ASAS_BACKUP_LAST_VERIFIED_AT;
-  checks.push({
-    name: "backup",
-    required: false,
-    status: lastVerified ? "HEALTHY" : "DEGRADED",
-    summary: lastVerified
-      ? `A verified backup evidence timestamp is configured; retention is ${backupPolicy.retentionDays} days.`
-      : "No verified backup evidence is configured; updates must remain blocked until verification.",
-  });
+  if (dependencies.backup) {
+    checks.push(await measuredCheck("backup", false, `Verified backup manifest is available; retention is ${backupPolicy.retentionDays} days.`, dependencies.backup));
+  } else {
+    checks.push({
+      name: "backup",
+      required: false,
+      status: lastVerified ? "HEALTHY" : "DEGRADED",
+      summary: lastVerified
+        ? `A verified backup evidence timestamp is configured; retention is ${backupPolicy.retentionDays} days.`
+        : "No verified backup evidence is configured; updates must remain blocked until verification.",
+    });
+  }
 
   checks.push(
     {

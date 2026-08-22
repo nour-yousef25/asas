@@ -26,6 +26,12 @@ COPY . .
 # البناء
 RUN npm run build
 
+# عامل الاتصالات مستقل عن web runtime، ويشغل المصدر مع dependencies المثبتة في build stage.
+FROM base AS worker
+ENV NODE_ENV=production
+ENV ASAS_INSTANCE_ROLE=WORKER
+CMD ["npx", "tsx", "src/workers/communications-worker.ts"]
+
 # المرحلة النهائية
 FROM node:20-alpine AS runner
 WORKDIR /app

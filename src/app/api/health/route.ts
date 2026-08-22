@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFile } from "node:fs/promises";
 import { prisma } from "@/lib/db";
 import { collectHealthReport } from "@/lib/health/health-service";
+import { verifyBackupManifest } from "@/lib/lifecycle/backup";
 import { healthHttpStatus } from "@/lib/platform/contracts";
 import { withCorrelationId } from "@/lib/observability/correlation";
 import { logger } from "@/lib/logger";
@@ -18,6 +20,17 @@ export async function GET(request: NextRequest) {
         redis: async () => {
           const { getRedis } = await import("@/lib/redis");
           await getRedis().ping();
+        },
+        storage: async () => {
+          const probeUrl = process.env.ASAS_PREFLIGHT_STORAGE_PROBE_URL;
+          if (!probeUrl) throw new Error("Storage probe URL is not configured.");
+          const response = await fetch(probeUrl, { method: "GET", signal: AbortSignal.timeout(5_000) });
+          if (!response.ok) throw new Error(`Storage probe failed with ${response.status}.`);
+        },
+        backup: async () => {
+          const manifestPath = process.env.ASAS_BACKUP_MANIFEST_PATH;
+          if (!manifestPath) throw new Error("Backup manifest path is not configured.");
+          verifyBackupManifest(JSON.parse(await readFile(manifestPath, "utf8")));
         },
         workerHeartbeat: async () => {
           if (!process.env.REDIS_URL) return false;

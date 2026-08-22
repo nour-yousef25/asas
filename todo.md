@@ -92,3 +92,14 @@
 - [x] تدقيق Foundations الخاصة بالنشر والأمان والتحديث والنسخ الاحتياطي والتحذيرات وفق W01 فقط، دون إصلاح إنتاجي.
 - [x] تصنيف الفجوات والبنود المؤجلة والتحذيرات وقرار `W01 PARTIAL — SPECIFIC ITEMS REMAIN`.
 - [x] إعداد `W01-FINAL-CLOSURE-REPORT` وتحديث الوثائق؛ يبقى commit مراجعة واضح على `w01-foundation` بعد مراجعة النص النهائي.
+
+## W01 FINAL REMAINING ITEMS EXECUTION
+
+- [x] تثبيت بيئة التدقيق المعزولة وخطة Evidence للبنود DEP-001 وDEP-002 وINST-002 وBACKUP-001 وUPDATE-002 دون استخدام Production أو mocks.
+- [x] إنشاء Deployment Support Matrix وTopology وRunbook تتضمن App وWorker وPostgreSQL وRedis وStorage وBackup وScheduler وTLS وEgress عبر Cloud/Dedicated/Self-Hosted.
+- [x] إنشاء DEP-002 Data Inventory وAPI Boundary Contract وRetention Contract وPrivacy/Threat Boundary Note، من دون نقل بيانات فعلية إلى Control Plane.
+- [x] تشغيل Preflight read-only على topology تدقيق حقيقي وتسجيل حالات Node/PostgreSQL/Redis/Storage/Scheduler/Egress/TLS/Resources مع Evidence.
+- [x] إنشاء Backup artifact حقيقي لقاعدة `asas_w01_audit` في audit storage والتحقق من checksum وprovider وencryption/ownership/retention وربط evidence بـHealth.
+- [x] تنفيذ rehearsal تحديث حقيقي داخل audit environment يربط artifact موقّعاً وverified backup وmigration آمنة وHealth وفشل/recovery evidence.
+- [x] إعادة TypeScript وJest وCommunications وProduction Build وRuntime Harness وHealth checks بعد التنفيذ ومنع أي regression.
+- [x] تحديث Closure Matrix وتقرير `W01-FINAL-CLOSURE-REPORT-v2`؛ يبقى commit ورفع النتيجة كخطوة التثبيت الأخيرة دون بدء W02.

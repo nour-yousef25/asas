@@ -29,6 +29,9 @@ const runtimeConfigSchema = z.object({
   S3_ACCESS_KEY: z.string().min(1).optional(),
   S3_SECRET_KEY: z.string().min(1).optional(),
   S3_BUCKET: z.string().min(1).optional(),
+  ASAS_PREFLIGHT_STORAGE_PROBE_URL: z.string().url().optional(),
+  ASAS_PREFLIGHT_EGRESS_URL: z.string().url().optional(),
+  ASAS_BACKUP_MANIFEST_PATH: z.string().min(1).optional(),
   AUTH_SECRET: z.string().min(32).optional(),
   INTEGRATIONS_ENCRYPTION_KEY: z.string().min(1).optional(),
 });

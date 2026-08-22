@@ -64,6 +64,33 @@ describe("W01 health foundation", () => {
 
     expect(report.checks.find((check) => check.name === "worker")).toMatchObject({ status: "DEGRADED" });
   });
+
+  it("reports configured storage and a verified backup dependency as healthy only when their probes succeed", async () => {
+    const report = await collectHealthReport(
+      {
+        database: async () => undefined,
+        redis: async () => undefined,
+        storage: async () => undefined,
+        backup: async () => undefined,
+        disk: async () => ({ available: 90, total: 100 }),
+        memory: () => ({ available: 90, total: 100 }),
+        cpuCount: () => 2,
+      },
+      {
+        ...baseEnvironment,
+        NODE_ENV: "production",
+        S3_ENDPOINT: "https://storage.example.test",
+        S3_ACCESS_KEY: "access-key",
+        S3_SECRET_KEY: "secret-key",
+        S3_BUCKET: "asas",
+        AUTH_SECRET: "a".repeat(32),
+        INTEGRATIONS_ENCRYPTION_KEY: "key",
+      },
+    );
+
+    expect(report.checks.find((check) => check.name === "storage")).toMatchObject({ status: "HEALTHY" });
+    expect(report.checks.find((check) => check.name === "backup")).toMatchObject({ status: "HEALTHY" });
+  });
 });
 
 describe("W01 backup foundation", () => {

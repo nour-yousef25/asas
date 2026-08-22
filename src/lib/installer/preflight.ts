@@ -18,6 +18,9 @@ type PreflightReport = {
 export type PreflightDependencies = {
   database?: () => Promise<void>;
   redis?: () => Promise<void>;
+  storage?: () => Promise<void>;
+  egress?: () => Promise<void>;
+  tls?: () => Promise<void>;
   disk?: () => Promise<{ available: number; total: number }>;
   memory?: () => { available: number; total: number };
   cpuCount?: () => number;
@@ -55,6 +58,33 @@ async function checkRedis(redisUrl: string | undefined, probe?: () => Promise<vo
   }
 }
 
+async function checkHttpProbe(
+  name: "storage" | "egress" | "tls",
+  required: boolean,
+  probeUrl: string | undefined,
+  configured: boolean,
+  probe?: () => Promise<void>,
+): Promise<ComponentCheck> {
+  const dependencyName = name === "storage" ? "Storage provider" : name === "egress" ? "Egress probe URL" : "HTTPS public URL";
+  if (!configured) return { name, required, status: "NOT_CONFIGURED", summary: `${dependencyName} is not configured.` };
+  if (!probeUrl && !probe) {
+    return { name, required, status: "DEGRADED", summary: `${dependencyName} is configured but no read-only probe URL is configured.` };
+  }
+
+  const startedAt = Date.now();
+  try {
+    await (probe ?? (async () => {
+      const response = await fetch(probeUrl!, { method: "GET", signal: AbortSignal.timeout(5_000) });
+      if (!response.ok) throw new Error(`${name} probe returned ${response.status}`);
+    }))();
+    const verifiedName = name === "storage" ? "Storage provider" : name === "egress" ? "Outbound egress" : "TLS public endpoint";
+    return { name, required, status: "HEALTHY", summary: `${verifiedName} read-only probe verified.`, latencyMs: Date.now() - startedAt };
+  } catch {
+    const failedName = name === "storage" ? "Storage provider" : name === "egress" ? "Outbound egress" : "TLS public endpoint";
+    return { name, required, status: "DEGRADED", summary: `${failedName} read-only probe failed.`, latencyMs: Date.now() - startedAt };
+  }
+}
+
 export async function collectPreflightReport(
   environment: Record<string, string | undefined> = process.env,
   dependencies: PreflightDependencies = {},
@@ -80,18 +110,8 @@ export async function collectPreflightReport(
     },
     await checkDatabase(config.DATABASE_URL, true, dependencies.database),
     await checkRedis(config.REDIS_URL, dependencies.redis),
-    {
-      name: "storage",
-      required: config.NODE_ENV === "production",
-      status: storageConfigured ? "DEGRADED" : "NOT_CONFIGURED",
-      summary: storageConfigured ? "Storage is configured; provider connectivity must be verified by provider-specific tooling." : "Storage provider is not configured.",
-    },
-    {
-      name: "tls",
-      required: config.NODE_ENV === "production",
-      status: config.ASAS_PUBLIC_URL?.startsWith("https://") ? "HEALTHY" : "NOT_CONFIGURED",
-      summary: config.ASAS_PUBLIC_URL?.startsWith("https://") ? "HTTPS public URL is configured." : "HTTPS public URL is not configured.",
-    },
+    await checkHttpProbe("storage", config.NODE_ENV === "production", config.ASAS_PREFLIGHT_STORAGE_PROBE_URL, storageConfigured, dependencies.storage),
+    await checkHttpProbe("tls", config.NODE_ENV === "production", config.ASAS_PUBLIC_URL, Boolean(config.ASAS_PUBLIC_URL?.startsWith("https://")), dependencies.tls),
     {
       name: "disk",
       required: true,
@@ -123,7 +143,7 @@ export async function collectPreflightReport(
       summary: config.REDIS_URL ? "Queue is configured; worker heartbeat must be verified separately." : "Durable queue is not configured.",
     },
     { name: "scheduler", required: false, status: "NOT_CONFIGURED", summary: "No scheduler adapter is configured." },
-    { name: "egress", required: false, status: "NOT_CONFIGURED", summary: "No explicit egress probe is configured." },
+    await checkHttpProbe("egress", false, config.ASAS_PREFLIGHT_EGRESS_URL, Boolean(config.ASAS_PREFLIGHT_EGRESS_URL), dependencies.egress),
   ];
 
   try {

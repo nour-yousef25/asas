@@ -71,4 +71,32 @@ describe("W01 installer foundation", () => {
     expect(report.ready).toBe(true);
     expect(report.checks.find((check) => check.name === "node")).toMatchObject({ status: "HEALTHY" });
   });
+
+  it("uses configured read-only storage and egress probes without treating configuration alone as healthy", async () => {
+    const report = await collectPreflightReport(
+      {
+        ...environment,
+        S3_ENDPOINT: "https://storage.example.test",
+        S3_ACCESS_KEY: "access-key",
+        S3_SECRET_KEY: "secret-key",
+        S3_BUCKET: "asas",
+        ASAS_PREFLIGHT_STORAGE_PROBE_URL: "https://storage.example.test/health",
+        ASAS_PREFLIGHT_EGRESS_URL: "https://egress.example.test/health",
+      },
+      {
+        database: async () => undefined,
+        redis: async () => undefined,
+        storage: async () => undefined,
+        egress: async () => undefined,
+        tls: async () => undefined,
+        disk: async () => ({ available: 90, total: 100 }),
+        memory: () => ({ available: 90, total: 100 }),
+        cpuCount: () => 2,
+        permissions: async () => undefined,
+      },
+    );
+
+    expect(report.checks.find((check) => check.name === "storage")).toMatchObject({ status: "HEALTHY" });
+    expect(report.checks.find((check) => check.name === "egress")).toMatchObject({ status: "HEALTHY" });
+  });
 });
