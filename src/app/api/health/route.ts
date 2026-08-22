@@ -19,6 +19,11 @@ export async function GET(request: NextRequest) {
           const { getRedis } = await import("@/lib/redis");
           await getRedis().ping();
         },
+        workerHeartbeat: async () => {
+          if (!process.env.REDIS_URL) return false;
+          const { getRedis } = await import("@/lib/redis");
+          return Boolean(await getRedis().get("asas:health:worker:communications"));
+        },
       }),
     );
 

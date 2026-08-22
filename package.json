@@ -6,7 +6,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
     "test:communications": "tsx scripts/check-communications.mjs",
-    "worker:communications": "tsx src/workers/communications-worker.ts",
+    "worker:communications": "node scripts/communications-worker.mjs",
     "prisma:local": "node scripts/prisma-local.mjs",
     "db:migration:from-current": "node scripts/create-migration-from-current.mjs",
     "start": "NODE_ENV=production next start",

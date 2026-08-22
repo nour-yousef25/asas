@@ -1,5 +1,7 @@
 import { JobsOptions, Queue, Worker } from "bullmq";
 import { getRedis } from "@/lib/redis";
+import { logger } from "@/lib/logger";
+import { publishPlanById } from "@/lib/communications/publisher";
 
 function getQueueConnection() {
   return getRedis();
@@ -111,5 +113,20 @@ export function createNotificationWorker() {
       return { success: true };
     },
     { connection: getQueueConnection(), concurrency: 10 }
+  );
+}
+
+export function createPublicationWorker() {
+  if (!process.env.REDIS_URL) {
+    throw new Error("REDIS_URL مطلوب لتشغيل عامل النشر في الخلفية.");
+  }
+
+  return new Worker<PublicationJobData>(
+    "communications-publication",
+    async (job) => {
+      logger.info("Processing publication job", { jobId: job.id, publicationPlanId: job.data.publicationPlanId });
+      return publishPlanById(job.data.publicationPlanId);
+    },
+    { connection: getQueueConnection(), concurrency: 3 },
   );
 }

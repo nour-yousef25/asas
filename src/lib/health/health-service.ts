@@ -14,6 +14,7 @@ import { getRuntimeConfig, getRuntimeConfigurationSummary, type RuntimeConfig } 
 export type HealthDependencies = {
   database: () => Promise<void>;
   redis: () => Promise<void>;
+  workerHeartbeat?: () => Promise<boolean>;
   now?: () => Date;
   disk?: () => Promise<{ available: number; total: number }>;
   memory?: () => { available: number; total: number };
@@ -82,6 +83,8 @@ export async function collectHealthReport(
   const disk = dependencies.disk ?? systemDisk;
   const memory = dependencies.memory ?? (() => ({ available: freemem(), total: totalmem() }));
   const cpuCount = dependencies.cpuCount ?? availableParallelism;
+  const workerEnabled = config.ASAS_INSTANCE_ROLE === "WORKER" || config.ASAS_INSTANCE_ROLE === "ALL";
+  const workerHeartbeatCurrent = workerEnabled ? (await dependencies.workerHeartbeat?.()) ?? false : false;
   const checks: ComponentCheck[] = [
     { name: "application", required: true, status: "HEALTHY", summary: "Application process is responding." },
     await measuredCheck("database", true, "Database connection verified.", dependencies.database),
@@ -127,10 +130,12 @@ export async function collectHealthReport(
     {
       name: "worker",
       required: false,
-      status: config.ASAS_INSTANCE_ROLE === "WORKER" || config.ASAS_INSTANCE_ROLE === "ALL" ? "DEGRADED" : "NOT_CONFIGURED",
+      status: workerEnabled ? (workerHeartbeatCurrent ? "HEALTHY" : "DEGRADED") : "NOT_CONFIGURED",
       summary:
-        config.ASAS_INSTANCE_ROLE === "WORKER" || config.ASAS_INSTANCE_ROLE === "ALL"
-          ? "Worker role is enabled but no verified heartbeat adapter is configured."
+        workerEnabled
+          ? workerHeartbeatCurrent
+            ? "Worker heartbeat is current."
+            : "Worker role is enabled but no current heartbeat was found."
           : "Worker role is not enabled for this runtime.",
     },
     { name: "scheduler", required: false, status: "NOT_CONFIGURED", summary: "No scheduler adapter is configured." },

@@ -48,6 +48,22 @@ describe("W01 health foundation", () => {
     expect(report.checks.find((check) => check.name === "redis")).toMatchObject({ status: "DEGRADED" });
     expect(report.checks.find((check) => check.name === "queue")).toMatchObject({ status: "DEGRADED" });
   });
+
+  it("requires a current heartbeat before reporting an enabled worker as healthy", async () => {
+    const report = await collectHealthReport(
+      {
+        database: async () => undefined,
+        redis: async () => undefined,
+        workerHeartbeat: async () => false,
+        disk: async () => ({ available: 90, total: 100 }),
+        memory: () => ({ available: 90, total: 100 }),
+        cpuCount: () => 2,
+      },
+      { ...baseEnvironment, ASAS_INSTANCE_ROLE: "ALL", REDIS_URL: "redis://localhost:6379" },
+    );
+
+    expect(report.checks.find((check) => check.name === "worker")).toMatchObject({ status: "DEGRADED" });
+  });
 });
 
 describe("W01 backup foundation", () => {
