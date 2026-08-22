@@ -1,53 +1,57 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: asas_postgres
+  app:
+    build:
+      context: .
+      args:
+        ASAS_RELEASE_VERSION: ${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
+        ASAS_RELEASE_CHANNEL: ${ASAS_RELEASE_CHANNEL:-STABLE}
+    image: asas-platform:${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-asas}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-asas123}
-      POSTGRES_DB: ${POSTGRES_DB:-asas_db}
+      NODE_ENV: production
+      ASAS_EDITION: ${ASAS_EDITION:?Set ASAS_EDITION to SAAS, DEDICATED, or SELF_HOSTED}
+      ASAS_INSTANCE_ROLE: ${ASAS_INSTANCE_ROLE:-APP}
+      ASAS_RELEASE_VERSION: ${ASAS_RELEASE_VERSION:?Set ASAS_RELEASE_VERSION in your environment}
+      ASAS_RELEASE_CHANNEL: ${ASAS_RELEASE_CHANNEL:-STABLE}
+      DATABASE_URL: postgresql://${POSTGRES_USER:?Set POSTGRES_USER}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:?Set POSTGRES_DB}
+      REDIS_URL: redis://:${REDIS_PASSWORD:?Set REDIS_PASSWORD}@redis:6379/0
+      AUTH_SECRET: ${AUTH_SECRET:?Set AUTH_SECRET}
+      INTEGRATIONS_ENCRYPTION_KEY: ${INTEGRATIONS_ENCRYPTION_KEY:?Set INTEGRATIONS_ENCRYPTION_KEY}
+      S3_ENDPOINT: ${S3_ENDPOINT:?Set S3_ENDPOINT}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:?Set S3_ACCESS_KEY}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:?Set S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:?Set S3_BUCKET}
     ports:
-      - "5432:5432"
+      - "${APP_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-asas}"]
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: asas_redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: ["redis-server", "--requirepass", "${REDIS_PASSWORD:?Set REDIS_PASSWORD}"]
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  minio:
-    image: minio/minio:latest
-    container_name: asas_minio
-    restart: unless-stopped
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin123}
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - minio_data:/data
-    command: server /data --console-address ":9001"
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$$REDIS_PASSWORD\" ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -55,4 +59,3 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  minio_data:
