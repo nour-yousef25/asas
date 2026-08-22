@@ -170,6 +170,22 @@
 - [x] تنفيذ clean/upgrade rehearsal وtwo-org graph/isolation/conflict/unmapped/orphan/rollback evidence على PostgreSQL تدقيقي.
 - [x] تشغيل Prisma/TypeScript/Jest/communications/build وإصدار التقرير؛ ثم التوقف دون Financial Reports/Exports أو WP5-4/WP6.
 
+## W02-WP5-3 — REPORTS / EXPORTS TENANT CUTOVER ONLY
+
+- [ ] جرد report/export routes/services/generators/Prisma/raw SQL/jobs/cache/files/permissions وتثبيت scope/ownership blockers. **BLOCKED: report.export purpose/approval/classification contract is absent.**
+- [ ] توثيق ownership maps وpolicy contract وreport/export service design ومصفوفة الاختبارات.
+- [ ] تحويل Financial وDonation reports إلى TenantContext → Policy → Service/Repository → scoped Prisma، بلا Prisma مباشر حساس في route.
+- [ ] فرض export-before-delivery boundary وaudit مختزل، واختبار A/B/IDOR/filter/search/pagination/aggregate/export/safety runtime.
+- [ ] تشغيل migration/seed إن لزم وregression، وإصدار closure matrix والتقرير النهائي؛ لا RLS أو Queue/Cache/Storage/WP5-4/WP6.
+
+## W02-WP5-3 — REPORT GENERATION TENANT CUTOVER ONLY
+
+- [x] إنشاء Report Generation inventory يثبت ownership لكل Financial/Donations/Beneficiary report ويصرح بأن export/download/storage خارج النطاق.
+- [x] توثيق TenantContext + `report.generate` policy + report service design ومصفوفة negative tests؛ لا `report.export`.
+- [x] تحويل Financial وDonations generation إلى scoped repository/service وإزالة PDF/file generation وPrisma المباشر من report route.
+- [x] تنفيذ two-org runtime harness: aggregates/filters/date/search/pagination/direct ID/spoofing/policy/audit بلا mocks.
+- [x] تشغيل regression وإصدار Closure Matrix وReport Generation final report؛ التوقف مع `REPORT EXPORT = DEFERRED` وعدم بدء WP5-4/WP6/WP7.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
