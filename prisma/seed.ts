@@ -1,10 +1,17 @@
 import { PrismaClient, Role, NewsStatus, MembershipType, MembershipStatus, DonationStatus, ProjectStatus, CampaignStatus, TaskStatus, TaskPriority, EventStatus, SurveyStatus, KPIStatus, KPITargetEntity, EvaluationStatus, DonorType, DonorStatus, VolunteerStatus, BeneficiaryStatus, Gender, PaymentStatus, MeetingStatus, AttendanceStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { W02_PERMISSION_CATALOG } from "../src/lib/permission-catalog";
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log("🌱 بدء بذر البيانات التجريبية...");
+
+  await Promise.all(W02_PERMISSION_CATALOG.map(([name, module, action]) => prisma.permission.upsert({
+    where: { name },
+    update: { module, action },
+    create: { name, module, action, description: `W02 semantic permission: ${name}` },
+  })));
 
   // تنظيف البيانات بالترتيب الصحيح (الأبناء قبل الآباء)
   await prisma.userPermission.deleteMany();
@@ -114,6 +121,41 @@ async function main() {
   await prisma.user.updateMany({
     where: { id: { in: [adminUser.id, editorUser.id] } },
     data: { activeOrganizationId: organization.id },
+  });
+  const [adminMembership, editorMembership] = await Promise.all([
+    prisma.organizationMembership.findUniqueOrThrow({ where: { organizationId_userId: { organizationId: organization.id, userId: adminUser.id } } }),
+    prisma.organizationMembership.findUniqueOrThrow({ where: { organizationId_userId: { organizationId: organization.id, userId: editorUser.id } } }),
+  ]);
+  const [adminRole, editorRole] = await Promise.all([
+    prisma.organizationRole.create({ data: { organizationId: organization.id, name: "ORG_ADMIN", isSystem: true } }),
+    prisma.organizationRole.create({ data: { organizationId: organization.id, name: "CONTENT_EDITOR", isSystem: true } }),
+  ]);
+  const rolePermissions = {
+    ORG_ADMIN: ["identity.membership.read", "identity.membership.manage", "identity.role.manage", "audit.read", "settings.read", "settings.manage", "support.access.approve", "support.access.revoke", "report.generate", "report.export"],
+    CONTENT_EDITOR: ["settings.read", "report.generate"],
+  } as const;
+  const seededPermissions = await prisma.permission.findMany({ where: { name: { in: [...rolePermissions.ORG_ADMIN, ...rolePermissions.CONTENT_EDITOR] } } });
+  const permissionIds = new Map(seededPermissions.map((permission) => [permission.name, permission.id]));
+  const permissionId = (name: string) => {
+    const id = permissionIds.get(name);
+    if (!id) throw new Error(`Missing seeded permission: ${name}`);
+    return id;
+  };
+  await prisma.organizationRolePermission.createMany({
+    data: [
+      ...rolePermissions.ORG_ADMIN.map((name) => ({ organizationRoleId: adminRole.id, permissionId: permissionId(name) })),
+      ...rolePermissions.CONTENT_EDITOR.map((name) => ({ organizationRoleId: editorRole.id, permissionId: permissionId(name) })),
+    ],
+  });
+  await prisma.membershipRole.createMany({
+    data: [
+      { membershipId: adminMembership.id, organizationRoleId: adminRole.id },
+      { membershipId: editorMembership.id, organizationRoleId: editorRole.id },
+    ],
+  });
+  await prisma.organizationMembership.updateMany({
+    where: { id: { in: [adminMembership.id, editorMembership.id] } },
+    data: { policyVersion: { increment: 1 } },
   });
 
   // ===== أعضاء مجلس الإدارة =====

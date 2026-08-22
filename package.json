@@ -7,6 +7,7 @@
     "build": "node scripts/build.mjs",
     "test:communications": "tsx scripts/check-communications.mjs",
     "test:w02:wp1": "tsx scripts/w02-wp1-tenant-context-integration.ts",
+    "test:w02:wp2": "tsx scripts/w02-wp2-policy-integration.ts",
     "test:w01:redis": "tsx scripts/w01-redis-bullmq-integration.ts",
     "worker:communications": "node scripts/communications-worker.mjs",
     "prisma:local": "node scripts/prisma-local.mjs",

@@ -47,6 +47,8 @@ model User {
   boardMemberships        BoardMember[]
   organizationMemberships OrganizationMembership[]
   activeOrganization      Organization?             @relation("ActiveOrganization", fields: [activeOrganizationId], references: [id], onDelete: SetNull)
+  supportAccessRequests   PlatformSupportAccess[]   @relation("SupportRequester")
+  supportAccessApprovals  PlatformSupportAccess[]   @relation("SupportApprover")
   connectedChannels       ConnectedChannel[]         @relation("ChannelCreator")
   communicationContent    CommunicationContentItem[] @relation("CommunicationContentCreator")
   communicationCampaigns  CommunicationCampaign[]    @relation("CommunicationCampaignOwner")
@@ -80,6 +82,8 @@ model Permission {
   action      String
 
   users UserPermission[]
+  organizationRolePermissions OrganizationRolePermission[]
+  membershipPermissionOverrides MembershipPermissionOverride[]
 
   @@map("permissions")
 }
@@ -128,6 +132,8 @@ model Organization {
   settings               SiteSetting[]
   memberships            OrganizationMembership[]
   activeUsers            User[]                     @relation("ActiveOrganization")
+  roles                  OrganizationRole[]
+  supportAccessRequests  PlatformSupportAccess[]
   connectedChannels      ConnectedChannel[]
   brandVoiceKit          BrandVoiceKit?
   communicationCampaigns CommunicationCampaign[]
@@ -158,12 +164,107 @@ model OrganizationMembership {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationRoles MembershipRole[]
+  permissionOverrides MembershipPermissionOverride[]
 
   @@unique([organizationId, userId])
   @@index([userId, isActive])
   @@index([organizationId, isActive])
   @@index([organizationId, userId, policyVersion])
   @@map("organization_memberships")
+}
+
+enum PermissionEffect {
+  ALLOW
+  DENY
+}
+
+enum PlatformSupportAccessStatus {
+  REQUESTED
+  APPROVED
+  REVOKED
+  EXPIRED
+}
+
+model OrganizationRole {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  description    String?
+  isSystem       Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  permissions  OrganizationRolePermission[]
+  memberships  MembershipRole[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isSystem])
+  @@map("organization_roles")
+}
+
+model OrganizationRolePermission {
+  organizationRoleId String
+  permissionId       String
+  effect             PermissionEffect @default(ALLOW)
+
+  organizationRole OrganizationRole @relation(fields: [organizationRoleId], references: [id], onDelete: Cascade)
+  permission       Permission       @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([organizationRoleId, permissionId])
+  @@map("organization_role_permissions")
+}
+
+model MembershipRole {
+  membershipId       String
+  organizationRoleId String
+  assignedAt         DateTime @default(now())
+
+  membership       OrganizationMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  organizationRole OrganizationRole       @relation(fields: [organizationRoleId], references: [id], onDelete: Cascade)
+
+  @@id([membershipId, organizationRoleId])
+  @@map("membership_roles")
+}
+
+model MembershipPermissionOverride {
+  membershipId  String
+  permissionId  String
+  effect        PermissionEffect
+  reason        String
+  expiresAt     DateTime?
+  createdAt     DateTime @default(now())
+
+  membership OrganizationMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  permission Permission             @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([membershipId, permissionId])
+  @@index([membershipId, expiresAt])
+  @@map("membership_permission_overrides")
+}
+
+model PlatformSupportAccess {
+  id             String                      @id @default(cuid())
+  organizationId String
+  requesterId    String
+  approverId     String?
+  status         PlatformSupportAccessStatus @default(REQUESTED)
+  reason         String
+  purposeCode    String
+  readOnly       Boolean                     @default(true)
+  expiresAt      DateTime
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+  revokedAt      DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requester    User         @relation("SupportRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  approver     User?        @relation("SupportApprover", fields: [approverId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, expiresAt])
+  @@index([requesterId, status])
+  @@map("platform_support_access")
 }
 
 enum SocialPlatform {
