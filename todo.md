@@ -213,6 +213,15 @@
 - [x] إعداد threat model ومصفوفة قبول تشمل direct app-role PostgreSQL A↔B context-switch denial وجميع حالات forgery/replay/stale/failure.
 - [x] إصدار Decision Record وحزمة التصميم ثم التوقف؛ لا migration أو RLS أو role/credential/Vault/Redis/Storage/runtime changes حتى اعتماد design contract.
 
+## W02 — RLS CONTEXT ATTESTATION IMPLEMENTATION-READY CONTRACT
+
+- [x] تثبيت baseline وفحص المراجع الإلزامية والمصدر الفعلي وverifier capabilities الحالية دون تغيير runtime أو قاعدة البيانات.
+- [x] تقييم verifier adapter مدعوم وتوثيق PoC معزول فقط إن كان آمناً؛ إصدار blocker فوري إن لم يوجد adapter مناسب.
+- [x] تثبيت Issuer/Capability/Binding/Session-Membership-Policy/SECURITY DEFINER/RLS contracts مع fail-closed behavior.
+- [x] إعداد Support Matrix وSecurity Harness Plan وperformance/operational budgets وimplementation/rollback sequence.
+- [x] تحديث Decision Package وإصدار `W02 RLS CONTEXT ATTESTATION — IMPLEMENTATION READINESS REPORT` ثم التوقف قبل RLS implementation.
+- [ ] **BLOCKED — STOP CONDITION 1:** لا يوجد verifier adapter asymmetric public-key مدعوم ومثبت في PostgreSQL الحالية وقابل للتشغيل بصورة موحدة عبر Cloud/Dedicated/Self-Hosted؛ لا RLS implementation قبل قرار تقنية/استضافة مستقل.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.

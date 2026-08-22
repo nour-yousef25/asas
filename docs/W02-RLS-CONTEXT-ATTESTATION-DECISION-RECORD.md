@@ -18,6 +18,10 @@
 | `W02-RLS-CONTEXT-ATTESTATION-TEST-MATRIX.md` | acceptance tests الإلزامية |
 | هذا الملف | decision gate والقرارات المفتوحة |
 
+## Verifier Gate Outcome
+
+فحص البيئة الحالية انتهى إلى `BLOCKED`: لا يوجد adapter asymmetric public-key مثبت ومدعوم لكل أنماط الاستضافة. راجع `W02-RLS-CONTEXT-ATTESTATION-VERIFIER-DECISION.md` و`W02-RLS-CONTEXT-ATTESTATION-BLOCKER.md`. لا ينتقل القرار إلى implementation.
+
 ## Open Decisions Requiring Approval Before Implementation
 
 1. اختيار public-key verification adapter المحدد في PostgreSQL وإثبات أنه لا يفتح trusted-language أو extension bypass.
