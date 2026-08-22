@@ -1,3 +1,9 @@
+/**
+ * W01 Observability — سجل JSON مهيكل ومنقح، مع correlation ID عند توفره.
+ */
+import { getCorrelationId } from "@/lib/observability/correlation";
+import { redactForLog } from "@/lib/observability/redaction";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogEntry {
@@ -19,18 +25,25 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 const currentLevel = LOG_LEVELS[(process.env.LOG_LEVEL as LogLevel) || "info"];
 
 function formatEntry(entry: LogEntry): string {
-  const parts = [
-    `[${entry.timestamp}]`,
-    `[${entry.level.toUpperCase()}]`,
-    entry.context ? `[${entry.context}]` : "",
-    entry.message,
-  ].filter(Boolean);
+  const error = entry.error
+    ? {
+        name: entry.error.name,
+        message: entry.error.message,
+        ...(process.env.NODE_ENV === "development" && entry.error.stack ? { stack: entry.error.stack } : {}),
+      }
+    : undefined;
 
-  if (entry.data) {
-    parts.push(JSON.stringify(entry.data));
-  }
-
-  return parts.join(" ");
+  return JSON.stringify(
+    redactForLog({
+      timestamp: entry.timestamp,
+      level: entry.level,
+      context: entry.context,
+      message: entry.message,
+      correlationId: getCorrelationId(),
+      data: entry.data,
+      error,
+    }),
+  );
 }
 
 function createLogger(context?: string) {
@@ -85,9 +98,6 @@ function createLogger(context?: string) {
           error: error instanceof Error ? error : undefined,
         };
         console.error(formatEntry(entry));
-        if (error instanceof Error && error.stack) {
-          console.error(error.stack);
-        }
       }
     },
 
