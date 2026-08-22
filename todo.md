@@ -186,6 +186,17 @@
 - [x] تنفيذ two-org runtime harness: aggregates/filters/date/search/pagination/direct ID/spoofing/policy/audit بلا mocks.
 - [x] تشغيل regression وإصدار Closure Matrix وReport Generation final report؛ التوقف مع `REPORT EXPORT = DEFERRED` وعدم بدء WP5-4/WP6/WP7.
 
+## W02 — CONTINUOUS TENANT-SAFETY EXECUTION
+
+- [ ] تثبيت baseline وقراءة العقود والتقارير والمراجع المعتمدة قبل أي تعديل.
+- [ ] جرد ownership وتصميم وتنفيذ وإثبات RLS / Database Tenant Isolation على PostgreSQL تدقيقي فقط.
+- [ ] **BLOCKED:** لا يبدأ RLS الكامل قبل تحويل runtime/API للعائلات المتبقية وتحديد permissions المالية وتهيئة app role/transaction context؛ راجع `W02-RLS-DATABASE-BLOCKER.md`.
+- [ ] جرد وتنفيذ وإثبات Queue / Redis / Cache Tenant Isolation على Redis وPostgreSQL تدقيقيين فقط.
+- [ ] جرد وتنفيذ وإثبات Storage Tenant Isolation وprivate delivery على storage تدقيقي فقط.
+- [ ] جرد وتنفيذ وإثبات Users / Memberships Tenant Isolation دون global bypass أو client tenant authority.
+- [ ] جرد وتنفيذ وإثبات Root Documents API Tenant Cutover وربطه بحدود storage ownership.
+- [ ] إصدار Consolidated Closure لهذه الحزمة فقط دون إعلان W02 كاملاً، مع التوقف عند blocker معماري أو أمني حقيقي.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
