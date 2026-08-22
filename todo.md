@@ -206,6 +206,13 @@
 - [ ] **SECURITY GATE:** إثبات أن app role لا يستطيع تبديل `app.organization_id` داخل transaction إلى tenant آخر؛ لا يعلن RLS Wave 1 قبل binding آمن أو blocker معماري موثق.
 - [ ] **BLOCKED:** اختبار context-switch الفعلي فشل؛ يلزم اعتماد DB context attestation أو per-tenant DB role contract قبل استئناف RLS.
 
+## W02 — RLS CONTEXT ATTESTATION ARCHITECTURE DESIGN ONLY
+
+- [x] مقارنة آليات capability/signature وsecurity-definer verifier وtransaction-bound registration وتثبيت حدود الثقة وشروط fail-closed.
+- [x] إعداد ADR وعقد رسمي يعرّف attestation/issuer/key/nonce/transaction binding/revocation/key rotation/pooling عبر Cloud وDedicated وSelf-Hosted.
+- [x] إعداد threat model ومصفوفة قبول تشمل direct app-role PostgreSQL A↔B context-switch denial وجميع حالات forgery/replay/stale/failure.
+- [x] إصدار Decision Record وحزمة التصميم ثم التوقف؛ لا migration أو RLS أو role/credential/Vault/Redis/Storage/runtime changes حتى اعتماد design contract.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
