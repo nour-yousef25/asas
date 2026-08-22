@@ -1,5 +1,5 @@
 import { JobsOptions, Queue, Worker } from "bullmq";
-import { getRedis } from "@/lib/redis";
+import { createWorkerRedisConnection, getRedis } from "@/lib/redis";
 import { logger } from "@/lib/logger";
 import { publishPlanById } from "@/lib/communications/publisher";
 
@@ -90,7 +90,7 @@ export function createSMSWorker() {
 
       return { sent, failed, total: phones.length };
     },
-    { connection: getQueueConnection(), concurrency: 5 }
+    { connection: createWorkerRedisConnection(), concurrency: 5 }
   );
 }
 
@@ -112,7 +112,7 @@ export function createNotificationWorker() {
 
       return { success: true };
     },
-    { connection: getQueueConnection(), concurrency: 10 }
+    { connection: createWorkerRedisConnection(), concurrency: 10 }
   );
 }
 
@@ -127,6 +127,6 @@ export function createPublicationWorker() {
       logger.info("Processing publication job", { jobId: job.id, publicationPlanId: job.data.publicationPlanId });
       return publishPlanById(job.data.publicationPlanId);
     },
-    { connection: getQueueConnection(), concurrency: 3 },
+    { connection: createWorkerRedisConnection(), concurrency: 3 },
   );
 }

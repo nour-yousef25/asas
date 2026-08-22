@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local W01 runtime integration evidence; reports reference it without committing environment-specific data.
+/artifacts/w01/*.json

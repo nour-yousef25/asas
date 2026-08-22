@@ -30,6 +30,7 @@ async function publishHeartbeat() {
 async function shutdown(signal: string) {
   logger.info("Stopping communications worker", { signal });
   if (heartbeatTimer) clearInterval(heartbeatTimer);
+  await getRedis().del(HEARTBEAT_KEY);
   await worker.close();
   await closeRedis();
   process.exit(0);
