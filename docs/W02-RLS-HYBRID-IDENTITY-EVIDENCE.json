@@ -1,0 +1,284 @@
+{
+  "status": "PASS_DATABASE_IDENTITY_PROOF_PARTIAL",
+  "startedAt": "2026-08-22T21:23:19.749Z",
+  "finishedAt": "2026-08-22T21:23:22.131Z",
+  "databaseAlias": "asas_hybrid_identity_audit_1787433799749_57169",
+  "postgresVersion": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+  "principals": {
+    "tenantA": "hybrid_tenant_a_1787433799749_57169",
+    "tenantB": "hybrid_tenant_b_1787433799749_57169",
+    "unauthenticated": "hybrid_unauth_1787433799749_57169"
+  },
+  "results": [
+    {
+      "id": "T01",
+      "expected": "no tenant login has no table access",
+      "actual": "ERROR:  permission denied for schema proof\nLINE 1: ...t_if_assigned()::text, 'none'); SELECT label FROM proof.reco...\n                                                             ^",
+      "pass": true,
+      "detail": "principal=hybrid_unauth_1787433799749_57169 pid=57222 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:20.269Z"
+    },
+    {
+      "id": "T02",
+      "expected": "tenant A reads only A",
+      "actual": "hybrid_tenant_a_1787433799749_57169|record-a",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57224 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.318Z"
+    },
+    {
+      "id": "T03",
+      "expected": "tenant B reads only B",
+      "actual": "hybrid_tenant_b_1787433799749_57169|record-b",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57226 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.366Z"
+    },
+    {
+      "id": "T04",
+      "expected": "tenant A cannot read B",
+      "actual": "0",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57228 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.415Z"
+    },
+    {
+      "id": "T05",
+      "expected": "tenant B cannot read A",
+      "actual": "0",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57230 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.466Z"
+    },
+    {
+      "id": "T06",
+      "expected": "A SET ROLE B denied",
+      "actual": "ERROR:  permission denied to set role \"hybrid_tenant_b_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57232 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:20.513Z"
+    },
+    {
+      "id": "T07",
+      "expected": "B SET ROLE A denied",
+      "actual": "ERROR:  permission denied to set role \"hybrid_tenant_a_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57234 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:20.561Z"
+    },
+    {
+      "id": "T08",
+      "expected": "A SET SESSION AUTHORIZATION B denied",
+      "actual": "ERROR:  permission denied to set session authorization \"hybrid_tenant_b_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57236 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:20.609Z"
+    },
+    {
+      "id": "T08B",
+      "expected": "B SET SESSION AUTHORIZATION A denied",
+      "actual": "ERROR:  permission denied to set session authorization \"hybrid_tenant_a_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57238 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:20.657Z"
+    },
+    {
+      "id": "T09",
+      "expected": "A raw GUC has no effect",
+      "actual": "BEGIN\n22222222-2222-4222-8222-222222222222\n0\nROLLBACK",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57240 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.706Z"
+    },
+    {
+      "id": "T10",
+      "expected": "B raw GUC has no effect",
+      "actual": "BEGIN\n11111111-1111-4111-8111-111111111111\n0\nROLLBACK",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57242 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.754Z"
+    },
+    {
+      "id": "T11",
+      "expected": "forged B identifier does not change A",
+      "actual": "hybrid_tenant_a_1787433799749_57169|11111111-1111-4111-8111-111111111111|22222222-2222-4222-8222-222222222222",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57244 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.802Z"
+    },
+    {
+      "id": "T12",
+      "expected": "forged A identifier does not change B",
+      "actual": "hybrid_tenant_b_1787433799749_57169|22222222-2222-4222-8222-222222222222|11111111-1111-4111-8111-111111111111",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57246 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.849Z"
+    },
+    {
+      "id": "T32",
+      "expected": "A to B switch attempts inside one transaction deny",
+      "actual": "BEGIN\nSAVEPOINT\nROLLBACK\nSAVEPOINT\nROLLBACK\n22222222-2222-4222-8222-222222222222\n0\nROLLBACK",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57248 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.899Z"
+    },
+    {
+      "id": "T33",
+      "expected": "B to A switch attempts inside one transaction deny",
+      "actual": "BEGIN\nSAVEPOINT\nROLLBACK\nSAVEPOINT\nROLLBACK\n11111111-1111-4111-8111-111111111111\n0\nROLLBACK",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_b_1787433799749_57169 pid=57250 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.948Z"
+    },
+    {
+      "id": "T13",
+      "expected": "A update B affects zero",
+      "actual": "UPDATE 0\nrecord-a",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57252 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:20.996Z"
+    },
+    {
+      "id": "T14",
+      "expected": "A delete B affects zero",
+      "actual": "DELETE 0\n1",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57254 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:21.047Z"
+    },
+    {
+      "id": "T15",
+      "expected": "A insert B denied",
+      "actual": "ERROR:  new row violates row-level security policy for table \"records\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57256 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:21.096Z"
+    },
+    {
+      "id": "T16",
+      "expected": "A child B denied",
+      "actual": "0",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57258 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:21.147Z"
+    },
+    {
+      "id": "T17",
+      "expected": "A direct join cannot expose B",
+      "actual": "0",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57260 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:21.196Z"
+    },
+    {
+      "id": "T18",
+      "expected": "rollback has no identity leakage",
+      "actual": "BEGIN\n22222222-2222-4222-8222-222222222222\nROLLBACK\nhybrid_tenant_a_1787433799749_57169|11111111-1111-4111-8111-111111111111",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57262 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:21.245Z"
+    },
+    {
+      "id": "T19",
+      "expected": "DISCARD ALL preserves same tenant principal",
+      "actual": "hybrid_tenant_a_1787433799749_57169\nDISCARD ALL\nhybrid_tenant_a_1787433799749_57169",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57264 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:21.293Z"
+    },
+    {
+      "id": "T20",
+      "expected": "concurrent A/B have no cross-talk",
+      "actual": "hybrid_tenant_a_1787433799749_57169:hybrid_tenant_a_1787433799749_57169|record-a,hybrid_tenant_b_1787433799749_57169:hybrid_tenant_b_1787433799749_57169|record-b,hybrid_tenant_a_1787433799749_57169:hybrid_tenant_a_1787433799749_57169|record-a,hybrid_tenant_b_1787433799749_57169:hybrid_tenant_b_1787433799749_57169|record-b,hybrid_tenant_a_1787433799749_57169:hybrid_tenant_a_1787433799749_57169|record-a,hybrid_tenant_b_1787433799749_57169:hybrid_tenant_b_1787433799749_57169|record-b,hybrid_tenant_a_1787433799749_57169:hybrid_tenant_a_1787433799749_57169|record-a,hybrid_tenant_b_1787433799749_57169:hybrid_tenant_b_1787433799749_57169|record-b",
+      "pass": true,
+      "detail": "pid=57273 xid=none,pid=57274 xid=none,pid=57275 xid=none,pid=57276 xid=none,pid=57277 xid=none,pid=57279 xid=none,pid=57278 xid=none,pid=57280 xid=none",
+      "timestamp": "2026-08-22T21:23:21.378Z"
+    },
+    {
+      "id": "T21",
+      "expected": "revoked A credential/login denied",
+      "actual": "psql: error: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  role \"hybrid_tenant_a_1787433799749_57169\" is not permitted to log in",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=unknown xid=none exit=2",
+      "timestamp": "2026-08-22T21:23:21.465Z"
+    },
+    {
+      "id": "T22",
+      "expected": "expired A credential denied",
+      "actual": "psql: error: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  password authentication failed for user \"hybrid_tenant_a_1787433799749_57169\"\nconnection to server at \"127.0.0.1\", port 5432 failed: FATAL:  password authentication failed for user \"hybrid_tenant_a_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=unknown xid=none exit=2",
+      "timestamp": "2026-08-22T21:23:21.611Z"
+    },
+    {
+      "id": "T24",
+      "expected": "credential authority failure denies",
+      "actual": "psql: error: connection to server at \"127.0.0.1\", port 5432 failed: FATAL:  password authentication failed for user \"hybrid_tenant_a_1787433799749_57169\"\nconnection to server at \"127.0.0.1\", port 5432 failed: FATAL:  password authentication failed for user \"hybrid_tenant_a_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=unknown xid=none exit=2",
+      "timestamp": "2026-08-22T21:23:21.708Z"
+    },
+    {
+      "id": "T25",
+      "expected": "wrong tenant role requested through SQL denied",
+      "actual": "ERROR:  permission denied to set role \"hybrid_tenant_b_1787433799749_57169\"",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57306 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:21.757Z"
+    },
+    {
+      "id": "T26",
+      "expected": "A cannot provision a tenant B principal",
+      "actual": "ERROR:  permission denied to create role\nDETAIL:  Only roles with the CREATEROLE attribute may create roles.",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57308 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:21.807Z"
+    },
+    {
+      "id": "T27",
+      "expected": "A cannot use B role authority",
+      "actual": "f|f",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57310 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:21.857Z"
+    },
+    {
+      "id": "T28",
+      "expected": "A cannot modify security map",
+      "actual": "ERROR:  permission denied for table role_organization",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57312 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:21.904Z"
+    },
+    {
+      "id": "T29",
+      "expected": "A cannot modify memberships",
+      "actual": "ERROR:  permission denied to grant role \"hybrid_tenant_b_1787433799749_57169\"\nDETAIL:  Only roles with the ADMIN option on role \"hybrid_tenant_b_1787433799749_57169\" may grant this role.",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57314 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:21.951Z"
+    },
+    {
+      "id": "T30",
+      "expected": "A cannot create privileged role",
+      "actual": "ERROR:  permission denied to create role\nDETAIL:  Only roles with the CREATEROLE attribute may create roles.",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57316 xid=none exit=1",
+      "timestamp": "2026-08-22T21:23:21.998Z"
+    },
+    {
+      "id": "T31",
+      "expected": "revoked secure role mapping denies A data",
+      "actual": "0",
+      "pass": true,
+      "detail": "principal=hybrid_tenant_a_1787433799749_57169 pid=57322 xid=none exit=0",
+      "timestamp": "2026-08-22T21:23:22.089Z"
+    }
+  ],
+  "hardFailures": [],
+  "limitations": [
+    "T20 runs direct concurrent PostgreSQL connections in the harness but is summarized separately by the runner.",
+    "T23 broker unavailable is a contract gate only because no broker service is implemented in this proof.",
+    "Session, membership, and policy staleness require a broker/session authority integration and remain unproven."
+  ]
+}

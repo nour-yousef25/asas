@@ -231,11 +231,11 @@
 
 ## W02 — RLS HYBRID TENANT-BOUND IDENTITY PROOF
 
-- [ ] تثبيت baseline نظيف وإنشاء branch proof ومراجعة W02 contracts وPostgreSQL security posture read-only.
-- [ ] إصدار role/broker/credential/security mapping contracts بلا secrets وبلا تغيير Production.
-- [ ] إنشاء Audit-only PostgreSQL database وtenant A/B principals وfixtures وRLS proof surface المحدود.
-- [ ] تشغيل negative proof الحقيقي: direct SQL وA↔B transaction switch وGUC/payload/CRUD/children/join/rollback/pooling/concurrency.
-- [ ] تشغيل revocation/rotation/failure proof وتوثيق evidence لكل حالة ثم إصدار readiness أو blocker؛ لا RLS Wave 1 أو نطاقات أخرى.
+- [x] تثبيت baseline نظيف وإنشاء branch proof ومراجعة W02 contracts وPostgreSQL security posture read-only.
+- [x] إصدار role/broker/credential/security mapping contracts بلا secrets وبلا تغيير Production.
+- [x] إنشاء Audit-only PostgreSQL database وtenant A/B principals وfixtures وRLS proof surface المحدود.
+- [x] تشغيل negative proof الحقيقي: direct SQL وA↔B transaction switch وGUC/payload/CRUD/children/join/rollback/pooling/concurrency.
+- [x] تشغيل revocation/rotation/failure proof وتوثيق evidence لكل حالة ثم إصدار readiness أو blocker؛ لا RLS Wave 1 أو نطاقات أخرى. **RESULT: database identity PASS; broker/session/policy proof absent; Wave 1 BLOCKED.**
 
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
