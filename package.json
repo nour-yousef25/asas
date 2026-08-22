@@ -11,6 +11,7 @@
     "db:migration:from-current": "node scripts/create-migration-from-current.mjs",
     "start": "NODE_ENV=production next start",
     "check:env": "node scripts/check-env.mjs",
+    "backup:verify": "node scripts/verify-backup-manifest.mjs",
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",

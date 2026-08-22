@@ -38,7 +38,7 @@ export function deriveOverallHealth(checks: ComponentCheck[]): OverallHealthStat
   if (
     checks.some(
       (check) =>
-        (check.required && check.status === "DEGRADED") ||
+        check.status === "DEGRADED" ||
         (!check.required && check.status === "UNAVAILABLE"),
     )
   ) {
