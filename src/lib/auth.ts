@@ -7,10 +7,11 @@ import { NextResponse } from "next/server";
 
 declare module "next-auth" {
   interface Session {
-    user: { id: string; role: Role } & DefaultSession["user"];
+    user: { id: string; role: Role; authVersion: number } & DefaultSession["user"];
   }
   interface User {
     role: Role;
+    authVersion: number;
   }
 }
 
@@ -60,6 +61,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           name: user.name,
           email: user.email || undefined,
           role: user.role,
+          authVersion: user.authVersion,
         };
       },
     }),
@@ -67,15 +69,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        (token as { id?: string; role?: Role }).id = user.id!;
-        (token as { id?: string; role?: Role }).role = user.role;
+        (token as { id?: string; role?: Role; authVersion?: number }).id = user.id!;
+        (token as { id?: string; role?: Role; authVersion?: number }).role = user.role;
+        (token as { id?: string; role?: Role; authVersion?: number }).authVersion = user.authVersion;
       }
       return token;
     },
     async session({ session, token }) {
-      const authToken = token as { id?: string; role?: Role };
+      const authToken = token as { id?: string; role?: Role; authVersion?: number };
       session.user.id = authToken.id ?? "";
       session.user.role = authToken.role ?? Role.MEMBER;
+      session.user.authVersion = authToken.authVersion ?? 0;
       return session;
     },
   },

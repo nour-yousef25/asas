@@ -21,6 +21,8 @@ model User {
   avatar        String?
   role          Role      @default(MEMBER)
   isActive      Boolean   @default(true)
+  authVersion   Int       @default(1)
+  activeOrganizationId String?
   lastLoginAt   DateTime?
   emailVerified DateTime?
   phoneVerified DateTime?
@@ -44,6 +46,7 @@ model User {
   createdProjects         Project[]                  @relation("ProjectCreator")
   boardMemberships        BoardMember[]
   organizationMemberships OrganizationMembership[]
+  activeOrganization      Organization?             @relation("ActiveOrganization", fields: [activeOrganizationId], references: [id], onDelete: SetNull)
   connectedChannels       ConnectedChannel[]         @relation("ChannelCreator")
   communicationContent    CommunicationContentItem[] @relation("CommunicationContentCreator")
   communicationCampaigns  CommunicationCampaign[]    @relation("CommunicationCampaignOwner")
@@ -124,6 +127,7 @@ model Organization {
   financialAccounts      FinancialAccount[]
   settings               SiteSetting[]
   memberships            OrganizationMembership[]
+  activeUsers            User[]                     @relation("ActiveOrganization")
   connectedChannels      ConnectedChannel[]
   brandVoiceKit          BrandVoiceKit?
   communicationCampaigns CommunicationCampaign[]
@@ -147,6 +151,8 @@ model OrganizationMembership {
   role           Role     @default(MEMBER)
   isDefault      Boolean  @default(false)
   isActive       Boolean  @default(true)
+  policyVersion  Int      @default(1)
+  revokedAt      DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
@@ -156,6 +162,7 @@ model OrganizationMembership {
   @@unique([organizationId, userId])
   @@index([userId, isActive])
   @@index([organizationId, isActive])
+  @@index([organizationId, userId, policyVersion])
   @@map("organization_memberships")
 }
 

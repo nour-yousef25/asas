@@ -123,3 +123,18 @@
 - [x] إنشاء W02-WP0 Threat Assumptions وDecision Register وGate Matrix، وتسجيل عدم وجود conflict مانع بصيغة موثقة.
 - [x] إنشاء W02-WP0 Final Report؛ التحقق النهائي من عدم تغير أي production artifact وcommit/رفع الفرع في المرحلة التالية.
 - [x] إنشاء commit واحد `docs(w02): establish wp0 architecture gates and decision contracts` ورفع `w02-wp0` دون دمج أو بدء WP1.
+
+## W02 FULL EXECUTION — WP1 TO WP10
+
+- [x] قراءة أمر التنفيذ كاملاً وتثبيت فرع التنفيذ وbaseline وقواعد migrations وblocker protocol قبل WP1.
+- [x] تنفيذ وإغلاق WP1: Tenant Context وauthorization kernel وmembership/session/policy versioning وcross-tenant evidence.
+- [ ] تنفيذ وإغلاق WP2: IAM data model وpolicy evaluator وSoD وplatform support boundary.
+- [ ] تنفيذ وإغلاق WP3: instance identity وidentity audit وtamper/duplicate/restore evidence.
+- [ ] تنفيذ وإغلاق WP4: migrations توسعية وlegacy backfill auditable على قواعد تدقيق clean/upgrade فقط.
+- [ ] تنفيذ وإغلاق WP5: repository/API cutover وRLS مرحلي وnegative direct-query evidence.
+- [ ] تنفيذ وإغلاق WP6: vault/secret records وprivate object storage وsigned URLs وvalidation/quarantine.
+- [ ] تنفيذ وإغلاق WP7: privacy classification/purpose/retention/legal hold/DSAR/export وAudit V2.
+- [ ] تنفيذ وإغلاق WP8: signed license certificate verification وactivation core وreplay/rate-limit evidence.
+- [ ] تنفيذ وإغلاق WP9: provider-neutral IdP framework وsandbox/production/state/mapping/rotation contracts.
+- [ ] تنفيذ وإغلاق WP10: hardening وfull migration/runtime rehearsal وW02 closure matrix/release gates.
+- [ ] التوقف عند أي conflict أو security/data/migration blocker وتسجيل CONFLICT ID والدليل والأثر والقرار المطلوب؛ لا يبدأ W03.

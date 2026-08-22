@@ -105,6 +105,17 @@ async function main() {
     },
   });
 
+  await prisma.organizationMembership.createMany({
+    data: [
+      { organizationId: organization.id, userId: adminUser.id, role: Role.SUPER_ADMIN, isDefault: true },
+      { organizationId: organization.id, userId: editorUser.id, role: Role.EDITOR, isDefault: true },
+    ],
+  });
+  await prisma.user.updateMany({
+    where: { id: { in: [adminUser.id, editorUser.id] } },
+    data: { activeOrganizationId: organization.id },
+  });
+
   // ===== أعضاء مجلس الإدارة =====
   await prisma.boardMember.create({
     data: {
@@ -235,6 +246,10 @@ async function main() {
       role: Role.MEMBER,
     },
   });
+  await prisma.organizationMembership.create({
+    data: { organizationId: organization.id, userId: memberUser.id, role: Role.MEMBER, isDefault: true },
+  });
+  await prisma.user.update({ where: { id: memberUser.id }, data: { activeOrganizationId: organization.id } });
 
   await prisma.member.create({
     data: {
@@ -270,6 +285,10 @@ async function main() {
       role: Role.VOLUNTEER,
     },
   });
+  await prisma.organizationMembership.create({
+    data: { organizationId: organization.id, userId: volunteerUser.id, role: Role.VOLUNTEER, isDefault: true },
+  });
+  await prisma.user.update({ where: { id: volunteerUser.id }, data: { activeOrganizationId: organization.id } });
 
   const volunteer = await prisma.volunteer.upsert({
     where: { userId: volunteerUser.id },
