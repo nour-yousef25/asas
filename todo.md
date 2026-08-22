@@ -103,3 +103,13 @@
 - [x] تنفيذ rehearsal تحديث حقيقي داخل audit environment يربط artifact موقّعاً وverified backup وmigration آمنة وHealth وفشل/recovery evidence.
 - [x] إعادة TypeScript وJest وCommunications وProduction Build وRuntime Harness وHealth checks بعد التنفيذ ومنع أي regression.
 - [x] تحديث Closure Matrix وتقرير `W01-FINAL-CLOSURE-REPORT-v2`؛ يبقى commit ورفع النتيجة كخطوة التثبيت الأخيرة دون بدء W02.
+
+## W02 PRE-EXECUTION ARCHITECTURAL READINESS REVIEW — ANALYSIS ONLY
+
+- [x] تثبيت baseline `w01-foundation` عند `308ae82` وتأكيد حظر تعديل production code وdatabase/migrations/packages/environment وبدء W02.
+- [x] استخراج جميع Features W02 من Master Feature Inventory مع الحالة والاعتماديات والمخاطر ومعايير القبول والاختبارات واعتماديات الموجات.
+- [x] تدقيق المصدر والـPrisma schema والمigrations والاختبارات الحالية لكل Tenant/IAM/Identity/Privacy/Vault/Storage/Audit/Configuration/Installation relevant surface.
+- [x] تصميم قرار Organization/Tenant وعقود Membership/Role/Permission/Context وtenant isolation دفاعي متعدد الطبقات.
+- [x] تصميم IAM وIdP framework وPrivacy/Vault/Storage Security/Audit contracts، مع توافق Cloud/Dedicated/Self-Hosted وعدم تنفيذ Nafath أو Licensing.
+- [x] مراجعة قاعدة البيانات وRedis/Queue/Cache وتهديدات الأمن وخطة الاختبارات وعقود migration المستقبلية من دون تعديل schema أو migration.
+- [x] كتابة `W02-PRE-EXECUTION-ARCHITECTURAL-READINESS-REPORT` و`W02-IMPLEMENTATION-PLAN` وقرار `READY TO START W02 SUBJECT TO PLAN ACCEPTANCE` فقط؛ لا يبدأ W02 قبل اعتماد المالك.
