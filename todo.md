@@ -197,6 +197,15 @@
 - [ ] جرد وتنفيذ وإثبات Root Documents API Tenant Cutover وربطه بحدود storage ownership.
 - [ ] إصدار Consolidated Closure لهذه الحزمة فقط دون إعلان W02 كاملاً، مع التوقف عند blocker معماري أو أمني حقيقي.
 
+## W02 — RLS WAVE 1: BENEFICIARY
+
+- [ ] تثبيت Beneficiary/BeneficiaryDocument scope ومسارات runtime ذات الصلاحيات القائمة (`beneficiary.*`) واستبعاد Financial family حتى اكتمال Invoice/child ownership.
+- [ ] تنفيذ transaction-local tenant context وapp-role contract وسياسات RLS forward-only لعائلة Beneficiary.
+- [ ] تحويل كل runtime path ضمن Wave 1 إلى service/repository transaction-scoped بلا Prisma مباشر حساس.
+- [ ] إثبات PostgreSQL A/B: no-context deny وcross-tenant CRUD/joins/rollback، ثم regression وإغلاق wave فقط.
+- [ ] **SECURITY GATE:** إثبات أن app role لا يستطيع تبديل `app.organization_id` داخل transaction إلى tenant آخر؛ لا يعلن RLS Wave 1 قبل binding آمن أو blocker معماري موثق.
+- [ ] **BLOCKED:** اختبار context-switch الفعلي فشل؛ يلزم اعتماد DB context attestation أو per-tenant DB role contract قبل استئناف RLS.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
