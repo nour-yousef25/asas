@@ -82,3 +82,13 @@
 - [x] إعادة إنشاء قاعدة التدقيق وتشغيل الـHarness من بيئة Redis وPrisma نظيفة.
 - [x] إثبات توقف heartbeat وHealth worker غير السليم وRedis failure والإغلاق الرشيق وعدم تسرب عمليات.
 - [x] إنشاء تقرير Harness Failure Detection/Cleanup Fix؛ يبقى إنشاء commit ورفع الفرع ضمن مرحلة التثبيت التالية.
+
+## W01 FINAL CLOSURE REVIEW
+
+- [x] تثبيت baseline `w01-foundation` عند `4db083b` وتأكيد نطاق W01 فقط؛ الشجرة تحتوي توثيق المراجعة الجاري فقط.
+- [x] استخراج معايير قبول W01 الرسمية من Master Blueprint وFeature Inventory وADRs وWave Mapping دون إدخال نطاق موجات لاحقة.
+- [x] استكمال Closure Matrix بالحقول: ID، requirement، acceptance criteria، evidence، test، status، risk، remaining gap، decision.
+- [x] تدقيق Evidence الفعلي للـruntime وRedis وQueue وWorker وHealth، وتوثيق `EXPECTED AUDIT-ENVIRONMENT DEGRADATION`.
+- [x] تدقيق Foundations الخاصة بالنشر والأمان والتحديث والنسخ الاحتياطي والتحذيرات وفق W01 فقط، دون إصلاح إنتاجي.
+- [x] تصنيف الفجوات والبنود المؤجلة والتحذيرات وقرار `W01 PARTIAL — SPECIFIC ITEMS REMAIN`.
+- [x] إعداد `W01-FINAL-CLOSURE-REPORT` وتحديث الوثائق؛ يبقى commit مراجعة واضح على `w01-foundation` بعد مراجعة النص النهائي.
