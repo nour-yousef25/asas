@@ -132,6 +132,13 @@
 - [x] تنفيذ وإغلاق WP3: instance identity وidentity audit وtamper/duplicate/restore evidence.
 - [ ] تنفيذ وإغلاق WP4: migrations توسعية وlegacy backfill auditable على قواعد تدقيق clean/upgrade فقط. **BLOCKED: upgrade rehearsal missing.**
 
+## W02-WP5-0 — CLEAN BASELINE + CURRENT SCOPE INVENTORY ONLY
+
+- [x] إنشاء `w02-wp5-restart` من `e3968d3` في worktree نظيف، والتحقق أن `w02-wp5` القديم لم يتغير.
+- [x] جرد repositories/routes/actions/Prisma/jobs/queues/cache/reports/exports/files/schedules والعمليات غير scoped.
+- [x] تسجيل baseline Prisma/TypeScript/Jest/communications/build من دون تعديل environment أو packages أو migrations.
+- [x] إعداد Inventory Report وScope Matrix وتسجيل blockers؛ التوقف دون WP5-1.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
