@@ -113,3 +113,13 @@
 - [x] تصميم IAM وIdP framework وPrivacy/Vault/Storage Security/Audit contracts، مع توافق Cloud/Dedicated/Self-Hosted وعدم تنفيذ Nafath أو Licensing.
 - [x] مراجعة قاعدة البيانات وRedis/Queue/Cache وتهديدات الأمن وخطة الاختبارات وعقود migration المستقبلية من دون تعديل schema أو migration.
 - [x] كتابة `W02-PRE-EXECUTION-ARCHITECTURAL-READINESS-REPORT` و`W02-IMPLEMENTATION-PLAN` وقرار `READY TO START W02 SUBJECT TO PLAN ACCEPTANCE` فقط؛ لا يبدأ W02 قبل اعتماد المالك.
+
+## W02-WP0 ARCHITECTURE GATES — DOCUMENTATION ONLY
+
+- [x] إنشاء فرع `w02-wp0` من baseline `w01-foundation` وتأكيد أن النطاق وثائقي فقط بلا runtime/schema/migration/database/package/environment changes.
+- [x] إغلاق وتوثيق ADRs للبوابات G-W02-1 إلى G-W02-8، مع Decision وOwner وDependencies وSecurity/Operational/Migration Impact وTest Requirement وEvidence.
+- [x] إنشاء W02-WP0 Permission Catalog رسمي يحدد purpose/resource/action/risk/SoD/default role/audit لكل permission مطلوب.
+- [x] إنشاء W02-WP0 Legacy Mapping Spec لكل root aggregate، مع mapping source وambiguity/orphan stop conditions وbackfill success criteria وcomposite uniqueness.
+- [x] إنشاء W02-WP0 Threat Assumptions وDecision Register وGate Matrix، وتسجيل عدم وجود conflict مانع بصيغة موثقة.
+- [x] إنشاء W02-WP0 Final Report؛ التحقق النهائي من عدم تغير أي production artifact وcommit/رفع الفرع في المرحلة التالية.
+- [x] إنشاء commit واحد `docs(w02): establish wp0 architecture gates and decision contracts` ورفع `w02-wp0` دون دمج أو بدء WP1.
