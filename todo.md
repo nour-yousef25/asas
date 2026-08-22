@@ -229,6 +229,14 @@
 - [x] تصميم Role/Connection/Pooling/RLS waves/legacy/DR/operational/test/performance contracts دون أي implementation.
 - [x] إصدار Alternative Architecture Decision وFinal Report وتحديث W02 Decision Register وDependency Map وRLS Blocker Register ثم التوقف.
 
+## W02 — RLS HYBRID TENANT-BOUND IDENTITY PROOF
+
+- [ ] تثبيت baseline نظيف وإنشاء branch proof ومراجعة W02 contracts وPostgreSQL security posture read-only.
+- [ ] إصدار role/broker/credential/security mapping contracts بلا secrets وبلا تغيير Production.
+- [ ] إنشاء Audit-only PostgreSQL database وtenant A/B principals وfixtures وRLS proof surface المحدود.
+- [ ] تشغيل negative proof الحقيقي: direct SQL وA↔B transaction switch وGUC/payload/CRUD/children/join/rollback/pooling/concurrency.
+- [ ] تشغيل revocation/rotation/failure proof وتوثيق evidence لكل حالة ثم إصدار readiness أو blocker؛ لا RLS Wave 1 أو نطاقات أخرى.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
