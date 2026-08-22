@@ -142,6 +142,16 @@ model Organization {
   webhookEvents          WebhookEvent[]
   metricSnapshots        MetricSnapshot[]
   auditLogs              AuditLog[]
+  beneficiaries          Beneficiary[]
+  donors                 Donor[]
+  donations              Donation[]
+  donationCampaigns      DonationCampaign[]
+  projects               Project[]
+  newsItems              News[]
+  events                 Event[]
+  tasks                  Task[]
+  surveys                Survey[]
+  documents              Document[]
 
   @@map("organizations")
 }
@@ -778,6 +788,7 @@ model VolunteerActivity {
 
 model Beneficiary {
   id            String            @id @default(cuid())
+  organizationId String?
   userId        String?           @unique
   name          String
   nationalId    String?
@@ -793,14 +804,16 @@ model Beneficiary {
   status        BeneficiaryStatus @default(ACTIVE)
   notes         String?
 
-  user      User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
-  documents BeneficiaryDocument[]
+  user         User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization Organization?          @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  documents    BeneficiaryDocument[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([nationalId])
   @@index([status])
+  @@index([organizationId])
   @@map("beneficiaries")
 }
 
@@ -835,6 +848,7 @@ model BeneficiaryDocument {
 
 model Donor {
   id             String      @id @default(cuid())
+  organizationId String?
   userId         String?     @unique
   name           String
   phone          String?
@@ -847,6 +861,7 @@ model Donor {
   status         DonorStatus @default(ACTIVE)
 
   user               User?                @relation(fields: [userId], references: [id], onDelete: SetNull)
+  organization       Organization?        @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   communications     DonorCommunication[]
   donations          Donation[]
   recurringDonations RecurringDonation[]
@@ -854,6 +869,7 @@ model Donor {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("donors")
 }
 
@@ -891,6 +907,7 @@ model DonorCommunication {
 
 model Donation {
   id            String         @id @default(cuid())
+  organizationId String?
   donorId       String?
   campaignId    String?
   projectId     String?
@@ -905,10 +922,11 @@ model Donation {
   guestPhone    String?
   guestEmail    String?
 
-  donor    Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
-  campaign DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  project  Project?          @relation(fields: [projectId], references: [id])
-  invoice  Invoice?
+  donor        Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  organization Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  project      Project?          @relation(fields: [projectId], references: [id])
+  invoice      Invoice?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -917,6 +935,7 @@ model Donation {
   @@index([campaignId])
   @@index([projectId])
   @@index([status])
+  @@index([organizationId])
   @@map("donations")
 }
 
@@ -929,6 +948,7 @@ enum DonationStatus {
 
 model DonationCampaign {
   id              String         @id @default(cuid())
+  organizationId  String?
   title           String
   description     String?
   imageUrl        String?
@@ -939,11 +959,13 @@ model DonationCampaign {
   status          CampaignStatus @default(ACTIVE)
   displayOrder    Int            @default(0)
 
-  donations Donation[]
+  donations    Donation[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("donation_campaigns")
 }
 
@@ -1012,6 +1034,7 @@ enum InvoiceStatus {
 
 model Project {
   id                String        @id @default(cuid())
+  organizationId    String?
   title             String
   description       String?
   imageUrl          String?
@@ -1025,12 +1048,14 @@ model Project {
   location          String?
   creatorId         String?
 
-  creator   User?      @relation("ProjectCreator", fields: [creatorId], references: [id])
-  donations Donation[]
+  creator      User?         @relation("ProjectCreator", fields: [creatorId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  donations    Donation[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("projects")
 }
 
@@ -1047,8 +1072,9 @@ enum ProjectStatus {
 // ============================================
 
 model News {
-  id          String     @id @default(cuid())
-  title       String
+  id             String     @id @default(cuid())
+  organizationId String?
+  title          String
   slug        String     @unique
   content     String     @db.Text
   summary     String?
@@ -1058,11 +1084,13 @@ model News {
   publishedAt DateTime?
   authorId    String?
 
-  author User? @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  author       User?         @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("news")
 }
 
@@ -1181,8 +1209,9 @@ model Announcement {
 // ============================================
 
 model Event {
-  id          String      @id @default(cuid())
-  title       String
+  id             String      @id @default(cuid())
+  organizationId String?
+  title          String
   description String?
   imageUrl    String?
   startDate   DateTime
@@ -1191,11 +1220,13 @@ model Event {
   capacity    Int?
   status      EventStatus @default(UPCOMING)
 
-  attendees EventAttendance[]
+  attendees    EventAttendance[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("events")
 }
 
@@ -1236,10 +1267,11 @@ enum AttendanceStatus {
 // ============================================
 
 model Task {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  status      TaskStatus   @default(TODO)
+  id             String       @id @default(cuid())
+  organizationId String?
+  title          String
+  description    String?
+  status         TaskStatus   @default(TODO)
   priority    TaskPriority @default(MEDIUM)
   dueDate     DateTime?
   completedAt DateTime?
@@ -1248,8 +1280,9 @@ model Task {
   department  String?
   tags        String[]
 
-  creator  User? @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
-  assignee User  @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
+  creator      User?         @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  assignee     User          @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
 
   comments    TaskComment[]
   attachments TaskAttachment[]
@@ -1259,6 +1292,7 @@ model Task {
 
   @@index([assigneeId, status])
   @@index([status])
+  @@index([organizationId])
   @@map("tasks")
 }
 
@@ -1313,20 +1347,23 @@ model TaskAttachment {
 // ============================================
 
 model Survey {
-  id          String       @id @default(cuid())
-  title       String
-  description String?
-  status      SurveyStatus @default(DRAFT)
+  id             String       @id @default(cuid())
+  organizationId String?
+  title          String
+  description    String?
+  status         SurveyStatus @default(DRAFT)
   startDate   DateTime?
   endDate     DateTime?
   isPublic    Boolean      @default(false)
 
-  questions SurveyQuestion[]
-  responses SurveyResponse[]
+  questions    SurveyQuestion[]
+  responses    SurveyResponse[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("surveys")
 }
 
@@ -1869,8 +1906,9 @@ model ReportShare {
 // ============================================
 
 model Document {
-  id            String  @id @default(cuid())
-  name          String
+  id             String  @id @default(cuid())
+  organizationId String?
+  name           String
   fileUrl       String
   fileType      String
   size          Int
@@ -1879,5 +1917,8 @@ model Document {
   relatedId     String?
   uploadedById  String?
 
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId])
   @@map("documents")
 }

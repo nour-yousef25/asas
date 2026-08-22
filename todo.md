@@ -130,7 +130,7 @@
 - [x] تنفيذ وإغلاق WP1: Tenant Context وauthorization kernel وmembership/session/policy versioning وcross-tenant evidence.
 - [x] تنفيذ وإغلاق WP2: IAM data model وpolicy evaluator وSoD وplatform support boundary.
 - [x] تنفيذ وإغلاق WP3: instance identity وidentity audit وtamper/duplicate/restore evidence.
-- [ ] تنفيذ وإغلاق WP4: migrations توسعية وlegacy backfill auditable على قواعد تدقيق clean/upgrade فقط.
+- [x] تنفيذ وإغلاق WP4: migrations توسعية وlegacy backfill auditable على قواعد تدقيق clean/upgrade فقط.
 - [ ] تنفيذ وإغلاق WP5: repository/API cutover وRLS مرحلي وnegative direct-query evidence.
 - [ ] تنفيذ وإغلاق WP6: vault/secret records وprivate object storage وsigned URLs وvalidation/quarantine.
 - [ ] تنفيذ وإغلاق WP7: privacy classification/purpose/retention/legal hold/DSAR/export وAudit V2.
