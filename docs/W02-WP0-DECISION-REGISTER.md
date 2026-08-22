@@ -14,9 +14,14 @@
 | D-W02-10 | private object key `org/{organizationId}/{classification}/{fileId}`، URL=5 min، quarantine | ACCEPTED | ADR-008 | StoredObject/migration/scanner لاحقة | Ops/Security يقران provider/scanner capability |
 | D-W02-11 | Nafath لا ينفذ في W02؛ IdP framework base فقط | ACCEPTED | W02 plan/Wave Mapping | يمنع connector scope creep | W15 requires separate authorization |
 | D-W02-12 | لا conflict مانع بين W01 baseline وW02 readiness/source/schema | VERIFIED FOR WP0 | Readiness report/current source audit | WP0 can close documentation gates | re-evaluate before WP1 migration design |
+| D-W02-13 | raw GUC لا يصلح tenant identity؛ يقترح Hybrid Tenant-Bound Login Principal مع broker منفصل | PROPOSED — BLOCKED | direct A→B failure; Alternative Architecture Decision | يخلف فقط هوية RLS في ADR-002 بعد اعتماد صريح | Architecture/Security/Product يعتمدون broker, role lifecycle, provider matrix |
 
 ## Conflict Register
 
 لا يوجد `CONFLICT` مانع يمنع إغلاق WP0. توجد فجوات تنفيذية معروفة وليست تعارضاً: global legacy aggregates، global role middleware، raw storage URLs، queue payloads غير scoped، وغياب RLS/vault/privacy/activation runtime. هذه هي دوافع WP1–WP10، وليست أسباباً لتغيير WP0 إلى PASS runtime أو لتعديل الكود الآن.
+
+### CONFLICT-W02-RLS-01
+
+`ADR-W02-002` يذكر `set_config/current_setting` كهوية RLS، بينما دليل PostgreSQL المباشر أثبت context switch بدور التطبيق داخل transaction. لا يلغى ADR تلقائياً؛ لكن section الهوية فيه **محجوب** إلى أن يعتمد successor ADR بديل tenant-bound login/broker أو قرار آخر يحقق الاختبارات السلبية. لا يبدأ تنفيذ RLS على النص الحالي.
 
 إذا ظهر تعارض لاحق بين source/schema والمواصفات، ينشأ سجل بالشكل: `CONFLICT ID`، Evidence، Impact، Recommended Decision، Required Approval، ويتوقف الـwork package المتأثر إلى حين موافقة المالك.

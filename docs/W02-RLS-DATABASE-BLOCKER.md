@@ -33,3 +33,7 @@
 ## Recommended Option
 
 الخيار 1 هو الأدنى خطراً والأكثر اتساقاً مع ADR: ابدأ Donation أو Beneficiary wave ذات policy مثبتة، وأنشئ app role وtransaction guard وRLS evidence حقيقية ثم استمر wave-by-wave. لكن هذا **يغير تعريف إغلاق Phase A** من RLS schema-wide إلى RLS phased rollout؛ يلزم اعتماد معماري صريح لأن التفويض الحالي يطلب RLS كاملاً أولاً ولا يسمح بالانتقال إلى Phase B قبل إغلاقه.
+
+## Alternative Architecture Update
+
+تمت إضافة `W02-RLS-ALTERNATIVE-ARCHITECTURE-DECISION.md`. يقترح Hybrid Tenant-Bound Login Principal بدلاً من raw GUC، لكنه **PROPOSED/BLOCKED** حتى تعتمد Architecture/Security/Product broker منفصلة، lifecycle لأدوار/credentials tenant، ومصفوفة استضافة واختبارات PostgreSQL حقيقية. لا يزيل هذا الـblocker ولا يسمح بالتنفيذ.

@@ -222,6 +222,13 @@
 - [x] تحديث Decision Package وإصدار `W02 RLS CONTEXT ATTESTATION — IMPLEMENTATION READINESS REPORT` ثم التوقف قبل RLS implementation.
 - [ ] **BLOCKED — STOP CONDITION 1:** لا يوجد verifier adapter asymmetric public-key مدعوم ومثبت في PostgreSQL الحالية وقابل للتشغيل بصورة موحدة عبر Cloud/Dedicated/Self-Hosted؛ لا RLS implementation قبل قرار تقنية/استضافة مستقل.
 
+## W02 — RLS ALTERNATIVE ARCHITECTURE DECISION ONLY
+
+- [x] فحص baseline والمراجع وsource الحالي وتثبيت أن raw GUC/extension غير المدعوم لا يعودان كحلول.
+- [x] مقارنة Per-Tenant Roles/Connections وPostgreSQL-native identity وHybrid database-enforced architecture عبر الأمن والتوسع والتشغيل والاستضافة.
+- [x] تصميم Role/Connection/Pooling/RLS waves/legacy/DR/operational/test/performance contracts دون أي implementation.
+- [x] إصدار Alternative Architecture Decision وFinal Report وتحديث W02 Decision Register وDependency Map وRLS Blocker Register ثم التوقف.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
