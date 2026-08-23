@@ -1,0 +1,132 @@
+{
+  "status": "PASS_CONTROL_PLANE_LEDGER",
+  "startedAt": "2026-08-23T19:51:29.871Z",
+  "finishedAt": "2026-08-23T19:51:31.088Z",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "CP01",
+    "CP02",
+    "CP03",
+    "CP04",
+    "CP05",
+    "CP06",
+    "CP07",
+    "CP08",
+    "CP09",
+    "CP10",
+    "CP11",
+    "CP12"
+  ],
+  "evidence": [
+    {
+      "id": "CP01",
+      "expected": "all proof principals are NOSUPERUSER and NOBYPASSRLS",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP02",
+      "expected": "tenant A/B can write/read only their own FORCE RLS tenant rows",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP03",
+      "expected": "tenant A cannot write B audit row and tenant B cannot write A audit row",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP04",
+      "expected": "control writer records A and B operation metadata in an append-only ledger",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP05",
+      "expected": "control writer has no tenant data read or mutation privilege",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP06",
+      "expected": "tenant principals have no control ledger access and cannot forge control-plane events",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP07",
+      "expected": "ledger is immutable: control writer cannot update or delete an event",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP08",
+      "expected": "correlation and manifest digest survive A/B workflows without tenant payload or secret values",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP09",
+      "expected": "a failed operation emits STARTED then FAILED and never emits SUCCEEDED",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP10",
+      "expected": "replay and duplicate phase for an operation/attempt are rejected by immutable uniqueness",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP11",
+      "expected": "transaction failure cannot create false success and partial STARTED state is observable",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "CP12",
+      "expected": "mandatory audit proof leaves no bypass, raw GUC, global tenant credential, cleanup residue, or unredacted evidence",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalTenantCredentialUsed": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

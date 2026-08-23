@@ -1,0 +1,21 @@
+{
+  "status": "PASS_CONTROL_PLANE_LEDGER_EVIDENCE",
+  "mandatoryIds": ["CP01", "CP02", "CP03", "CP04", "CP05", "CP06", "CP07", "CP08", "CP09", "CP10", "CP11", "CP12"],
+  "executedIds": ["CP01", "CP02", "CP03", "CP04", "CP05", "CP06", "CP07", "CP08", "CP09", "CP10", "CP11", "CP12"],
+  "failures": {
+    "status": false,
+    "mandatoryIdsMismatch": false,
+    "missing": [],
+    "duplicate": [],
+    "unknown": [],
+    "failedRows": [],
+    "hardFailures": [],
+    "cleanup": false,
+    "hygiene": false,
+    "credentialsPersisted": false,
+    "productionTouched": false,
+    "rawGuc": false,
+    "globalCredential": false,
+    "bypass": false
+  }
+}
