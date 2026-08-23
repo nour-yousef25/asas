@@ -23,3 +23,20 @@
 ## شروط القرار التالي
 
 لا تبدأ RLS لأي عائلة مالية قبل أن يثبت نطاق cutover التالي، كحد أدنى، أن كل UI/API/repository المحدد يستخدم server `TenantContext` وصلاحية semantic و`TenantBoundPrismaExecutor`، وأن foreign read/write/create relation تُرفض وتدقق، وأن nullable/unmapped roots لا تصلح لpolicy تخمينية. لا يستبدل scope هذا Queue/Storage/Document/IAM أو DR/HA/provider production gates.
+
+## صلاحية الأدلة السابقة
+
+ملف `scripts/w02-wp5-2-financial-isolation.ts` وثّق سابقاً predicates للعزل، لكنه يستورد `db.ts` ويستخدم `resolveTenantContextForUser` ثم `FinancialRepository` قبل مسار Broker-bound Prisma. لذلك هو **SUPERSEDED FOR RUNTIME AUTHORITY** ولا يمكن ترقية نتيجته إلى evidence لهذا النطاق. الدليل التالي يجب أن يكون PostgreSQL disposable مستقلاً، يستخدم tenant LOGIN principals وBroker leases وprovider يتحقق من `session_user`، مع mandatory-ID validation وcleanup/hygiene fail-closed.
+
+| ID | الإثبات الإلزامي للحarness البديلة |
+|---|---|
+| F01 | Donor/Donation repository path يتسلم `session_user` للـtenant A من Broker-bound Prisma. |
+| F02 | A list/read لا يرى Donor أو Donation للمستأجر B. |
+| F03 | A لا يكتب DonorCommunication للـDonor B وتُنشأ denial audit ضمن A. |
+| F04 | createDonation يرفض donor/campaign/project للعلاقة B. |
+| F05 | Donation وInvoice الجديدان يحتفظان بـorganization A والعلاقة الصحيحة. |
+| F06 | lease replay/revocation وstale session يمنعون data-plane execution. |
+| F07 | rotation إلى principal A جديد تنتج `session_user` جديداً ولا تعيد استخدام القديم. |
+| F08 | provider failure يرفض بلا global Prisma fallback. |
+| F09 | rows/queries المتوازية A/B والـdiscard لا تتشارك client أو هوية. |
+| F10 | mandatory coverage/cleanup/role/database/artifact hygiene exact PASS. |
