@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { memberKpiRepository } from "@/lib/member-kpi-repository";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,13 +22,9 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 
 export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const member = await prisma.member.findUnique({
-    where: { id },
-    include: {
-      user: { select: { id: true, name: true, email: true, phone: true } },
-      payments: { orderBy: { createdAt: "desc" } },
-    },
-  });
+  const context = await requireTenantContext();
+  await requirePermission(context, "member.read");
+  const member = await memberKpiRepository.getMember(context, id);
   if (!member) return notFound();
   const s = statusMap[member.status] || { label: member.status, variant: "outline" };
 

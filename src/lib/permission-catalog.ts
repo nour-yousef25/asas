@@ -5,6 +5,8 @@ export const W02_PERMISSION_CATALOG = [
   ["budget.read", "budget", "read"], ["budget.create", "budget", "create"], ["budget.update", "budget", "update"], ["budget.delete", "budget", "delete"],
   ["expense.read", "expense", "read"], ["expense.create", "expense", "create"], ["expense.update", "expense", "update"], ["expense.delete", "expense", "delete"],
   ["dashboard.read", "dashboard", "read"],
+  ["member.read", "member", "read"], ["member.create", "member", "create"], ["member.update", "member", "update"],
+  ["kpi.read", "kpi", "read"], ["kpi.create", "kpi", "create"], ["kpi.update", "kpi", "update"],
   ["identity.membership.read", "identity", "membership.read"], ["identity.membership.manage", "identity", "membership.manage"], ["identity.role.manage", "identity", "role.manage"],
   ["secret.read", "secret", "read"], ["secret.create", "secret", "create"], ["secret.rotate", "secret", "rotate"], ["secret.revoke", "secret", "revoke"],
   ["report.generate", "report", "generate"], ["report.export", "report", "export"], ["audit.read", "audit", "read"],

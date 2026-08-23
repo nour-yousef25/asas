@@ -1,0 +1,10 @@
+{
+  "status": "PASS_MEMBER_KPI_EVIDENCE_VALIDATION",
+  "expected": ["MK01", "MK02", "MK03", "MK04", "MK05", "MK06", "MK07", "MK08", "MK09", "MK10"],
+  "executedIds": ["MK01", "MK02", "MK03", "MK04", "MK05", "MK06", "MK07", "MK08", "MK09", "MK10"],
+  "missingIds": [],
+  "duplicateIds": [],
+  "invalidIds": [],
+  "failedIds": [],
+  "failures": []
+}
