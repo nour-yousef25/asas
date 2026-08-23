@@ -8,7 +8,7 @@
 | WP5-1/2/3 | context/repository/report generation | A/B evidence | prior reports | PARTIAL | export and remaining surfaces deferred |
 | Hybrid Identity | tenant-bound PostgreSQL roles | A/B direct identity PASS | `d86cca9` | COMPLETE limited proof | Broker boundary required |
 | Broker B16 contract fix | exact cross-organization membership reason | B16 PASS with user A membership in organization B | current B16 evidence | COMPLETE LIMITED | full Broker rerun required |
-| Broker Audit Proof | B01–B60 | B01–B15 prior PASS; B16 fix PASS; B17–B60 not yet rerun | `af2008a` + current B16 evidence | IN PROGRESS | full fresh Broker rerun |
+| Broker Audit Proof | B01–B60 | B16 fix PASS; full rerun internally PASS but six mandatory IDs omitted | coverage-gap evidence | BLOCKED | independent coverage fix + fresh B01–B60 rerun |
 | RLS Waves | all tenant-owned families | not authorized | no current migration | NOT STARTED | Broker proof complete + family gates |
 | Queue/Storage/IAM/Documents | tenant isolation | not started | no closure | NOT STARTED | ordered prerequisites |
 | W02 Global Closure | all W02 gates | not available | not available | NOT READY | all prior rows COMPLETE |

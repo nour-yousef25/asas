@@ -255,6 +255,10 @@
 - [ ] تنفيذ Queue/Redis/Cache ثم Storage ثم Users/Memberships وRoot Documents، وفق ownership/runtime evidence مستقلة لكل نطاق.
 - [ ] تنفيذ موجات W02 المتبقية المعتمدة، ثم hardening/regression/closure matrix؛ التوقف الفوري عند blocker أمني أو عقدي أو إنتاجي.
 
+## W02 — BROKER PROOF TEST-COVERAGE BLOCKER
+
+- [ ] **BLOCKED:** harness أعاد PASS داخلياً لكنه لم يسجل كل IDs الإلزامية في `W02-RLS-TENANT-ACCESS-BROKER-TEST-MATRIX`؛ لا يقبل هذا PASS ولا تبدأ lifecycle/RLS قبل scope إصلاح coverage مستقل وإعادة proof كاملة.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.

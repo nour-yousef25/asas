@@ -7,3 +7,4 @@
 | W02-D-03 | Hybrid tenant-bound PostgreSQL login identity passed audit proof | VERIFIED LIMITED | `d86cca9` Hybrid evidence | Broker is still required for full architecture |
 | W02-D-04 | Broker B16 must prove exact cross-organization membership reason | ACCEPTED / BLOCKED | `af2008a`; Broker B16 blocker | fixture-only B16 fix, no expected-result change |
 | W02-D-05 | W02 phases move only after runtime evidence, regression, docs, and Git evidence | ACCEPTED | Full Closure Directive | enforce gate-by-gate |
+| W02-D-06 | Broker PASS must include exact mandatory-ID coverage, not only zero recorded failures | ACCEPTED / BLOCKED | coverage-gap evidence | rejects false-green harness result | coverage gate fix required |

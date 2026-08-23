@@ -20,6 +20,16 @@
 | B16 | **FAIL** | actual `DENY:MEMBERSHIP_ABSENT`; expected `DENY:MEMBERSHIP_ORGANIZATION_MISMATCH` |
 | B17–B60 | NOT RUN | stop condition after B16 |
 
+## Full-Rerun Coverage Audit
+
+| Item | Result |
+|---|---|
+| Full rerun internal result | `PASS_BROKER_AUDIT_PROOF` |
+| Recorded IDs | 54 of 60 |
+| Missing mandatory IDs | **B05, B06, B09, B27, B45, B46** |
+| Accepted result | **BLOCKED**; internal PASS is not accepted |
+| Evidence | `W02-RLS-TENANT-ACCESS-BROKER-EVIDENCE-COVERAGE-GAP.json` |
+
 كل test يسجل purpose وsetup وcommand وinput class وexpected/actual وdatabase identity وtenant/correlation/timestamp/reason بلا password أو token أو connection string سري.
 
 ## Completion Rule
