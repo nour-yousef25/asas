@@ -1,0 +1,125 @@
+{
+  "status": "PASS_FINANCIAL_DONOR_DONATION_RUNTIME",
+  "startedAt": "2026-08-23T09:14:09.245Z",
+  "finishedAt": "2026-08-23T09:14:14.931Z",
+  "databaseAlias": "asas_financial_runtime_audit_1787476449244_94557",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "F01",
+    "F02",
+    "F03",
+    "F04",
+    "F05",
+    "F06",
+    "F07",
+    "F08",
+    "F09",
+    "F10"
+  ],
+  "evidence": [
+    {
+      "id": "F01",
+      "expected": "FinancialRepository list operation consumes a Broker lease whose provider-verified session_user is the active A tenant LOGIN",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:11.761Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F02",
+      "expected": "A and B FinancialRepository list/read operations retain predicate-scoped donor and donation visibility",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:12.471Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F03",
+      "expected": "A cannot add a donor communication to B donor and the tenant-scoped denial audit is retained under A",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:12.830Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F04",
+      "expected": "createDonation rejects each cross-tenant donor, campaign, and project relation and writes the corresponding denial audit",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:13.611Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F05",
+      "expected": "same-tenant donation creation persists A organization ownership and binds its invoice to the created donation",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:13.957Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F06",
+      "expected": "consumed lease replay, revoked lease, and stale session each fail before a further Financial data-plane operation",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:14.069Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F07",
+      "expected": "principal rotation retires A1 selection and rebinds the FinancialRepository path to tenant LOGIN A2",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:14.247Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F08",
+      "expected": "tenant provider outage denies FinancialRepository execution with no global Prisma fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:14.259Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F09",
+      "expected": "parallel A2/B1 FinancialRepository operations retain distinct session_user-authenticated client instances and every checkout is discarded",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:14.433Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "F10",
+      "expected": "audit roles are non-superuser/non-BYPASSRLS and FinancialRepository source has no global Prisma, DATABASE_URL, or raw GUC identity fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:14:14.484Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

@@ -1,0 +1,21 @@
+{
+  "status": "PASS_FINANCIAL_DONOR_DONATION_EVIDENCE",
+  "mandatoryIds": ["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08", "F09", "F10"],
+  "executedIds": ["F01", "F02", "F03", "F04", "F05", "F06", "F07", "F08", "F09", "F10"],
+  "failures": {
+    "status": false,
+    "mandatoryIdsMismatch": false,
+    "missingIds": [],
+    "duplicateIds": [],
+    "invalidIds": [],
+    "failedRows": [],
+    "hardFailures": [],
+    "cleanup": false,
+    "hygiene": false,
+    "credentialPersistence": false,
+    "productionTouch": false,
+    "rawGucIdentityUsed": false,
+    "globalPrismaFallback": false,
+    "ownerOrBypassUsedForTenantEvidence": false
+  }
+}

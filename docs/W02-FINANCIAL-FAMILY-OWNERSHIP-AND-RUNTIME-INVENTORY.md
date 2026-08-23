@@ -2,21 +2,21 @@
 
 ## قرار النطاق
 
-**الحالة: inventory مكتمل؛ RLS المالي غير مصرح به بعد.** يكشف الحصر أن كلمة «financial» تضم عائلتين مختلفتين لا يجوز دمجهما في policy واحدة: **Budget/Expense**، و**Donor/Donation/Campaign/Invoice/Project**. كل root الحالي يحمل `organizationId` قابلاً لـ`NULL`، بينما بعض الأبناء يرثون الملكية عبر relation فقط. لذلك لا تُنشأ RLS migration قبل backfill موثق وrepository/API cutover لكل عائلة مختارة.
+**الحالة: inventory مكتمل؛ دليل Donor/Donation audit-runtime مغلق؛ RLS المالي غير مصرح به بعد.** يكشف الحصر أن كلمة «financial» تضم عائلتين مختلفتين لا يجوز دمجهما في policy واحدة: **Budget/Expense**، و**Donor/Donation/Campaign/Invoice/Project**. كل root الحالي يحمل `organizationId` قابلاً لـ`NULL`، بينما بعض الأبناء يرثون الملكية عبر relation فقط. لذلك لا تُنشأ RLS migration قبل backfill موثق وrepository/API cutover ودليل runtime مستقل لكل عائلة مختارة.
 
 | العائلة | roots المنظمة | الأبناء الموروثة | حالة الملكية/RLS |
 |---|---|---|---|
 | Budget/Expense | `budgets`, `budget_items`, `expenses` | `BudgetItem → Budget`، و`Expense → BudgetItem` عند الارتباط | tenant keys موجودة nullable؛ backfill control-plane موجود، لكن لا يوجد repository/runtime/dashboard tenant-bound. **NOT READY**. |
-| Donor/Donation | `donors`, `donations`, `donation_campaigns`, `projects` | `donor_communications → Donor`، `invoices → Donation` | roots nullable والأبناء لا يحملون tenant key دائماً. repository ومسارا donors/donations أصبحا tenant-bound؛ PostgreSQL evidence وباقي paths ما زالت **NOT READY** لـRLS. |
+| Donor/Donation | `donors`, `donations`, `donation_campaigns`, `projects` | `donor_communications → Donor`، `invoices → Donation` | roots nullable والأبناء لا يحملون tenant key دائماً. repository ومسارا donors/donations أصبحا tenant-bound؛ F01–F10 PostgreSQL runtime PASS لمسارهم المحدد. **NOT READY** لـRLS حتى backfill/paths وبوابات العائلات المتبقية. |
 | Dashboard المختلط | donation/project/beneficiary/KPI/member | عابر للعائلات | global direct Prisma؛ لا يمكن إدخاله في أي RLS family حتى تقسيم queries حسب ownership. **BLOCKING PATH**. |
 
 ## مسارات runtime المكتشفة
 
 | المسار | الحالة الحالية | الخطر | الإجراء الإلزامي |
 |---|---|---|---|
-| `src/lib/financial-repository.ts` | **محول** إلى `TenantBoundPrismaExecutor` ولا يستورد `db.ts` | يتطلب PostgreSQL runtime proof قبل اعتباره RLS-ready | F01–F09 على tenant login/lease/session_user. |
-| `src/app/(dashboard)/donations/page.tsx` | **محول** إلى server TenantContext + `donation.read` + repository | لا تغطيه evidence PostgreSQL بعد | يشمله F01–F10. |
-| `src/app/(dashboard)/donors/page.tsx` | **محول** إلى server TenantContext + `donor.read` + repository | لا تغطيه evidence PostgreSQL بعد | يشمله F01–F10. |
+| `src/lib/financial-repository.ts` | **محول** إلى `TenantBoundPrismaExecutor` ولا يستورد `db.ts` | F01–F10 أثبتت المسار tenant LOGIN/lease/session_user ولا تمنحه RLS-ready بمفرده | يبقى تحت بوابة family-wide backfill/paths. |
+| `src/app/(dashboard)/donations/page.tsx` | **محول** إلى server TenantContext + `donation.read` + repository | محمي بنيوياً وعبر runtime للمسار repository، لكن provider الإنتاجي لم يهيأ | لا RLS مالي قبل بوابات العائلة الكاملة. |
+| `src/app/(dashboard)/donors/page.tsx` | **محول** إلى server TenantContext + `donor.read` + repository | محمي بنيوياً وعبر runtime للمسار repository، لكن provider الإنتاجي لم يهيأ | لا RLS مالي قبل بوابات العائلة الكاملة. |
 | `src/app/(dashboard)/page.tsx` | aggregates/findMany global تشمل donations/projects/beneficiaries وغيرها | mixing owners؛ RLS family قد يكسر الصفحة أو يسرب | scope منفصلة لـdashboard aggregation بعد إغلاق families. |
 | `src/lib/budget-ownership-backfill.ts` | global Prisma control-plane manifest/backfill | ليس data-plane request path، لكنه لا يصلح كـRLS runtime | يبقى control-plane فقط؛ يحتاج proof clean/backfill مستقل قبل Budget RLS. |
 
@@ -40,3 +40,7 @@
 | F08 | provider failure يرفض بلا global Prisma fallback. |
 | F09 | rows/queries المتوازية A/B والـdiscard لا تتشارك client أو هوية. |
 | F10 | mandatory coverage/cleanup/role/database/artifact hygiene exact PASS. |
+
+## نتيجة F01–F10
+
+أثبت harness مستقل على PostgreSQL disposable في 2026-08-23 أن مسار Donor/Donation المحدد يستخدم broker-bound Prisma مع provider يتحقق من `session_user` قبل تسليم العميل، وأن فشل provider يرفض بلا fallback عالمي. مر المدقق exact/fail-closed وفحص hygiene، وانتهى cleanup بصفر residue. لا تحتوي evidence المؤرشفة على URL أو كلمة مرور أو principal name. لا تغيّر هذه النتيجة قرار منع RLS المالي. راجع [تقرير الإغلاق المحدود](./W02-FINANCIAL-DONOR-DONATION-RUNTIME-COMPLETION.md).

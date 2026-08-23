@@ -14,7 +14,8 @@
 | Beneficiary ownership/cutover | COMPLETE PREREQUISITE | Beneficiary RLS Wave 1 only | O01–O06 proof; Documents delivery excluded |
 | tenant-bound runtime connection authority | RESOLVED FOR AUDIT RUNTIME | opens Beneficiary RLS Wave 1 only | A01–A15 PostgreSQL proof; production provider/workload identity remains OPEN |
 | Beneficiary RLS Wave 1 | COMPLETE AUDIT RUNTIME | later family waves retain independent gates | R01–R15 PostgreSQL proof; production provider/DR/scale remain OPEN |
-| Financial family inventory/cutover | IN PROGRESS | Financial RLS is prohibited | Donor/Donation repository and selected pages use tenant authority; Budget/Expense, mixed dashboard and PostgreSQL negative evidence remain OPEN |
+| Financial Donor/Donation runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | F01–F10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root backfill |
+| Budget/Expense and mixed dashboard ownership | OPEN | Financial RLS is prohibited | separate inventory, tenant-bound runtime cutover, nullable-root proof and aggregation ownership design required |
 | remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
 | Queue/Storage/IAM/Documents | DEFERRED | their own RLS waves | separate authorization |
