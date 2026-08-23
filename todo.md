@@ -341,6 +341,7 @@
 - [ ] تثبيت مصدر الحقيقة الحالي لكل وثائق W02 وADRs والعقود وسجل التنفيذ قبل كل نطاق جديد.
 - [x] إعداد Budget/Expense ownership manifest وruntime inventory، بلا RLS أو fallback عالمي.
 - [x] تحويل مسارات Budget/Expense المحددة إلى TenantContext + semantic permission + TenantBoundPrismaExecutor، ثم إثباتها على PostgreSQL disposable.
+- [x] جرد dashboard المختلط وتثبيت blocker ownership لـMember وKPI/KPIRecord؛ لا tenant-bound cutover قبل manifest/backfill مستقل.
 - [ ] إغلاق mixed dashboard tenant-bound aggregation scope بدليل مستقل.
 - [ ] إغلاق nullable-root ownership/backfill requirements ودليل التوافق قبل Financial RLS.
 - [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.

@@ -16,7 +16,7 @@
 | Beneficiary RLS Wave 1 | COMPLETE AUDIT RUNTIME | later family waves retain independent gates | R01–R15 PostgreSQL proof; production provider/DR/scale remain OPEN |
 | Financial Donor/Donation runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | F01–F10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root backfill |
 | Financial Budget/Expense runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | BE01–BE10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root hardening |
-| Mixed dashboard ownership aggregation | OPEN | Financial RLS is prohibited | separate tenant-bound aggregation design and runtime evidence required across financial/beneficiary/member/KPI data |
+| Mixed dashboard ownership aggregation | BLOCKED FOR CUTOVER | Financial RLS is prohibited | `Member` و`KPI/KPIRecord` يفتقدان legal organization owner؛ يلزم nullable-root ownership/backfill قبل tenant-bound aggregation proof |
 | Nullable-root and operational readiness | OPEN | Financial RLS is prohibited | hardening/backfill compatibility plus provider DR/HA/scale evidence required |
 | remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
