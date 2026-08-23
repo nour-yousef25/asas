@@ -1,12 +1,12 @@
 # W02 WP0 — ADR Index
 
 **النطاق:** قرارات WP0 المعمارية والأمنية قبل WP1 فقط.
-**الحالة:** `ALL DESIGN GATES CLOSED`; التنفيذ والإثبات runtime مؤجلان إلى WP1 وما بعده.
+**الحالة:** `G-W02-2 RECONCILED DESIGN-ONLY BY ADR-W02-009`; التنفيذ والإثبات runtime مؤجلان إلى WP1 وما بعده.
 
 | Gate | ADR | القرار المختصر | الحالة |
 |---|---|---|---|
 | G-W02-1 | [ADR-W02-001](./ADR-W02-001-TENANT-CANONICAL.md) | `Organization` هي Tenant canonical | CLOSED |
-| G-W02-2 | [ADR-W02-002](./ADR-W02-002-RLS-STRATEGY.md) | RLS تدريجي مع app role غير مالك وسياق transaction-local | CLOSED |
+| G-W02-2 | [ADR-W02-009](./ADR-W02-009-TENANT-BOUND-RLS-IDENTITY.md) successor to [ADR-W02-002](./ADR-W02-002-RLS-STRATEGY.md) identity section | RLS تدريجي بهوية `session_user` tenant-bound وprotected role mapping؛ لا Raw GUC | RECONCILED DESIGN-ONLY |
 | G-W02-3 | [ADR-W02-003](./ADR-W02-003-LEGACY-DATA-MAPPING.md) | mapping صريح مدقق يرفض ambiguity/orphan | CLOSED |
 | G-W02-4 | [ADR-W02-004](./ADR-W02-004-IAM-PERMISSION-SOD.md) | membership-scoped RBAC/ABAC، deny-over-allow وSoD | CLOSED |
 | G-W02-5 | [ADR-W02-005](./ADR-W02-005-KMS-SECRET-OWNERSHIP.md) | envelope encryption وedition-specific KMS ownership | CLOSED |

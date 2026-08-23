@@ -2,13 +2,13 @@
 
 ## Contract
 
-يعتمد التصميم الرسمي `Organization` tenant canonical و`TenantContext` server-side. لكل family مكتمل فقط، يمر runtime عبر transaction محلية تضبط `app.organization_id` و`app.membership_id` بواسطة `set_config(..., true)`. تتعامل policy مع غياب أو عدم تطابق context باعتباره deny. يستخدم التطبيق role غير مالك للجداول وغير حامل لـ`BYPASSRLS`، وتبقى migrations/backfill/rehearsals على role منفصلة.
+يعتمد التصميم الرسمي `Organization` tenant canonical و`TenantContext` server-side. لكل family مكتمل فقط، يمر runtime لاحقاً من Broker إلى tenant-bound PostgreSQL login principal. تستمد policy organization من `session_user` عبر protected role-OID mapping وفق ADR-W02-009. لا تضبط ولا تقرأ policy `app.organization_id` أو `app.membership_id` عبر `set_config/current_setting`. تتعامل policy مع غياب principal/mapping أو عدم تطابقهما باعتباره deny. يستخدم runtime principal غير مالك للجداول وغير حامل لـ`BYPASSRLS`، وتبقى migrations/backfill/rehearsals على roles منفصلة.
 
 ## Intended Per-Family Rollout
 
 | المرحلة | الشرط السابق | التغيير | دليل الإغلاق |
 |---|---|---|---|
-| Wave 1 | ownership + all runtime paths scoped + permissions مثبتة | app role، transaction context، policies، ثم FORCE | app role A/B direct query + no-context deny + joins/writes/rollback |
+| Wave 1 | ownership + all runtime paths scoped + permissions + Broker/tenant-login lifecycle مثبتة | tenant-bound principal، protected mapping، policies، ثم FORCE | A/B direct query + no-principal/mapping deny + same-transaction switch + joins/writes/rollback |
 | Subsequent waves | نفس الشروط لكل family | migration forward-only منفصلة | A/B runtime + direct query + regression |
 | Schema-wide RLS | كل family tenant-owned مكتمل | لا global switch؛ consolidation فقط | zero unscoped runtime inventory |
 

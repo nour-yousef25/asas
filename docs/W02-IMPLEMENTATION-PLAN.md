@@ -16,7 +16,7 @@
 | WP2 | IAM data model وpolicy evaluator وmembership role migration | WP1 | roles per org وSoD وoverrides مدققة | policy matrix/negative tests |
 | WP3 | foundation migration M1 وDEP-003 instance identity | WP0 | instance identity/audit stable وnon-destructive | migration/tamper/transfer tests |
 | WP4 | tenant key migration M2/M3 وlegacy backfill tooling | WP0/WP1 | explicit mapping/dry-run/validation، no null/orphan | two-org fixture/migration rehearsal |
-| WP5 | repository/API cutover وtenant RLS rollout M4/M6 | WP2/WP4 | all scoped families enforce context؛ no unscoped write | IDOR/direct-query/RLS suite |
+| WP5 | repository/API cutover وtenant RLS rollout M4/M6 | WP2/WP4/ADR-W02-009 lifecycle gates | all scoped families enforce context؛ no unscoped write | IDOR/direct-query/RLS suite |
 | WP6 | vault/secret records وstorage object contract | WP1/WP2/G-W02-5/8 | encrypted/revocable/audited secrets وexpiring private objects | rotation/download/redaction tests |
 | WP7 | privacy classification/consent/retention/export/audit-v2 | WP2/WP4/WP6 | purpose/masking/DSAR/legal-hold rules | privacy/export/audit tests |
 | WP8 | LIC-001 certificate verification وLIC-002 activation core | WP3/WP6/G-W02-7 | public-key verify، hashed one-time activation/audit/rate limit | signature/replay/expiry tests |
@@ -31,7 +31,7 @@
 4. `2026xxxx_w02_tenant_constraints_harden`: only after backfill validation; apply `NOT NULL`, composite uniques and scoped indexes.
 5. `2026xxxx_w02_tenant_children_and_file_refs`: children inherit/validate root ownership; introduce StoredObject references alongside legacy URLs.
 6. `2026xxxx_w02_vault_privacy_identity`: SecretRecord/SecretAccessAudit/privacy request/retention/IDP models and any additive certificate/activation fields.
-7. RLS migrations occur only for a fully converted table family, after app role and direct-query negative tests. No all-schema RLS switch in one migration.
+7. RLS migrations occur only for a fully converted table family after tenant-bound login/Broker lifecycle, protected role mapping, and direct-query negative tests. PostgreSQL `session_user` maps to organization; no custom GUC is an identity anchor. No all-schema RLS switch in one migration.
 
 ## Required Tenant Context Contract
 

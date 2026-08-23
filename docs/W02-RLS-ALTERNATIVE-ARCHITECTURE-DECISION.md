@@ -1,6 +1,6 @@
 # W02 RLS Alternative Architecture — Decision
 
-**الحالة:** `PROPOSED — NOT IMPLEMENTATION-READY`.
+**الحالة:** `SUPERSEDED AS DECISION SOURCE BY ADR-W02-009; RETAINED AS DESIGN RATIONALE`.
 
 ## القرار المقترح
 
@@ -58,7 +58,7 @@ Raw GUC/current_setting, trusted global app role, application-only TenantContext
 
 ## Conflict With ADR-W02-002
 
-ADR-W02-002 currently names `set_config/current_setting` as RLS identity. The direct A→B app-role test falsified that security assumption. This document records a **blocking conflict**: the phased-family and owner/migrator separation portions remain valid, but raw GUC identity must be superseded by a formally approved successor ADR before implementation.
+ADR-W02-002 historically named `set_config/current_setting` as RLS identity. The direct A→B app-role test falsified that security assumption. ADR-W02-009 now supersedes the identity section formally; phased-family and owner/migrator separation portions remain valid. Implementation still requires separate lifecycle, support, and negative-evidence gates.
 
 ## References
 
