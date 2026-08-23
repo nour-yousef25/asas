@@ -1,0 +1,160 @@
+{
+  "status": "PASS_DASHBOARD_NULLABLE_ROOT_CLEAN",
+  "startedAt": "2026-08-23T20:02:41.366Z",
+  "finishedAt": "2026-08-23T20:02:44.748Z",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "NR01",
+    "NR02",
+    "NR03",
+    "NR04",
+    "NR05",
+    "NR06",
+    "NR07",
+    "NR08",
+    "NR09",
+    "NR10",
+    "NR11",
+    "NR12",
+    "NR13",
+    "NR14",
+    "NR15"
+  ],
+  "evidence": [
+    {
+      "id": "NR01",
+      "expected": "official migrations deploy clean including nullable-root admission successor",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR02",
+      "expected": "all audit principals are NOSUPERUSER and NOBYPASSRLS",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR03",
+      "expected": "assignment and ledger authorities cannot read or mutate tenant roots",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR04",
+      "expected": "tenant roles cannot forge assignment or ledger rows",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR05",
+      "expected": "tenant-bound clients observe distinct session_user principals",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR06",
+      "expected": "explicit manifest assignments are required and no membership/default-owner inference exists",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR07",
+      "expected": "A cannot claim B member through foreign ID or foreign owner",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR08",
+      "expected": "KPI root and KPIRecord child apply only through matching assigned parent graph",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR09",
+      "expected": "parallel A/B tenant-bound applies preserve separate owners",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR10",
+      "expected": "Raw GUC and SET ROLE cannot alter admission identity",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR11",
+      "expected": "failed tenant transaction records FAILED without false success and does not corrupt other tenant",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR12",
+      "expected": "retry/resume is idempotent after a visible failure",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR13",
+      "expected": "missing assignment refuses write and leaves nullable root unchanged",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR14",
+      "expected": "ledger duplicate outcome for one operation/attempt is rejected",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "NR15",
+      "expected": "source and audit roles contain no bypass/global credential/Raw GUC identity and proof cleanup is fail-closed",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "diagnostics": [],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalTenantCredentialUsed": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

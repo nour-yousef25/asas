@@ -19,6 +19,8 @@
 | Mixed dashboard ownership aggregation | BLOCKED FOR CUTOVER | Financial RLS is prohibited | `Member` و`KPI/KPIRecord` يفتقدان legal organization owner؛ يلزم nullable-root ownership/backfill قبل tenant-bound aggregation proof |
 | Control-plane audit ledger boundary | COMPLETE LIMITED AUDIT RUNTIME | does not authorize tenant migration or production | ADR-W02-010 CP01–CP12 exact proof passes; operational retention/DR/HA remains open |
 | Nullable-root ownership/backfill | OPEN — OWNERSHIP DECISION REQUIRED | dashboard cutover and Financial RLS are prohibited | audit boundary is resolved audit-only; legal classification/mapping plus migration/backfill rehearsal remain required |
+| Dashboard nullable-root ownership | DESIGN ACCEPTED — REHEARSAL PENDING | dashboard cutover and Financial RLS are prohibited | ADR-W02-011 classifies Member/KPI roots and KPIRecord child; manifest/migration/backfill proof remains mandatory |
+| Dashboard nullable-root clean rehearsal | COMPLETE LIMITED AUDIT RUNTIME | dashboard cutover and Financial RLS are prohibited | ADR-W02-012 NR01–NR15 clean migration/admission proof passes; upgrade rehearsal and dashboard runtime remain required |
 | Provider DR/HA/scale readiness | OPEN | Financial RLS is prohibited | deployment-owned provider, recovery, role-scale and pool capacity evidence required |
 | remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |

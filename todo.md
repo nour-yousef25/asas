@@ -347,7 +347,8 @@
 - [x] مقارنة Control-plane ledger وtenant-by-tenant backfill وتعديل عقد audit وفق security boundary وRLS/DR/HA/retention/supportability.
 - [x] إصدار Architecture Decision وADR successor إذا اختير تصميم يغير حد الثقة، قبل أي migration أو backfill جديد.
 - [x] إثبات audit authority المختار على PostgreSQL disposable: A/B/control-plane، منع forgery/cross-write/replay/false-success، cleanup ومدقق exact.
-- [ ] إعادة تقييم nullable-root ownership لـMember وKPI/KPIRecord بالتصنيف الصريح ثم migration/backfill/rehearsal فقط إن أصبح audit boundary GREEN.
+- [x] إصدار ownership decision صريح لـMember وKPI/KPIRecord وتنفيذ clean migration/admission rehearsal بعد تحقق audit boundary.
+- [ ] تنفيذ nullable-root upgrade rehearsal من قاعدة pre-successor، ثم dashboard tenant-bound runtime cutover بدليل مستقل.
 - [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.
 - [ ] تقييم وتنفيذ Financial RLS Wave فقط عند اكتمال جميع البوابات، مع rehearsal وrollback وA/B concurrency proof.
 - [ ] متابعة عائلات W02 الباقية وفق Dependency Map، ثم إصدار قرار W02 COMPLETE أو blocker عالمي حقيقي موثق.
