@@ -1,5 +1,7 @@
 # BLOCKER — W02 RLS Tenant Access Broker Audit Proof
 
+> **Historical B16 blocker resolved limited, and coverage rerun completed audit-only.** B16 later passed with the unchanged reason contract, and the subsequent clean B01–B60 coverage rerun passed. This historical document is retained for traceability; it does not authorize production Broker lifecycle or RLS Wave 1.
+
 ## Root Cause
 
 فشل الاختبار الإلزامي `B16` قبل استكمال حزمة Broker. الاختبار قدم `userId=A` و`organizationId=A` مع `membershipId=B`، ويتطلب contract أن يعيد Broker `DENY:MEMBERSHIP_ORGANIZATION_MISMATCH`. لكن استعلام authority الحالي يربط `user_id=A` و`membership_id=B` في predicate واحد؛ لذلك لم يجد صفاً وأعاد `DENY:MEMBERSHIP_ABSENT`.

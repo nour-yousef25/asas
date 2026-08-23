@@ -1,5 +1,7 @@
 # BLOCKER — W02 Broker Proof Mandatory Test Coverage
 
+> **Historical blocker resolved audit-only.** The clean rerun recorded B01–B60 exactly, passed independent B05/B06/B09/B27/B45/B46 assertions, completed fail-closed evidence validation, and cleaned the disposable audit fixture. This document remains as the original false-green evidence; it does not authorize RLS or a production Broker.
+
 ## Root Cause
 
 أعادت harness الحالة الداخلية `PASS_BROKER_AUDIT_PROOF` لأن `hardFailures` تفحص الاختبارات **المسجلة فقط**. تدقيق evidence النهائية مقابل IDs الإلزامية كشف أن ستة اختبارات لا تُنفذ ولا تُسجل: `B05`, `B06`, `B09`, `B27`, `B45`, `B46`.

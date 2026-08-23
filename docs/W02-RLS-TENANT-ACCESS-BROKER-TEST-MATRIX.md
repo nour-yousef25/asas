@@ -16,19 +16,18 @@
 
 | IDs | Status | Evidence |
 |---|---|---|
-| B01–B15 | PASS | `W02-RLS-TENANT-ACCESS-BROKER-EVIDENCE-FAILED.json` |
-| B16 | **FAIL** | actual `DENY:MEMBERSHIP_ABSENT`; expected `DENY:MEMBERSHIP_ORGANIZATION_MISMATCH` |
-| B17–B60 | NOT RUN | stop condition after B16 |
+| B01–B60 | PASS | `W02-BROKER-TEST-COVERAGE-RERUN-EVIDENCE.json` |
 
 ## Full-Rerun Coverage Audit
 
 | Item | Result |
 |---|---|
-| Full rerun internal result | `PASS_BROKER_AUDIT_PROOF` |
-| Recorded IDs | 54 of 60 |
-| Missing mandatory IDs | **B05, B06, B09, B27, B45, B46** |
-| Accepted result | **BLOCKED**; internal PASS is not accepted |
-| Evidence | `W02-RLS-TENANT-ACCESS-BROKER-EVIDENCE-COVERAGE-GAP.json` |
+| Historical full rerun | internal PASS with 54/60 IDs; rejected and retained as gap evidence |
+| Clean rerun result | `PASS_BROKER_AUDIT_PROOF` |
+| Recorded IDs | 60 of 60 |
+| Missing mandatory IDs | none |
+| Accepted result | PASS for audit-only Broker proof coverage |
+| Evidence | `W02-BROKER-TEST-COVERAGE-RERUN-EVIDENCE.json` |
 
 كل test يسجل purpose وsetup وcommand وinput class وexpected/actual وdatabase identity وtenant/correlation/timestamp/reason بلا password أو token أو connection string سري.
 

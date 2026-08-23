@@ -257,7 +257,16 @@
 
 ## W02 — BROKER PROOF TEST-COVERAGE BLOCKER
 
-- [ ] **BLOCKED:** harness أعاد PASS داخلياً لكنه لم يسجل كل IDs الإلزامية في `W02-RLS-TENANT-ACCESS-BROKER-TEST-MATRIX`؛ لا يقبل هذا PASS ولا تبدأ lifecycle/RLS قبل scope إصلاح coverage مستقل وإعادة proof كاملة.
+- [x] **RESOLVED AUDIT-ONLY:** harness السابقة أعادت PASS داخلياً مع six mandatory IDs غائبة؛ preservation ثم rerun نظيفة أثبتت B01–B60 exact coverage وE1–E8/guard/evidence/cleanup/regression PASS. لا lifecycle أو RLS أو نطاق لاحق.
+
+## W02-BROKER-RERUN-GIT-SAFETY-AND-COVERAGE-FIX
+
+- [x] جرد وحفظ worktree المتسخة على `w02-broker-coverage-worktree-preservation` في commits `987c05c` و`901b993` بلا حذف أو reset أو stash.
+- [x] إنشاء `w02-broker-test-coverage-rerun-fix` نظيفة من `42a1832` ونقل عناصر KEEP-FOR-RERUN فقط.
+- [x] إصلاح Evidence Recorder fail-closed وإثبات E1–E8، مع الإبقاء على Coverage Guard false-green.
+- [x] تنفيذ B01–B60 كاملة على PostgreSQL audit جديدة؛ B05/B06/B09/B27/B45/B46 مستقلة وPASS.
+- [x] التحقق من evidence والـcleanup وتشغيل Prisma/TypeScript/Jest/Communications/Build بنجاح.
+- [x] إصدار تقارير rerun وإيقاف التنفيذ؛ لا يبدأ Broker lifecycle أو RLS Wave 1 أو أي نطاق W02 لاحق.
 
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 

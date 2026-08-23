@@ -1,6 +1,8 @@
 import { randomBytes, randomUUID, createHash } from 'node:crypto';
-import { chmodSync, writeFileSync, readFileSync } from 'node:fs';
+import { chmodSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
+import { validateBrokerCoverage } from './lib/w02-broker-coverage-gate.mjs';
+import { recordEvidence, recordEvidenceAsync } from './lib/w02-broker-evidence-recorder.mjs';
 
 const suffix = `${Date.now()}_${process.pid}`;
 const database = `asas_broker_audit_${suffix}`;
@@ -48,6 +50,22 @@ function sqlAs(role, password, sql, options = {}) {
   return { code: out.status, sessionUser, backendPid, stdout: lines.join('\n').trim(), stderr: out.stderr.trim() };
 }
 
+function sqlAsAsync(role, password, sql, options = {}) {
+  return new Promise((resolve) => {
+    const child = spawn('psql', ['-h', '127.0.0.1', '-p', String(options.port ?? 5432), '-d', database, '-U', role, '-X', '-v', 'ON_ERROR_STOP=1', '-At', '-c', `SELECT 'META:' || session_user || ':' || pg_backend_pid(); ${sql}`], { env: { ...process.env, PGPASSWORD: password } });
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => { stdout += chunk; });
+    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.on('close', (code) => {
+      const lines = stdout.trim().split('\n');
+      const meta = lines.shift() || '';
+      const [, sessionUser = 'unknown', backendPid = 'unknown'] = meta.match(/^META:([^:]+):(.*)$/) || [];
+      resolve({ code, sessionUser, backendPid, stdout: lines.join('\n').trim(), stderr: stderr.trim() });
+    });
+  });
+}
+
 function sqlScriptAs(role, password, commands) {
   const script = [`SELECT 'META:' || session_user || ':' || pg_backend_pid();`, ...commands].join('\n');
   const out = run('psql', ['-h', '127.0.0.1', '-d', database, '-U', role, '-X', '-v', 'ON_ERROR_STOP=1', '-At'], {
@@ -78,6 +96,15 @@ class CredentialAuthority {
     const entry = this.#credentials.get(credentialRef);
     if (!entry || entry.revoked) throw new BrokerDenied('CREDENTIAL_REVOKED');
     const out = sqlAs(entry.role, entry.password, query, options);
+    if (out.code !== 0) throw new BrokerDenied(options.port ? 'POSTGRES_UNAVAILABLE' : 'POSTGRES_DENIED');
+    return out;
+  }
+  async connectAsync(credentialRef, query, options = {}) {
+    if (!this.available) throw new BrokerDenied('AUTHORITY_UNAVAILABLE');
+    if (this.timeout) throw new BrokerDenied('AUTHORITY_TIMEOUT');
+    const entry = this.#credentials.get(credentialRef);
+    if (!entry || entry.revoked) throw new BrokerDenied('CREDENTIAL_REVOKED');
+    const out = await sqlAsAsync(entry.role, entry.password, query, options);
     if (out.code !== 0) throw new BrokerDenied(options.port ? 'POSTGRES_UNAVAILABLE' : 'POSTGRES_DENIED');
     return out;
   }
@@ -168,6 +195,28 @@ class TenantAccessBroker {
       throw error instanceof BrokerDenied ? error : new BrokerDenied('BROKER_EXCEPTION');
     }
   }
+  async executeConcurrent(leaseDescriptor, context, query, requested = {}, options = {}) {
+    try {
+      const lease = this.#leases.get(leaseDescriptor?.leaseId);
+      if (!lease) throw new BrokerDenied('LEASE_ABSENT');
+      if (lease.revokedAt) throw new BrokerDenied('LEASE_REVOKED');
+      if (lease.expiresAt <= Date.now()) throw new BrokerDenied('LEASE_EXPIRED');
+      if (lease.usedAt) throw new BrokerDenied('LEASE_REPLAY');
+      if (lease.connectionId !== leaseDescriptor.connectionId) throw new BrokerDenied('LEASE_CONNECTION_MISMATCH');
+      if (lease.organizationId !== context.organizationId || lease.membershipId !== context.membershipId || lease.userId !== context.userId || lease.correlationId !== context.correlationId) throw new BrokerDenied('LEASE_CONTEXT_MISMATCH');
+      const mapping = this.validate(context, requested);
+      if (mapping.tenantRoleId !== lease.tenantRoleId || mapping.credentialRef !== lease.credentialRef) throw new BrokerDenied('LEASE_MAPPING_MISMATCH');
+      if (this.#connections.get(lease.connectionId) !== lease.tenantRoleId) throw new BrokerDenied('POOL_PARTITION_MISMATCH');
+      const result = await this.#authority.connectAsync(lease.credentialRef, query, options);
+      if (result.sessionUser !== lease.tenantRoleId) throw new BrokerDenied('DATABASE_IDENTITY_MISMATCH');
+      lease.usedAt = Date.now();
+      this.audit('ALLOW', 'LEASE_EXECUTED', context, lease);
+      return { stdout: result.stdout, sessionUser: result.sessionUser, backendPid: result.backendPid };
+    } catch (error) {
+      this.audit('DENY', error.code || 'BROKER_EXCEPTION', context, this.#leases.get(leaseDescriptor?.leaseId));
+      throw error instanceof BrokerDenied ? error : new BrokerDenied('BROKER_EXCEPTION');
+    }
+  }
   revokeLease(leaseId) { const lease = this.#leases.get(leaseId); if (lease) lease.revokedAt = Date.now(); }
   expireLease(leaseId) { const lease = this.#leases.get(leaseId); if (lease) lease.expiresAt = Date.now() - 1; }
   markConnectionStale(connectionId) { if (this.#connections.has(connectionId)) this.#connections.set(connectionId, 'STALE'); }
@@ -175,24 +224,35 @@ class TenantAccessBroker {
 }
 
 function record(id, purpose, inputClass, expected, fn, pass) {
-  const correlationId = randomUUID();
-  let actual = 'NO_RESULT';
-  let result = false;
-  let reason = '';
-  let identity = 'none';
-  let tenant = 'none';
-  try {
-    const out = fn(correlationId);
-    actual = typeof out === 'object' ? JSON.stringify(out) : String(out);
-    identity = out?.sessionUser ?? 'none';
-    tenant = out?.organizationId ?? 'none';
-    result = pass(out);
-  } catch (error) {
-    actual = `DENY:${error.code || 'UNEXPECTED'}`;
-    reason = error.code || 'UNEXPECTED';
-    result = pass({ error: reason });
-  }
-  evidence.push({ id, purpose, setup: 'disposable PostgreSQL audit fixture and broker harness', command: 'broker-harness', inputClass, expected, actual, databaseIdentity: identity, tenant, correlationId, timestamp: new Date().toISOString(), result: result ? 'PASS' : 'FAIL', failureReason: result ? null : reason || actual });
+  evidence.push(recordEvidence({
+    id, purpose, setup: 'disposable PostgreSQL audit fixture and broker harness', command: 'broker-harness', inputClass, expected,
+    execute: (correlationId) => fn(correlationId),
+    evaluate: ({ output, error }) => pass(error ? { error: error.code || error.name || 'UNEXPECTED' } : output),
+    metadata: ({ output }) => ({
+      databaseIdentity: output?.databaseIdentity ?? output?.sessionUser ?? 'none',
+      tenant: output?.tenant ?? output?.organizationId ?? 'none',
+      organization: output?.organizationId ?? null,
+      membershipId: output?.membershipId ?? null,
+      leaseId: output?.leaseId ?? null,
+      tenantRoleId: output?.tenantRoleId ?? output?.sessionUser ?? null,
+    }),
+  }));
+}
+
+async function recordAsync(id, purpose, inputClass, expected, fn, pass) {
+  evidence.push(await recordEvidenceAsync({
+    id, purpose, setup: 'disposable PostgreSQL audit fixture and broker harness', command: 'broker-harness-concurrent', inputClass, expected,
+    execute: (correlationId) => fn(correlationId),
+    evaluate: ({ output, error }) => pass(error ? { error: error.code || error.name || 'UNEXPECTED' } : output),
+    metadata: ({ output }) => ({
+      databaseIdentity: output?.databaseIdentity ?? output?.sessionUser ?? 'none',
+      tenant: output?.tenant ?? output?.organizationId ?? 'none',
+      organization: output?.organizationId ?? null,
+      membershipId: output?.membershipId ?? null,
+      leaseId: output?.leaseId ?? null,
+      tenantRoleId: output?.tenantRoleId ?? null,
+    }),
+  }));
 }
 
 function setup() {
@@ -243,6 +303,22 @@ RESET ROLE;`;
   if (out.status !== 0) throw new Error(out.stderr.trim() || out.stdout.trim());
 }
 
+function cleanupAuditResources() {
+  const errors = [];
+  const roles = [tenantA, tenantB, unauthenticated, brokerRole, dataRole, securityOwner, dbOwner];
+  try { adminSql(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${database}' AND pid <> pg_backend_pid();`); } catch (error) { errors.push(`TERMINATE:${error.message}`); }
+  try { adminSql(`DROP DATABASE IF EXISTS ${database};`); } catch (error) { errors.push(`DROP_DATABASE:${error.message}`); }
+  for (const role of roles) {
+    try { adminSql(`DROP ROLE IF EXISTS ${role};`); } catch (error) { errors.push(`DROP_ROLE:${role}:${error.message}`); }
+  }
+  let residualDatabases = [];
+  let residualRoles = [];
+  try { residualDatabases = adminSql(`SELECT datname FROM pg_database WHERE datname='${database}';`).split('\n').filter(Boolean); } catch (error) { errors.push(`VERIFY_DATABASE:${error.message}`); }
+  try { residualRoles = adminSql(`SELECT rolname FROM pg_roles WHERE rolname IN (${roles.map((role) => `'${role}'`).join(',')}) ORDER BY rolname;`).split('\n').filter(Boolean); } catch (error) { errors.push(`VERIFY_ROLES:${error.message}`); }
+  try { rmSync(sqlFile, { force: true }); } catch (error) { errors.push(`REMOVE_SQL_FILE:${error.message}`); }
+  return { ok: errors.length === 0 && residualDatabases.length === 0 && residualRoles.length === 0, residualDatabases, residualRoles, errors };
+}
+
 async function main() {
   setup();
   const authority = new CredentialAuthority(new Map([
@@ -270,8 +346,11 @@ async function main() {
   record('B02', 'B exact broker selection', 'trusted context B', 'B lease and B identity', (c) => { const l=leaseB(c); return broker.execute(l, makeContext({ userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:c }), 'SELECT session_user,label FROM proof.records;'); }, (o) => o.sessionUser === tenantB && o.stdout === `${tenantB}|record-b`);
   record('B03', 'A cannot read B through broker', 'A lease foreign query', 'zero rows', (c) => { const l=leaseA(c); return broker.execute(l, makeContext({ userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c }), `SELECT count(*) FROM proof.records WHERE organization_id='${organizationB}';`); }, (o) => o.stdout === '0');
   record('B04', 'B cannot read A through broker', 'B lease foreign query', 'zero rows', (c) => { const l=leaseB(c); return broker.execute(l, makeContext({ userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:c }), `SELECT count(*) FROM proof.records WHERE organization_id='${organizationA}';`); }, (o) => o.stdout === '0');
+  record('B05', 'A cannot read B under complete success group', 'valid A lease querying B-owned data', 'foreign result zero', (c) => { const l=leaseA(c); return broker.execute(l, makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), `SELECT count(*) FROM proof.records WHERE organization_id='${organizationB}';`); }, (o) => o.sessionUser === tenantA && o.stdout === '0');
+  record('B06', 'B cannot read A under complete success group', 'valid B lease querying A-owned data', 'foreign result zero', (c) => { const l=leaseB(c); return broker.execute(l, makeContext({userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:c}), `SELECT count(*) FROM proof.records WHERE organization_id='${organizationA}';`); }, (o) => o.sessionUser === tenantB && o.stdout === '0');
   record('B07', 'A request organization B denied', 'payload org override', 'DENY ORGANIZATION_SPOOF', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), { organizationId: organizationB }), (o) => o.error === 'ORGANIZATION_SPOOF');
   record('B08', 'B request organization A denied', 'payload org override', 'DENY ORGANIZATION_SPOOF', (c) => broker.issueLease(makeContext({userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:c}), { organizationId: organizationA }), (o) => o.error === 'ORGANIZATION_SPOOF');
+  record('B09', 'forged organizationId matrix variant denied', 'request-supplied organizationId B under trusted A context', 'DENY ORGANIZATION_SPOOF', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), { organizationId: organizationB }), (o) => o.error === 'ORGANIZATION_SPOOF');
   record('B10', 'forged role denied', 'roleId payload', 'DENY ROLE_SPOOF', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), { roleId: tenantB }), (o) => o.error === 'ROLE_SPOOF');
   record('B11', 'forged membership denied', 'membership payload', 'DENY MEMBERSHIP_SPOOF', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), { membershipId: membershipB }), (o) => o.error === 'MEMBERSHIP_SPOOF');
   record('B12', 'post-validation request mutation no effect', 'lease A + changed context org B', 'DENY LEASE_CONTEXT_MISMATCH', (c) => { const l=leaseA(c); return broker.execute(l, makeContext({userId:userA,organizationId:organizationB,membershipId:membershipA,correlationId:c}), 'SELECT 1;'); }, (o) => o.error === 'LEASE_CONTEXT_MISMATCH');
@@ -300,6 +379,7 @@ async function main() {
   record('B24', 'revoked lease denied', 'revoked A lease', 'DENY LEASE_REVOKED', (c) => { const l=leaseA(c); broker.revokeLease(l.leaseId); return broker.execute(l, makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), 'SELECT 1;'); }, (o) => o.error === 'LEASE_REVOKED');
   record('B25', 'lease replay denied', 'same A lease twice', 'second execution DENY LEASE_REPLAY', (c) => { const l=leaseA(c); const ctx=makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}); broker.execute(l, ctx, 'SELECT 1;'); return broker.execute(l, ctx, 'SELECT 1;'); }, (o) => o.error === 'LEASE_REPLAY');
   record('B26', 'lease copied to different connection denied', 'A lease altered connection', 'DENY LEASE_CONNECTION_MISMATCH', (c) => { const l=leaseA(c); return broker.execute({ ...l, connectionId: randomUUID() }, makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), 'SELECT 1;'); }, (o) => o.error === 'LEASE_CONNECTION_MISMATCH');
+  record('B27', 'A lease cannot be presented with B context', 'A lease plus B context', 'DENY LEASE_CONTEXT_MISMATCH', (c) => { const l=leaseA(c); return broker.execute(l, makeContext({userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:c}), 'SELECT 1;'); }, (o) => o.error === 'LEASE_CONTEXT_MISMATCH');
   broker.available = false;
   record('B28', 'broker unavailable fails closed', 'broker flag unavailable', 'DENY BROKER_UNAVAILABLE', (c) => leaseA(c), (o) => o.error === 'BROKER_UNAVAILABLE');
   broker.available = true;
@@ -331,6 +411,8 @@ async function main() {
   record('B42', 'pool partitions A and B principals', 'one A lease and one B lease', 'distinct connection/role partitions', (c) => { const a=leaseA(c); const b=leaseB(randomUUID()); return { aRole: broker.poolTenant(a.connectionId), bRole: broker.poolTenant(b.connectionId), aConnection:a.connectionId, bConnection:b.connectionId }; }, (o) => o.aRole === tenantA && o.bRole === tenantB && o.aConnection !== o.bConnection);
   record('B43', 'DISCARD ALL retains authenticated A identity', 'direct A connection reset', 'session_user remains A', () => sqlScriptAs(tenantA, passwordA, ['SELECT session_user;', 'DISCARD ALL;', 'SELECT session_user;']), (o) => o.code === 0 && o.stdout.split('\n').filter((line) => line === tenantA).length === 2);
   record('B44', 'stale pooled connection denied', 'A lease marked stale', 'DENY POOL_PARTITION_MISMATCH', (c) => { const l=leaseA(c); broker.markConnectionStale(l.connectionId); return broker.execute(l, makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), 'SELECT 1;'); }, (o) => o.error === 'POOL_PARTITION_MISMATCH');
+  record('B45', 'pool partitioning preserves tenant identities', 'separate A and B leases/pools', 'distinct A/B pool tenant identities', (c) => { const a=leaseA(c); const b=leaseB(randomUUID()); return { aPool:broker.poolTenant(a.connectionId), bPool:broker.poolTenant(b.connectionId), aConnection:a.connectionId, bConnection:b.connectionId }; }, (o) => o.aPool === tenantA && o.bPool === tenantB && o.aConnection !== o.bConnection && o.aPool !== o.bPool);
+  await recordAsync('B46', 'concurrent A/B requests have no cross-talk', 'parallel A and B tenant broker executions', 'A sees A; B sees B; distinct identities', async (c) => { const a=leaseA(c); const bCorrelation=randomUUID(); const b=leaseB(bCorrelation); const [aOut,bOut]=await Promise.all([broker.executeConcurrent(a,makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}),'SELECT session_user,label FROM proof.records;'), broker.executeConcurrent(b,makeContext({userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:bCorrelation}),'SELECT session_user,label FROM proof.records;')]); return { aIdentity:aOut.sessionUser,bIdentity:bOut.sessionUser,aRows:aOut.stdout,bRows:bOut.stdout,aPid:aOut.backendPid,bPid:bOut.backendPid,databaseIdentity:`${aOut.sessionUser}|${bOut.sessionUser}`,organizationId:`${organizationA}|${organizationB}`,membershipId:`${membershipA}|${membershipB}`,leaseId:`${a.leaseId}|${b.leaseId}`,tenantRoleId:`${a.tenantRoleId}|${b.tenantRoleId}` }; }, (o) => o.aIdentity === tenantA && o.bIdentity === tenantB && o.aRows === `${tenantA}|record-a` && o.bRows === `${tenantB}|record-b` && o.aPid !== o.bPid);
   record('B47', 'release/reacquire does not inherit tenant', 'A then B fresh leases', 'A and B exact role', (c) => { const a=leaseA(c); const ctxA=makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}); const aOut=broker.execute(a,ctxA,'SELECT session_user;'); const corrB=randomUUID(); const b=leaseB(corrB); const bOut=broker.execute(b,makeContext({userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:corrB}),'SELECT session_user;'); return { a:aOut.sessionUser,b:bOut.sessionUser }; }, (o) => o.a === tenantA && o.b === tenantB);
   record('B48', 'membership revocation denies new lease', 'revoked A membership', 'DENY MEMBERSHIP_REVOKED', (c) => { adminSql(`UPDATE security.memberships SET revoked=true WHERE membership_id='${membershipA}';`, database); try { return leaseA(c); } finally { adminSql(`UPDATE security.memberships SET revoked=false WHERE membership_id='${membershipA}';`, database); } }, (o) => o.error === 'MEMBERSHIP_REVOKED');
   record('B49', 'mapping revocation denies new lease', 'revoked A mapping', 'DENY MAPPING_REVOKED', (c) => { adminSql(`UPDATE security.tenant_role_mapping SET active=false WHERE organization_id='${organizationA}';`, database); try { return leaseA(c); } finally { adminSql(`UPDATE security.tenant_role_mapping SET active=true WHERE organization_id='${organizationA}';`, database); } }, (o) => o.error === 'MAPPING_REVOKED');
@@ -346,16 +428,26 @@ async function main() {
   record('B59', 'raw GUC cannot change A identity', 'A raw GUC B', 'foreign zero', (c) => { const l=leaseA(c); return broker.execute(l,makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}),`BEGIN; SELECT set_config('app.organization_id','${organizationB}',true); SELECT count(*) FROM proof.records WHERE organization_id='${organizationB}'; ROLLBACK;`); }, (o) => o.stdout.split('\n').includes('0') && o.sessionUser === tenantA);
   record('B60', 'forged organization cannot change session mapping', 'A context with B payload', 'DENY organization spoof', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c}), { organizationId: organizationB }), (o) => o.error === 'ORGANIZATION_SPOOF');
 
-  const hardFailures = evidence.filter((item) => item.result !== 'PASS').map((item) => item.id);
-  const payload = { status: hardFailures.length === 0 ? 'PASS_BROKER_AUDIT_PROOF' : 'FAIL', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, postgresVersion: adminSql('SHOW server_version;'), evidence, auditLog, hardFailures, notProven: ['production workload identity separation', 'production credential authority/KMS ownership', 'provider HA/DR and scale', 'production broker deployment'] };
+  const toPayload = (coverage, cleanup) => ({
+    status: coverage.status === 'PASS' ? 'PASS_BROKER_AUDIT_PROOF' : coverage.status,
+    startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, postgresVersion: adminSql('SHOW server_version;'), evidence, auditLog,
+    mandatoryIds: coverage.mandatoryIds, executedIds: coverage.executedIds, missingIds: coverage.missingIds, duplicateIds: coverage.duplicateIds, unregisteredIds: coverage.unregisteredIds, invalidIds: coverage.invalidIds, testsWithoutResult: coverage.testsWithoutResult, evidenceMissingFields: coverage.evidenceMissingFields, expectedActualMismatchIds: coverage.expectedActualMismatchIds, hardFailures: coverage.hardFailures, coverageFailures: coverage.coverageFailures, securityFailures: coverage.hardFailures, cleanupFailures: coverage.cleanupFailures, cleanup, evidenceComplete: coverage.status === 'PASS', notProven: ['production workload identity separation', 'production credential authority/KMS ownership', 'provider HA/DR and scale', 'production broker deployment'],
+  });
+  const preCleanupCoverage = validateBrokerCoverage(evidence);
+  const payload = toPayload(preCleanupCoverage, { ok: null, state: 'PENDING' });
+  writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
+  payload.cleanup = cleanupAuditResources();
+  const finalCoverage = validateBrokerCoverage(evidence, { cleanup: payload.cleanup });
+  Object.assign(payload, toPayload(finalCoverage, payload.cleanup));
   writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
   chmodSync(auditFile, 0o600);
-  process.stdout.write(`${JSON.stringify({ status: payload.status, evidenceFile: auditFile, databaseAlias: database, hardFailures }, null, 2)}\n`);
-  process.exitCode = hardFailures.length === 0 ? 0 : 2;
+  process.stdout.write(`${JSON.stringify({ status: payload.status, evidenceFile: auditFile, databaseAlias: database, hardFailures: finalCoverage.hardFailures, coverageFailures: finalCoverage.coverageFailures, cleanupFailures: finalCoverage.cleanupFailures }, null, 2)}\n`);
+  process.exitCode = payload.status === 'PASS_BROKER_AUDIT_PROOF' ? 0 : 2;
 }
 
 main().catch((error) => {
-  const payload = { status: 'FAIL_SETUP_OR_HARNESS', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, error: String(error.message || error) };
+  const cleanup = cleanupAuditResources();
+  const payload = { status: cleanup.ok ? 'FAIL_SETUP_OR_HARNESS' : 'FAIL_CLEANUP', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, error: String(error.message || error), evidence: [], evidenceComplete: false, cleanup, cleanupFailures: cleanup.ok ? [] : ['AUDIT_CLEANUP_FAILED'] };
   writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
   process.stderr.write(`Broker proof failed; redacted evidence: ${auditFile}\n`);
   process.exitCode = 2;
