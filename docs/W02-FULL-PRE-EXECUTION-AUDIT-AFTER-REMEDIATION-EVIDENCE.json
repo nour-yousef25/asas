@@ -1,0 +1,15 @@
+{
+  "audit": "W02-FULL-PRE-EXECUTION-AUDIT-AFTER-REMEDIATION",
+  "decision": "READY_FOR_NEXT_EXECUTION_WAVE_PLANNING_ONLY",
+  "baseline": "95b07ef3e6b7c00d9e454620a482c239b663d1cb",
+  "gitClean": true,
+  "identityContract": "PASS_DESIGN_ONLY",
+  "brokerEvidence": "PASS_AUDIT_ONLY_B01_B60",
+  "auditArtifactHygiene": "PASS_HYGIENE_ONLY",
+  "temporaryAuditResidues": [],
+  "prismaValidate": "PASS",
+  "productionResourcesTouched": false,
+  "globalW02Completion": "NOT_READY",
+  "implementationStarted": false,
+  "nextAuthorizedAction": "PLAN_ONLY_FOR_SEPARATELY_AUTHORIZED_SCOPE"
+}

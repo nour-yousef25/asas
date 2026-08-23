@@ -1,4 +1,6 @@
-# BLOCKER — W02 Full Continuous Execution: RLS Identity Contract Conflict
+# RESOLVED DESIGN-ONLY — W02 Full Continuous Execution: RLS Identity Contract Conflict
+
+**Resolution:** ADR-W02-009 reconciled the identity contract and updated M6/ADRs/matrices. This historical blocker does not establish runtime readiness; see `W02-FULL-PRE-EXECUTION-AUDIT-AFTER-REMEDIATION.md`.
 
 ## Root Cause
 
@@ -37,4 +39,4 @@
 
 ## Next Authorized Scope
 
-`W02-RLS-IDENTITY-CONTRACT-RECONCILIATION` فقط، ثم إعادة pre-execution audit من branch نظيفة. لا يوجد انتقال تلقائي إلى أي work package تنفيذي.
+The authorized reconciliation scope is complete design-only. The fresh full audit returned READY FOR NEXT EXECUTION WAVE planning-only; no execution work package starts automatically.

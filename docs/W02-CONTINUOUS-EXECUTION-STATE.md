@@ -2,15 +2,15 @@
 
 | Field | State |
 |---|---|
-| Current phase | Phase 3 — two-scope remediation complete; Full Pre-Execution Audit pending |
-| Current WP | `W02-AUDIT-ARTIFACT-HYGIENE-FIX` closed hygiene-only |
-| Current branch | `w02-audit-artifact-hygiene-fix` |
-| Current commit | pending hygiene closure commit; execution baseline `bfbf0ae` |
+| Current phase | Full Pre-Execution Audit complete — READY FOR NEXT EXECUTION WAVE planning-only |
+| Current WP | no active implementation work package |
+| Current branch | `w02-full-preexecution-audit-after-remediation` |
+| Current commit | pending full-audit decision commit; execution baseline `bfbf0ae` |
 | Last safe Broker coverage baseline | `bfbf0ae32ed1b687f50e45f84e887177d577d45c` |
-| Current blocker | no active remediation blocker; operational/family prerequisites have not been assessed by the required fresh full audit |
+| Current blocker | no active remediation blocker; operational/family prerequisites are open and must be closed in separately authorized scopes |
 | Preservation | `865c639ffdcead9a6a1588b711b7ce704cefdab8` preserves the pre-execution checklist mutation without reset/stash/delete |
 | Evidence status | Broker B01–B60/coverage evidence PASS audit-only; RLS identity reconciliation PASS design-only; hygiene E-HYG-01..04, strict scan and regression PASS; no new RLS implementation evidence run |
-| Next authorized action | fresh W02 Full Pre-Execution Audit only; it may issue READY or BLOCKED, never start implementation |
+| Next authorized action | planning only for `W02-BROKER-LIFECYCLE-AND-OPERATIONAL-READINESS` or another separately authorized scoped plan; no implementation starts automatically |
 
 ## Preconditions Confirmed
 
