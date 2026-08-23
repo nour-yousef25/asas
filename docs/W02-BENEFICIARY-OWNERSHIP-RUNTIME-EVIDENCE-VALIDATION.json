@@ -1,0 +1,30 @@
+{
+  "status": "PASS_BENEFICIARY_OWNERSHIP_EVIDENCE",
+  "mandatoryIds": [
+    "O01",
+    "O02",
+    "O03",
+    "O04",
+    "O05",
+    "O06"
+  ],
+  "executedIds": [
+    "O01",
+    "O02",
+    "O03",
+    "O04",
+    "O05",
+    "O06"
+  ],
+  "failures": {
+    "status": false,
+    "missingIds": [],
+    "duplicateIds": [],
+    "invalidIds": [],
+    "failedRows": [],
+    "hardFailures": [],
+    "cleanup": false,
+    "credentialPersistence": false,
+    "productionTouch": false
+  }
+}

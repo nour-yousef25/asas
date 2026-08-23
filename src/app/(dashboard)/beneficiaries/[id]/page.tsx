@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/data-table";
 import { formatDate } from "@/lib/format";
+import { beneficiaryRepository } from "@/lib/beneficiary-repository";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
 
 const statusMap: Record<string, { label: string; variant: any }> = {
   ACTIVE: { label: "نشط", variant: "success" },
@@ -17,10 +19,9 @@ const genderMap: Record<string, string> = { MALE: "ذكر", FEMALE: "أنثى" }
 
 export default async function BeneficiaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const b = await prisma.beneficiary.findUnique({
-    where: { id },
-    include: { documents: true },
-  });
+  const context = await requireTenantContext();
+  await requirePermission(context, "beneficiary.read");
+  const b = await beneficiaryRepository.getById(context, id);
   if (!b) return notFound();
   const s = statusMap[b.status] || { label: b.status, variant: "outline" };
 
@@ -67,7 +68,7 @@ export default async function BeneficiaryDetailPage({ params }: { params: Promis
                       <p className="font-medium text-sm">{d.name}</p>
                       <p className="text-xs text-muted-foreground">{d.fileType} · رفع بتاريخ {formatDate(d.uploadedAt)}</p>
                     </div>
-                    <a href={d.fileUrl} download className="text-primary text-sm hover:underline">تحميل</a>
+                    <span className="text-xs text-muted-foreground">يتطلب التحميل رابطاً خاصاً مقيداً بالمنظمة</span>
                   </div>
                 ))
               )}

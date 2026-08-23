@@ -10,6 +10,7 @@
 | Broker B16 contract fix | exact cross-organization membership reason | B16 PASS with user A membership in organization B | current B16 evidence | COMPLETE LIMITED | full Broker rerun required |
 | Broker Audit Proof | B01–B60 | exact B01–B60 PASS; Coverage Gate, E1–E8, validation, and cleanup PASS | `W02-BROKER-TEST-COVERAGE-RERUN-EVIDENCE.json` | COMPLETE AUDIT-ONLY | production Broker/RLS gates remain separate |
 | Broker lifecycle core | tenant principal/lease/revocation/rotation/authority boundary | L01–L10 PostgreSQL runtime PASS; cleanup zero residue | lifecycle design/report/evidence/validator | COMPLETE AUDIT RUNTIME CORE | production provider/HA/scale acceptance remains separate |
+| Beneficiary ownership/API | repository, collection/detail dashboard and forged-owner guard | O01–O06 PostgreSQL runtime PASS; cleanup zero residue | cutover design/report/evidence/validator | COMPLETE PREREQUISITE | Documents private delivery and RLS policy remain separate |
 | RLS Waves | all tenant-owned families | not run | ADR-W02-009 reconciles identity design only; no current migration | NOT STARTED | Broker lifecycle/support/family ownership/repository/permission gates remain |
 | Queue/Storage/IAM/Documents | tenant isolation | not started | no closure | NOT STARTED | ordered prerequisites |
 | W02 Audit Artifact Hygiene | temporary credentials/evidence/cleanup | strict E-HYG-01..04 and artifact scan PASS | report/evidence recorded | COMPLETE — HYGIENE-ONLY | no implementation implied |

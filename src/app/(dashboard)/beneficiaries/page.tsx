@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader, DataTable } from "@/components/shared/data-table";
 import { formatDate } from "@/lib/format";
+import { beneficiaryRepository } from "@/lib/beneficiary-repository";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
 
 export const dynamic = "force-dynamic";
 
@@ -32,9 +34,9 @@ type Beneficiary = {
 };
 
 export default async function BeneficiariesPage() {
-  const beneficiaries = (await prisma.beneficiary.findMany({
-    orderBy: { createdAt: "desc" },
-  })) as Beneficiary[];
+  const context = await requireTenantContext();
+  await requirePermission(context, "beneficiary.read");
+  const { data: beneficiaries } = await beneficiaryRepository.list(context, { skip: 0, take: 200 });
 
   return (
     <div className="space-y-6">

@@ -17,6 +17,8 @@
     "test:w02:broker": "node scripts/w02-rls-tenant-access-broker-proof.mjs",
     "test:w02:broker:lifecycle": "tsx scripts/w02-broker-lifecycle-runtime-proof.ts",
     "test:w02:broker:lifecycle:validate": "node scripts/w02-broker-lifecycle-evidence-validate.mjs",
+    "test:w02:beneficiary:ownership": "tsx scripts/w02-beneficiary-ownership-runtime-proof.ts",
+    "test:w02:beneficiary:ownership:validate": "node scripts/w02-beneficiary-ownership-evidence-validate.mjs",
     "test:w02:audit-artifact-hygiene": "node scripts/w02-audit-artifact-hygiene-self-test.mjs",
     "test:w02:audit-artifact-scan": "node scripts/w02-audit-artifact-hygiene-scan.mjs",
     "test:w01:redis": "tsx scripts/w01-redis-bullmq-integration.ts",

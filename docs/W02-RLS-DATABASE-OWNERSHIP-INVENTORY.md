@@ -8,7 +8,7 @@
 
 | Family | Models with `organizationId` | Ownership readiness | RLS wave status |
 |---|---|---|---|
-| Beneficiary | Beneficiary | WP5-2 repository/API ownership مثبت؛ dashboard direct reads ما زالت تحتاج transaction context | candidate after direct-read cutover |
+| Beneficiary | Beneficiary | repository/API/dashboard ownership evidence O01–O06 complete; documents private delivery remains separate | first RLS Wave 1 candidate |
 | Financial donations | Donor, Donation, DonationCampaign, Project | WP5-2 ownership/repository مثبت؛ dashboard/modules legacy direct Prisma قائمة | candidate after direct-read cutover |
 | Budget | Budget, BudgetItem, Expense | WP5-3 root/inheritance foundation مثبتة؛ finance modules/backfill paths تحتاج explicit runtime separation | candidate after runtime/query classification |
 | Documents | Document | nullable root owner، API/storage لم يتحولا | excluded إلى Phase E |
