@@ -286,6 +286,16 @@
 - [x] تشغيل scoped tests ثم Prisma/TypeScript/Jest/Communications/build بعد كل نطاق مع evidence redacted وcleanup PASS.
 - [ ] إعادة Full Pre-Execution Audit من baseline نظيف وإصدار READY أو BLOCKED فقط دون بدء RLS/Broker lifecycle/Queue/Storage/IAM/Documents/W03.
 
+## W02-GLOBAL-CLOSURE-AUTONOMOUS-EXECUTION
+
+- [ ] تثبيت canonical baseline وقراءة كامل تفويض W02 والوثائق/السجلات/المصفوفات وinventory/WP reports، مع clean execution branch وخطة dependency-ordered.
+- [ ] تنفيذ وإثبات Tenant Access Broker lifecycle والـtenant role provisioning/rotation/revocation/pooling/DR/support boundaries ببيئة audit أو staging حقيقية.
+- [ ] إغلاق tenant ownership وTenantContext وIAM/SoD وrepository/API/direct-Prisma paths لكل surface حساس مع negative runtime evidence.
+- [ ] تنفيذ RLS waves المطلوبة بمigrations forward-only وclean/upgrade/rollback rehearsals وA/B/concurrency/direct-SQL proof حقيقي.
+- [ ] إغلاق Queue/Redis/Cache وStorage وRoot Documents وReports/exports tenant isolation، private delivery، cleanup، وruntime evidence الحقيقي.
+- [ ] إغلاق Privacy/Retention/Legal Hold وVault/secret lifecycle وActivation/IDP/Audit/Health وSupport/DR requirements الداخلة فعلياً ضمن W02.
+- [ ] تشغيل global migration/backfill/rollback/DR rehearsals وregression/security scans وتحديث closure matrices/evidence/Git؛ إعلان COMPLETE أو BLOCKED فقط.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
