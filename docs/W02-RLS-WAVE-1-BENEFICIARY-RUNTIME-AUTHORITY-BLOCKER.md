@@ -1,31 +1,31 @@
-# BLOCKER — W02 RLS Wave 1 Beneficiary Runtime Authority
+# RESOLVED GATE — W02 RLS Wave 1 Beneficiary Runtime Authority
 
 ## Status
 
-**BLOCKED — Critical security prerequisite.** No Beneficiary RLS policy or migration has been introduced.
+**RESOLVED FOR AUDIT RUNTIME ON 2026-08-23.** The former blocker prevented RLS work because the repository used a process-global `PrismaClient` sourced from `DATABASE_URL`. The constrained Beneficiary data-plane path now requires a Broker-issued, one-time lease and a tenant-bound Prisma client supplied by `TenantConnectionProvider`; it does not default to the global client.
 
-## Root Cause
+This resolution authorizes **only** the next separate scope, `RLS Wave 1 — Beneficiary`, in an audit/staging rehearsal. It does not represent production provider configuration, production identity rollout, or RLS enablement for any other repository.
 
-The existing application database layer is a process-global `PrismaClient` backed by the process `DATABASE_URL`. The Beneficiary repository correctly scopes its predicates using server-side `TenantContext`, but its database calls still use this global client. The new Broker lifecycle core can issue and validate tenant-bound leases on a disposable audit database, yet its authority interface does not provision a production/runtime tenant-bound Prisma or PostgreSQL connection for application repository operations.
+## Resolved Root Cause
 
-ADR-W02-009 and the RLS design require that RLS derives organization from tenant-bound PostgreSQL `session_user` through protected mapping. Reusing the global `DATABASE_URL`, setting a Raw GUC, choosing a role from request input, or falling back to an owner/superuser/BYPASSRLS client would violate the accepted contract. Therefore RLS-I12 and the non-owner runtime requirement cannot be truthfully proved at this point.
+`TenantBoundPrismaExecutor` issues a fresh lease for each repository operation. `TenantAccessBroker` validates membership, session version, policy version, context fingerprint, active principal mapping and one-time lease state. `TenantBoundPrismaCredentialAuthority` invokes an externally owned provider, passes the resulting Prisma client to the operation only, and discards it in `finally`.
+
+The audit provider maps only opaque credential references held in Broker metadata to memory-only disposable credentials. It verifies the client’s PostgreSQL `session_user` equals the issued tenant principal before exposing the client. No Raw GUC, `current_setting`, `set_config`, request-selected database role, global application credential, owner, superuser, or BYPASSRLS role was used.
 
 ## Evidence
 
-| Item | Finding |
+| Item | Result |
 |---|---|
-| Broker lifecycle L01–L10 | PASS on disposable PostgreSQL audit runtime; external authority is deliberately ephemeral |
-| Beneficiary ownership O01–O06 | PASS using context-scoped repository predicates and a non-owner audit role |
-| Application database layer | global Prisma client initialized from `DATABASE_URL` |
-| Repository execution path | direct global Prisma calls; no Broker-provided tenant-bound connection factory |
-| RLS test matrix | RLS-I12 requires every runtime path to use Broker-bound tenant principal |
+| A01–A15 tenant runtime authority | PASS on disposable PostgreSQL; exact coverage and independent validation passed. |
+| A02/A03 | Prisma query observed A/B tenant login `session_user` internally; redacted evidence records only pass/fail. |
+| A04/A05 | Per-operation discard and concurrent A/B client partition passed. |
+| A06–A08 | Replay, expiry and revoked leases denied before tenant execution. |
+| A09–A13 | Direct repository operation, rotation, provider failure, rollback and restart semantics passed. |
+| A14/A15 | Static anti-fallback/GUC gate and non-superuser/non-BYPASSRLS audit-role gate passed. |
+| O01–O07 | Beneficiary ownership proof rerun through the authority path; lease consumption recorded and cleanup zero residue. |
 
-## Security Impact
+## Remaining Boundaries
 
-Enabling `ENABLE ROW LEVEL SECURITY` or `FORCE ROW LEVEL SECURITY` now could cause either unavailable application access or a prohibited global/owner fallback. Treating context predicates as equivalent to database identity would create a false-green RLS result. The remaining W02 domains depend on this boundary and cannot begin under the Global Closure Directive.
+The implementation deliberately has no production provider factory. A deployment owner must later configure workload identity and a provider appropriate for the selected topology without exposing a universal tenant credential to application code. That operational work remains an independent gate before production activation.
 
-## Minimal Safe Next Scope
-
-`W02-TENANT-BOUND-RUNTIME-CONNECTION-AUTHORITY` must provide an externally owned, deployment-specific authority that returns only a short-lived tenant-bound connection or client operation to the Broker. It must prove process/workload identity, no durable universal tenant credential in application code/configuration, per-principal pool partition, revocation/rotation behavior, and direct repository operation under non-owner `session_user`. Only then may the Beneficiary RLS migration/rehearsal begin.
-
-No Queue, Storage, Documents, IAM, remaining RLS wave, or W03 scope may substitute for or bypass this boundary.
+No RLS policy or migration was added by this authority scope. The next scope must create a forward-only Beneficiary RLS migration and prove `session_user` to protected role-to-organization mapping under `FORCE ROW LEVEL SECURITY`, including upgrade/rollback/cleanup and full regression.

@@ -14,7 +14,7 @@ export type TenantLeaseDescriptor = Readonly<{
   expiresAt: Date;
 }>;
 
-export type TenantDatabaseOperation<T> = (input: Readonly<{ principalName: string; correlationId: string; connectionId: string }>) => Promise<T>;
+export type TenantDatabaseOperation<T> = (input: Readonly<{ principalName: string; correlationId: string; connectionId: string; prisma?: PrismaClient }>) => Promise<T>;
 
 export interface TenantCredentialAuthority {
   run<T>(input: Readonly<{ credentialReference: string; principalName: string; correlationId: string; connectionId: string }>, operation: TenantDatabaseOperation<T>): Promise<T>;

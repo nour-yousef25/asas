@@ -1,15 +1,19 @@
 import type { BeneficiaryStatus, Prisma, PrismaClient } from "@prisma/client";
-import { prisma } from "@/lib/db";
 import type { TenantContext } from "@/lib/tenant-context";
+import { requireTenantBoundPrismaExecutor, type TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 
 type BeneficiaryInput = Omit<Prisma.BeneficiaryUncheckedCreateInput, "id" | "organizationId" | "createdAt" | "updatedAt">;
 type BeneficiaryUpdate = Omit<Prisma.BeneficiaryUncheckedUpdateInput, "organizationId" | "id" | "createdAt" | "updatedAt">;
 
 export class BeneficiaryRepository {
-  constructor(private readonly db: PrismaClient = prisma) {}
+  constructor(private readonly executor?: TenantBoundPrismaExecutor) {}
+
+  private execute<T>(context: TenantContext, operation: (db: PrismaClient) => Promise<T>) {
+    return (this.executor ?? requireTenantBoundPrismaExecutor()).execute(context, operation);
+  }
 
   private async auditDenied(context: TenantContext, action: string, entityId: string) {
-    await this.db.auditLog.create({ data: { organizationId: context.organizationId, userId: context.userId, action, entity: "Beneficiary", entityId, details: { actorMembershipId: context.membershipId, decision: "DENY", reasonCode: "TENANT_SCOPE", correlationId: context.correlationId, source: "beneficiary-repository" } } });
+    await this.execute(context, (db) => db.auditLog.create({ data: { organizationId: context.organizationId, userId: context.userId, action, entity: "Beneficiary", entityId, details: { actorMembershipId: context.membershipId, decision: "DENY", reasonCode: "TENANT_SCOPE", correlationId: context.correlationId, source: "beneficiary-repository" } } }));
   }
   async list(context: TenantContext, input: { skip: number; take: number; search?: string; status?: string }) {
     const where: Prisma.BeneficiaryWhereInput = {
@@ -17,37 +21,37 @@ export class BeneficiaryRepository {
       ...(input.status ? { status: input.status as BeneficiaryStatus } : {}),
       ...(input.search ? { OR: ["name", "phone", "email", "nationalId"].map((field) => ({ [field]: { contains: input.search, mode: "insensitive" } })) } : {}),
     };
-    const [data, total] = await this.db.$transaction([
-      this.db.beneficiary.findMany({ where, skip: input.skip, take: input.take, orderBy: { createdAt: "desc" }, include: { documents: true } }),
-      this.db.beneficiary.count({ where }),
-    ]);
+    const [data, total] = await this.execute(context, (db) => db.$transaction([
+      db.beneficiary.findMany({ where, skip: input.skip, take: input.take, orderBy: { createdAt: "desc" }, include: { documents: true } }),
+      db.beneficiary.count({ where }),
+    ]));
     return { data, total };
   }
 
   async getById(context: TenantContext, id: string) {
-    const record = await this.db.beneficiary.findFirst({ where: { id, organizationId: context.organizationId }, include: { documents: true } });
+    const record = await this.execute(context, (db) => db.beneficiary.findFirst({ where: { id, organizationId: context.organizationId }, include: { documents: true } }));
     if (!record) await this.auditDenied(context, "TENANT_BENEFICIARY_READ_DENIED", id);
     return record;
   }
 
   create(context: TenantContext, input: BeneficiaryInput) {
-    return this.db.beneficiary.create({ data: { ...input, organizationId: context.organizationId } });
+    return this.execute(context, (db) => db.beneficiary.create({ data: { ...input, organizationId: context.organizationId } }));
   }
 
   async update(context: TenantContext, id: string, input: BeneficiaryUpdate) {
-    const record = await this.db.beneficiary.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } });
+    const record = await this.execute(context, (db) => db.beneficiary.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }));
     if (!record) { await this.auditDenied(context, "TENANT_BENEFICIARY_UPDATE_DENIED", id); return null; }
-    return this.db.beneficiary.update({ where: { id: record.id }, data: input });
+    return this.execute(context, (db) => db.beneficiary.update({ where: { id: record.id }, data: input }));
   }
 
   async deleteOrArchive(context: TenantContext, id: string) {
-    const result = await this.db.beneficiary.deleteMany({ where: { id, organizationId: context.organizationId } });
+    const result = await this.execute(context, (db) => db.beneficiary.deleteMany({ where: { id, organizationId: context.organizationId } }));
     if (result.count !== 1) await this.auditDenied(context, "TENANT_BENEFICIARY_DELETE_DENIED", id);
     return result.count === 1;
   }
 
   async listDocuments(context: TenantContext, beneficiaryId: string) {
-    const beneficiary = await this.db.beneficiary.findFirst({ where: { id: beneficiaryId, organizationId: context.organizationId }, select: { documents: true } });
+    const beneficiary = await this.execute(context, (db) => db.beneficiary.findFirst({ where: { id: beneficiaryId, organizationId: context.organizationId }, select: { documents: true } }));
     if (!beneficiary) { await this.auditDenied(context, "TENANT_BENEFICIARY_DOCUMENT_READ_DENIED", beneficiaryId); return null; }
     return beneficiary.documents;
   }

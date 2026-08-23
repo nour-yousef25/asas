@@ -1,0 +1,171 @@
+{
+  "status": "PASS_TENANT_BOUND_RUNTIME_CONNECTION_AUTHORITY",
+  "startedAt": "2026-08-23T08:13:07.548Z",
+  "finishedAt": "2026-08-23T08:13:11.138Z",
+  "databaseAlias": "asas_runtime_authority_audit_1787472787548_88405",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "A01",
+    "A02",
+    "A03",
+    "A04",
+    "A05",
+    "A06",
+    "A07",
+    "A08",
+    "A09",
+    "A10",
+    "A11",
+    "A12",
+    "A13",
+    "A14",
+    "A15"
+  ],
+  "evidence": [
+    {
+      "id": "A01",
+      "expected": "repository without installed tenant authority fails closed",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:09.663Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A02",
+      "expected": "A Broker executor hands Prisma authenticated as A tenant login",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:09.878Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A03",
+      "expected": "B Broker executor hands Prisma authenticated as B tenant login",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:09.973Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A04",
+      "expected": "sequential A operations receive separate discarded Prisma clients",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.162Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A05",
+      "expected": "concurrent A/B operations preserve distinct client instances and identities",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.376Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A06",
+      "expected": "a consumed lease cannot replay its tenant Prisma operation",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.471Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A07",
+      "expected": "expired lease is denied before tenant checkout",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.479Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A08",
+      "expected": "revoked lease is denied before tenant checkout",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.490Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A09",
+      "expected": "repository writes flow through Broker-bound tenant Prisma with forged org ignored",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.588Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A10",
+      "expected": "principal rotation changes runtime session_user and retires the old principal",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.685Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A11",
+      "expected": "provider outage denies without global Prisma fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.695Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A12",
+      "expected": "tenant Prisma transaction rolls back before lease completion on operation failure",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:10.899Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A13",
+      "expected": "provider reinitialization cannot reuse a consumed pre-restart lease",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:11.087Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A14",
+      "expected": "authority and repository sources contain no GUC, global db import, or DATABASE_URL fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:11.088Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "A15",
+      "expected": "all audit principals are non-superuser and non-BYPASSRLS",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:13:11.137Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "globalPrismaFallback": false,
+  "rawGucUsed": false
+}

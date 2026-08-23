@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 const evidencePath = process.argv[2];
 if (!evidencePath) throw new Error("Evidence path required");
 const evidence = JSON.parse(readFileSync(evidencePath, "utf8"));
-const mandatoryIds = ["O01", "O02", "O03", "O04", "O05", "O06"];
+const mandatoryIds = ["O01", "O02", "O03", "O04", "O05", "O06", "O07"];
 const rows = Array.isArray(evidence.evidence) ? evidence.evidence : [];
 const ids = rows.map((row) => row?.id);
 const count = (id) => ids.filter((value) => value === id).length;

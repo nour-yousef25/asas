@@ -6,6 +6,7 @@ export type TenantContext = Readonly<{
   organizationId: string;
   membershipId: string;
   userId: string;
+  sessionVersion: number;
   policySnapshotVersion: number;
   correlationId: string;
 }>;
@@ -69,6 +70,7 @@ export async function resolveTenantContextForUser(input: {
     organizationId: membership.organizationId,
     membershipId: membership.id,
     userId: user.id,
+    sessionVersion: user.authVersion,
     role: membership.role,
     policySnapshotVersion: membership.policyVersion,
     correlationId: input.correlationId ?? correlationId(),
