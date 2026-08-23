@@ -7,16 +7,16 @@
 | العائلة | roots المنظمة | الأبناء الموروثة | حالة الملكية/RLS |
 |---|---|---|---|
 | Budget/Expense | `budgets`, `budget_items`, `expenses` | `BudgetItem → Budget`، و`Expense → BudgetItem` عند الارتباط | tenant keys موجودة nullable؛ backfill control-plane موجود، لكن لا يوجد repository/runtime/dashboard tenant-bound. **NOT READY**. |
-| Donor/Donation | `donors`, `donations`, `donation_campaigns`, `projects` | `donor_communications → Donor`، `invoices → Donation` | roots nullable والأبناء لا يحملون tenant key دائماً. `FinancialRepository` موجود لكنه global وغير مستخدم من pages. **NOT READY**. |
+| Donor/Donation | `donors`, `donations`, `donation_campaigns`, `projects` | `donor_communications → Donor`، `invoices → Donation` | roots nullable والأبناء لا يحملون tenant key دائماً. repository ومسارا donors/donations أصبحا tenant-bound؛ PostgreSQL evidence وباقي paths ما زالت **NOT READY** لـRLS. |
 | Dashboard المختلط | donation/project/beneficiary/KPI/member | عابر للعائلات | global direct Prisma؛ لا يمكن إدخاله في أي RLS family حتى تقسيم queries حسب ownership. **BLOCKING PATH**. |
 
 ## مسارات runtime المكتشفة
 
 | المسار | الحالة الحالية | الخطر | الإجراء الإلزامي |
 |---|---|---|---|
-| `src/lib/financial-repository.ts` | يستورد `db.ts` ويستدعي Prisma globally في donors/campaigns/donations/projects/audit | يتجاوز Broker-bound tenant Prisma؛ لا يمكن أن يثبت `session_user` | تحويله إلى executor tenant-bound، أو تقسيمه إلى repositories أصغر قبل RLS. |
-| `src/app/(dashboard)/donations/page.tsx` | `prisma.donation.findMany` بلا context أو permission | كشف cross-tenant للdonation/invoice/relations | `requireTenantContext` + permission + repository tenant-bound. |
-| `src/app/(dashboard)/donors/page.tsx` | `prisma.donor.findMany` بلا context أو permission | كشف donor والنشاط | نفس cutover. |
+| `src/lib/financial-repository.ts` | **محول** إلى `TenantBoundPrismaExecutor` ولا يستورد `db.ts` | يتطلب PostgreSQL runtime proof قبل اعتباره RLS-ready | F01–F09 على tenant login/lease/session_user. |
+| `src/app/(dashboard)/donations/page.tsx` | **محول** إلى server TenantContext + `donation.read` + repository | لا تغطيه evidence PostgreSQL بعد | يشمله F01–F10. |
+| `src/app/(dashboard)/donors/page.tsx` | **محول** إلى server TenantContext + `donor.read` + repository | لا تغطيه evidence PostgreSQL بعد | يشمله F01–F10. |
 | `src/app/(dashboard)/page.tsx` | aggregates/findMany global تشمل donations/projects/beneficiaries وغيرها | mixing owners؛ RLS family قد يكسر الصفحة أو يسرب | scope منفصلة لـdashboard aggregation بعد إغلاق families. |
 | `src/lib/budget-ownership-backfill.ts` | global Prisma control-plane manifest/backfill | ليس data-plane request path، لكنه لا يصلح كـRLS runtime | يبقى control-plane فقط؛ يحتاج proof clean/backfill مستقل قبل Budget RLS. |
 
