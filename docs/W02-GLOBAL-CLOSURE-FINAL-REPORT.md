@@ -32,6 +32,10 @@
 
 احتُفظ بهوية `session_user` وprotected role-OID mapping. لم تستخدم Raw GUC أو `current_setting`/`set_config` كهوية، ولا `organizationMemberships[0]` أو `activeOrganizationId` كfallback، ولا owner/superuser/`BYPASSRLS` أو credential عالمي. لم تلمس بيانات أو credentials أو migrations إنتاجية.
 
+## بوابة الانحدار
+
+على الفرع المرجعي نجحت `prisma validate` و`prisma generate` وTypeScript وJest الكامل وproduction build وaudit artifact hygiene. استخدمت Prisma بوابة URL تركيبياً محلياً فقط لتمرير validation؛ لم يتصل التشغيل بقاعدة بيانات إنتاجية. بقيت تحذيرات Edge Runtime الموجودة سابقاً بشأن `process.cwd` غير حاجبة للبناء ولم تعالج خارج نطاق W02.
+
 ## الخطوة التالية الدقيقة
 
 يبنى `MembershipRepository` وAPI tenant-bound مع harness exact مستقل، ثم Queue envelope/worker adapter وRedis disposable proof، ثم private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure.
