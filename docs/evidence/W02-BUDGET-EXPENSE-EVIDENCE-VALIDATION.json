@@ -1,0 +1,21 @@
+{
+  "status": "PASS_BUDGET_EXPENSE_EVIDENCE",
+  "mandatoryIds": ["BE01", "BE02", "BE03", "BE04", "BE05", "BE06", "BE07", "BE08", "BE09", "BE10"],
+  "executedIds": ["BE01", "BE02", "BE03", "BE04", "BE05", "BE06", "BE07", "BE08", "BE09", "BE10"],
+  "failures": {
+    "status": false,
+    "mandatoryIdsMismatch": false,
+    "missingIds": [],
+    "duplicateIds": [],
+    "invalidIds": [],
+    "failedRows": [],
+    "hardFailures": [],
+    "cleanup": false,
+    "hygiene": false,
+    "credentialPersistence": false,
+    "productionTouch": false,
+    "rawGucIdentityUsed": false,
+    "globalPrismaFallback": false,
+    "ownerOrBypassUsedForTenantEvidence": false
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "status": "PASS_BUDGET_EXPENSE_RUNTIME",
+  "startedAt": "2026-08-23T09:49:13.554Z",
+  "finishedAt": "2026-08-23T09:49:18.635Z",
+  "databaseAlias": "asas_budget_runtime_audit_1787478553553_97567",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "BE01",
+    "BE02",
+    "BE03",
+    "BE04",
+    "BE05",
+    "BE06",
+    "BE07",
+    "BE08",
+    "BE09",
+    "BE10"
+  ],
+  "evidence": [
+    {
+      "id": "BE01",
+      "expected": "BudgetExpenseRepository consumes a Broker lease whose provider verifies A tenant session_user",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:15.914Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE02",
+      "expected": "A/B budget reads and nested item/expense lists retain their own organization while foreign roots are hidden",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:16.547Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE03",
+      "expected": "A cannot add BudgetItem to B budget and records an A-scoped denial audit",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:16.845Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE04",
+      "expected": "A cannot read or create Expense through B BudgetItem and records tenant-scoped denial audit",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:17.309Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE05",
+      "expected": "same-tenant BudgetItem and Expense writes persist A ownership and parent-chain consistency",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:17.783Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE06",
+      "expected": "consumed lease replay, revoked lease, and stale session deny before a further Budget/Expense data-plane operation",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:17.887Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE07",
+      "expected": "principal rotation retires A1 and rebinds Budget/Expense repository execution to A2 session_user",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:18.056Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE08",
+      "expected": "provider outage fails closed without a global Prisma fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:18.064Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE09",
+      "expected": "parallel A2/B1 operations retain distinct authenticated clients and every checkout is discarded",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:18.210Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE10",
+      "expected": "audit roles are non-superuser/non-BYPASSRLS and Budget/Expense source has no local/global Prisma, DATABASE_URL, or raw GUC identity path",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T09:49:18.256Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

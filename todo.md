@@ -335,3 +335,14 @@
 - [ ] تنفيذ وإغلاق WP9: provider-neutral IdP framework وsandbox/production/state/mapping/rotation contracts.
 - [ ] تنفيذ وإغلاق WP10: hardening وfull migration/runtime rehearsal وW02 closure matrix/release gates.
 - [ ] التوقف عند أي conflict أو security/data/migration blocker وتسجيل CONFLICT ID والدليل والأثر والقرار المطلوب؛ لا يبدأ W03.
+
+## W02 — AUTONOMOUS GLOBAL CLOSURE CONTINUATION
+
+- [ ] تثبيت مصدر الحقيقة الحالي لكل وثائق W02 وADRs والعقود وسجل التنفيذ قبل كل نطاق جديد.
+- [x] إعداد Budget/Expense ownership manifest وruntime inventory، بلا RLS أو fallback عالمي.
+- [x] تحويل مسارات Budget/Expense المحددة إلى TenantContext + semantic permission + TenantBoundPrismaExecutor، ثم إثباتها على PostgreSQL disposable.
+- [ ] إغلاق mixed dashboard tenant-bound aggregation scope بدليل مستقل.
+- [ ] إغلاق nullable-root ownership/backfill requirements ودليل التوافق قبل Financial RLS.
+- [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.
+- [ ] تقييم وتنفيذ Financial RLS Wave فقط عند اكتمال جميع البوابات، مع rehearsal وrollback وA/B concurrency proof.
+- [ ] متابعة عائلات W02 الباقية وفق Dependency Map، ثم إصدار قرار W02 COMPLETE أو blocker عالمي حقيقي موثق.
