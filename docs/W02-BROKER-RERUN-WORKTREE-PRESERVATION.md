@@ -46,4 +46,4 @@ This commit is an archival checkpoint only. It does not claim `PASS_BROKER_AUDIT
 
 ## Final Preservation Hash
 
-The preservation commit hash is recorded in the immediately following documentation-only commit so this report remains immutable without amending history.
+The preservation checkpoint is commit `987c05c586c6af3164f2c1a807b7e12f430dd1b6` (`chore(w02): preserve pre-rerun broker coverage worktree`). This follow-up documentation-only commit records that hash without amending or rewriting the preservation history.
