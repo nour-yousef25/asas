@@ -1,36 +1,19 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { auth } from "@/lib/auth";
-import { parsePaginationParams, buildSearchCondition, paginatedQuery } from "@/lib/pagination";
-import { memberInclude } from "@/lib/prisma-selects";
+import { parsePaginationParams } from "@/lib/pagination";
 import { logger } from "@/lib/logger";
-import { apiSuccess, apiUnauthorized, apiInternalError } from "@/lib/api-response";
+import { apiSuccess, apiInternalError } from "@/lib/api-response";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
+import { memberKpiRepository } from "@/lib/member-kpi-repository";
 
 const log = logger.child("members");
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) return apiUnauthorized();
-
-    const { searchParams } = new URL(req.url);
-    const params = parsePaginationParams(searchParams);
-
-    const searchFields = ["user.name", "user.phone", "user.email"];
-    const searchCondition = buildSearchCondition(params.search, searchFields);
-
-    const result = await paginatedQuery(
-      (args) =>
-        prisma.member.findMany({
-          ...args,
-          include: memberInclude,
-        }),
-      (args) => prisma.member.count(args),
-      searchCondition,
-      params,
-      "createdAt"
-    );
-
+    const context = await requireTenantContext();
+    await requirePermission(context, "member.read");
+    const params = parsePaginationParams(new URL(req.url).searchParams);
+    const result = await memberKpiRepository.listMembers(context, { skip: (params.page - 1) * params.pageSize, take: params.pageSize, search: params.search });
     return apiSuccess(result);
   } catch (error) {
     log.error("Failed to fetch members", error);
@@ -40,25 +23,10 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) return apiUnauthorized();
-
+    const context = await requireTenantContext();
+    await requirePermission(context, "member.create");
     const body = await req.json();
-    const member = await prisma.member.create({
-      data: {
-        userId: body.userId,
-        membershipType: body.membershipType || "REGULAR",
-        membershipFee: body.membershipFee || 0,
-        paidAmount: body.paidAmount || 0,
-        endDate: body.endDate
-          ? new Date(body.endDate)
-          : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-        status: body.status || "ACTIVE",
-        paymentStatus: body.paymentStatus || "PENDING",
-      },
-      include: memberInclude,
-    });
-
+    const member = await memberKpiRepository.createMember(context, { userId: body.userId, membershipFee: body.membershipFee || 0, paidAmount: body.paidAmount || 0, endDate: body.endDate ? new Date(body.endDate) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) });
     log.info("Member created", { id: member.id, userId: member.userId });
     return apiSuccess(member, 201);
   } catch (error) {

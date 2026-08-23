@@ -1,43 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { kpiSchema, kpiRecordSchema } from "@/lib/validations";
-import { auth } from "@/lib/auth";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
+import { memberKpiRepository } from "@/lib/member-kpi-repository";
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-  const kpis = await prisma.kPI.findMany({
-    include: { records: { orderBy: { period: "desc" } } },
-    orderBy: { createdAt: "desc" },
-  });
-  return NextResponse.json(kpis);
+  const context = await requireTenantContext();
+  await requirePermission(context, "kpi.read");
+  return NextResponse.json(await memberKpiRepository.listKpis(context));
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-  const body = await req.json();
-  const validated = kpiSchema.parse(body);
-  const kpi = await prisma.kPI.create({ data: validated });
+  const context = await requireTenantContext();
+  await requirePermission(context, "kpi.create");
+  const kpi = await memberKpiRepository.createKpi(context, kpiSchema.parse(await req.json()));
   return NextResponse.json(kpi, { status: 201 });
 }
 
-// تسجيل قياس جديد
 export async function PUT(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-  const body = await req.json();
-  const validated = kpiRecordSchema.parse(body);
-  const percent = validated.targetValue > 0
-    ? Math.round((validated.actualValue / validated.targetValue) * 100)
-    : 0;
-  const record = await prisma.kPIRecord.create({
-    data: { ...validated, percent },
-  });
-  // تحديث حالة KPI بناءً على آخر قياس
-  await prisma.kPI.update({
-    where: { id: validated.kpiId },
-    data: { status: percent >= 100 ? "ACHIEVED" : percent < 50 ? "BEHIND" : "ACTIVE" },
-  });
+  const context = await requireTenantContext();
+  await requirePermission(context, "kpi.update");
+  const record = await memberKpiRepository.addKpiRecord(context, kpiRecordSchema.parse(await req.json()));
   return NextResponse.json(record, { status: 201 });
 }
