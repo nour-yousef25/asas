@@ -1,0 +1,25 @@
+{
+  "status": "PASS_MEMBER_KPI_RUNTIME",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": ["MK01", "MK02", "MK03", "MK04", "MK05", "MK06", "MK07", "MK08", "MK09", "MK10"],
+  "evidence": [
+    {"id":"MK01","result":"PASS","assertion":"Broker lease consumed; provider verified session_user"},
+    {"id":"MK02","result":"PASS","assertion":"A/B Member and KPI list/detail isolation"},
+    {"id":"MK03","result":"PASS","assertion":"foreign Member IDOR hidden; renewal denied"},
+    {"id":"MK04","result":"PASS","assertion":"Member create requires active scoped membership"},
+    {"id":"MK05","result":"PASS","assertion":"renewal payment inherits scoped Member ownership"},
+    {"id":"MK06","result":"PASS","assertion":"foreign KPI parent denied; scoped KPIRecord persisted"},
+    {"id":"MK07","result":"PASS","assertion":"nullable legacy roots and children omitted"},
+    {"id":"MK08","result":"PASS","assertion":"replay, revocation, stale session and stale policy denied"},
+    {"id":"MK09","result":"PASS","assertion":"rotation, outage and parallel client discard fail closed"},
+    {"id":"MK10","result":"PASS","assertion":"role/source-safety/cleanup/hygiene guard"}
+  ],
+  "hardFailures": [],
+  "cleanup": {"ok": true, "residueCount": 0},
+  "hygiene": {"status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"},
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}
