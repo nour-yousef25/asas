@@ -344,6 +344,10 @@
 - [x] جرد dashboard المختلط وتثبيت blocker ownership لـMember وKPI/KPIRecord؛ لا tenant-bound cutover قبل manifest/backfill مستقل.
 - [ ] إغلاق mixed dashboard tenant-bound aggregation scope بدليل مستقل.
 - [ ] **BLOCKED:** إغلاق nullable-root ownership/backfill requirements ودليل التوافق قبل Financial RLS؛ يلزم ADR لمسار control-plane multi-org audit المتوافق مع FORCE RLS.
+- [ ] مقارنة Control-plane ledger وtenant-by-tenant backfill وتعديل عقد audit وفق security boundary وRLS/DR/HA/retention/supportability.
+- [ ] إصدار Architecture Decision وADR successor إذا اختير تصميم يغير حد الثقة، قبل أي migration أو backfill جديد.
+- [ ] إثبات audit authority المختار على PostgreSQL disposable: A/B/control-plane، منع forgery/cross-write/replay/false-success، cleanup ومدقق exact.
+- [ ] إعادة تقييم nullable-root ownership لـMember وKPI/KPIRecord بالتصنيف الصريح ثم migration/backfill/rehearsal فقط إن أصبح audit boundary GREEN.
 - [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.
 - [ ] تقييم وتنفيذ Financial RLS Wave فقط عند اكتمال جميع البوابات، مع rehearsal وrollback وA/B concurrency proof.
 - [ ] متابعة عائلات W02 الباقية وفق Dependency Map، ثم إصدار قرار W02 COMPLETE أو blocker عالمي حقيقي موثق.

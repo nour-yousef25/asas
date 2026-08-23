@@ -157,6 +157,9 @@ model Organization {
   budgets                 Budget[]
   budgetItems             BudgetItem[]
   expenses                Expense[]
+  memberRecords           Member[]                  @relation("MemberOrganization")
+  kpis                    KPI[]
+  kpiRecords              KPIRecord[]
   databasePrincipals      TenantDatabasePrincipal[]
   tenantAccessLeases      TenantAccessLease[]
   tenantBrokerAuditEvents TenantBrokerAuditEvent[]
@@ -779,6 +782,7 @@ enum MeetingStatus {
 
 model Member {
   id             String           @id @default(cuid())
+  organizationId String?
   userId         String           @unique
   membershipType MembershipType   @default(REGULAR)
   status         MembershipStatus @default(ACTIVE)
@@ -788,12 +792,14 @@ model Member {
   paidAmount     Float            @default(0)
   paymentStatus  PaymentStatus    @default(PENDING)
 
-  user     User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  payments MembershipPayment[]
+  organization Organization?       @relation("MemberOrganization", fields: [organizationId], references: [id], onDelete: SetNull)
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  payments     MembershipPayment[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("members")
 }
 
@@ -1523,6 +1529,7 @@ model SurveyAnswer {
 
 model KPI {
   id            String          @id @default(cuid())
+  organizationId String?
   title         String
   description   String?
   targetEntity  KPITargetEntity
@@ -1533,11 +1540,13 @@ model KPI {
   frequency     String          @default("monthly")
   status        KPIStatus       @default(ACTIVE)
 
-  records KPIRecord[]
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  records      KPIRecord[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  @@index([organizationId])
   @@map("kpis")
 }
 
@@ -1556,6 +1565,7 @@ enum KPIStatus {
 
 model KPIRecord {
   id          String  @id @default(cuid())
+  organizationId String?
   kpiId       String
   period      String
   actualValue Float
@@ -1563,12 +1573,14 @@ model KPIRecord {
   percent     Float
   notes       String?
 
-  kpi KPI @relation(fields: [kpiId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  kpi          KPI           @relation(fields: [kpiId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@unique([kpiId, period])
+  @@index([organizationId])
   @@map("kpi_records")
 }
 
