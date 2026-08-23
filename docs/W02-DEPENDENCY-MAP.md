@@ -6,7 +6,7 @@
 | server-side TenantContext | CLOSED foundation | broker session lookup | WP5-1 contract |
 | raw GUC RLS identity | REJECTED | ADR-W02-002 implementation text | successor ADR approval |
 | RLS identity contract reconciliation | RESOLVED DESIGN-ONLY | implementation remains blocked by lifecycle/support/family gates | ADR-W02-009 |
-| tenant-bound login/broker architecture | ACCEPTED DESIGN-ONLY | all RLS waves | Broker lifecycle/Operations implementation scope |
+| tenant-bound login/broker architecture | EXECUTION NEXT | all RLS waves | `W02-BROKER-LIFECYCLE-AND-OPERATIONAL-READINESS` |
 | Broker B01–B60 audit coverage | COMPLETE AUDIT-ONLY | production Broker lifecycle and RLS Wave 1 remain separately gated | separate Security/Architecture authorization |
 | audit credential artifact hygiene | RESOLVED HYGIENE-ONLY | full pre-execution integrity scan | E-HYG-01..04 and strict redacted scan |
 | provider role/credential lifecycle | OPEN | Cloud/Dedicated/Self-Hosted rollout | Operations/hosting owner |
