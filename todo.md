@@ -338,6 +338,12 @@
 
 ## W02 — AUTONOMOUS GLOBAL CLOSURE CONTINUATION
 
+- [x] إنتاج `W02-FINAL-AUTONOMOUS-STATE-RECONCILIATION.md` من Git/evidence/ADRs وdependency graph الفعلي.
+- [x] تصنيف كل نطاق W02 إلى مكتمل تدقيقياً أو تصميم فقط أو prerequisite خارجي أو قابل للتنفيذ المستقل.
+- [ ] إغلاق Member/KPI WIP فقط بعد PostgreSQL runtime evidence ومدقق exact وانحدارات ودمج مضبوط.
+- [ ] جرد Queue/Redis/Cache وStorage وUsers/Memberships وRoot Documents API كمسارات مستقلة مع evidence contracts.
+- [ ] تحديث closure matrix وقرار W02 النهائي لتمييز external deployment prerequisites عن evidence المكتملة.
+
 - [ ] تثبيت مصدر الحقيقة الحالي لكل وثائق W02 وADRs والعقود وسجل التنفيذ قبل كل نطاق جديد.
 - [x] إعداد Budget/Expense ownership manifest وruntime inventory، بلا RLS أو fallback عالمي.
 - [x] تحويل مسارات Budget/Expense المحددة إلى TenantContext + semantic permission + TenantBoundPrismaExecutor، ثم إثباتها على PostgreSQL disposable.
