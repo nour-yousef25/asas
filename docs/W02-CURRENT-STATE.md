@@ -2,7 +2,7 @@
 
 | Item | Current status |
 |---|---|
-| W02 | IN PROGRESS |
+| W02 | BLOCKED — CODE/ARCHITECTURE |
 | Current scope | local audit runtime evidence مكتمل للعائلات المسجلة، ومنها Member/KPI MK01–MK10 بعد controlled integration؛ Queue/Storage/Root Documents وUsers/Memberships inventories مفتوحة ولا تمنح W02 closure |
 | Branch | `w02-global-closure-execution` |
 | Baseline for fix | `4d687c` clean Global Closure execution baseline |
