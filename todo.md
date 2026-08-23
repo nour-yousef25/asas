@@ -268,6 +268,16 @@
 - [x] التحقق من evidence والـcleanup وتشغيل Prisma/TypeScript/Jest/Communications/Build بنجاح.
 - [x] إصدار تقارير rerun وإيقاف التنفيذ؛ لا يبدأ Broker lifecycle أو RLS Wave 1 أو أي نطاق W02 لاحق.
 
+## W02-FULL-CONTINUOUS-EXECUTION-AND-CLOSURE
+
+- [ ] إجراء read-only pre-execution audit شامل لـGit/worktrees/contracts/ADRs/evidence/schema/migrations/harnesses/artifacts، مع التوقف عند dirty safety issue أو contract conflict.
+- [ ] تحديث Continuous Execution State وسجلات القرار والاعتماديات والـblockers والـclosure بعد تثبيت current phase وlast safe baseline والحدود المحظورة.
+- [ ] إغلاق Broker lifecycle والـlease/provider/KMS/HA/DR/support-matrix requirements على audit environment باختبارات مستقلة وevidence/cleanup.
+- [ ] تنفيذ RLS waves بالتتابع بعد prerequisites، بدءاً بـBeneficiary فقط، مع migration rehearsal وnegative A/B/IDOR/concurrency proof لكل wave.
+- [ ] إغلاق أسطح API/repository/jobs ثم Queue/Redis/Cache وStorage وUsers/Memberships وDocuments/Reports/Privacy/Vault بحسب العقود والـruntime proof.
+- [ ] تنفيذ Activation core وIDP framework فقط ضمن W02، ثم scan كامل للـtenant-sensitive surfaces وdependency/security register.
+- [ ] إجراء clean database/upgrade rehearsals وfailure recovery وglobal regression وfinal security/closure matrices/report/Git integrity؛ إعلان W02 COMPLETE فقط إن تحققت كل البوابات.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
