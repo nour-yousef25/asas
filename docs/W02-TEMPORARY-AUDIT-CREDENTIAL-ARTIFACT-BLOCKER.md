@@ -1,4 +1,6 @@
-# BLOCKER — W02 Temporary Audit Credential Artifacts
+# RESOLVED HYGIENE-ONLY — W02 Temporary Audit Credential Artifacts
+
+**Resolution:** `W02-AUDIT-ARTIFACT-HYGIENE-FIX` completed. See `W02-AUDIT-ARTIFACT-HYGIENE-FINAL-REPORT.md` and `W02-AUDIT-ARTIFACT-HYGIENE-FINAL-EVIDENCE.json`. The historical root cause remains below for traceability.
 
 ## Root Cause
 
@@ -35,4 +37,4 @@
 
 ## Next Authorized Scope
 
-`W02-AUDIT-ARTIFACT-HYGIENE-FIX` فقط، بالتوازي التسلسلي بعد قرار identity-contract reconciliation أو قبله حسب اعتماد الأمن، لكن لا يجوز تنفيذ W02 Full Closure قبل إغلاق blockerين كليهما.
+No implementation scope is authorized by this hygiene closure. The required next action is a fresh W02 Full Pre-Execution Audit; it may only issue READY or BLOCKED and may not start RLS or any later work package.

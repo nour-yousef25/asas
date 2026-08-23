@@ -11,7 +11,6 @@ const tenantA = `hybrid_tenant_a_${suffix}`;
 const tenantB = `hybrid_tenant_b_${suffix}`;
 const unauthenticated = `hybrid_unauth_${suffix}`;
 const auditFile = `/tmp/w02-rls-hybrid-identity-evidence-${suffix}.json`;
-const sqlFile = `/tmp/w02-rls-hybrid-setup-${suffix}.sql`;
 const organizationA = '11111111-1111-4111-8111-111111111111';
 const organizationB = '22222222-2222-4222-8222-222222222222';
 const passwordA = randomBytes(30).toString('base64url');
@@ -19,6 +18,7 @@ const passwordB = randomBytes(30).toString('base64url');
 const passwordUnauthenticated = randomBytes(30).toString('base64url');
 const results = [];
 const startedAt = new Date().toISOString();
+let cleanupState = null;
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, { encoding: 'utf8', ...options });
@@ -163,13 +163,57 @@ ALTER TABLE proof.records FORCE ROW LEVEL SECURITY;
 ALTER TABLE proof.record_children FORCE ROW LEVEL SECURITY;
 RESET ROLE;
 `;
-  writeFileSync(sqlFile, sql, { mode: 0o644 });
-  const outcome = run('sudo', ['-u', 'postgres', 'psql', '-d', database, '-X', '-v', 'ON_ERROR_STOP=1', '-f', sqlFile]);
+  const outcome = run('sudo', ['-u', 'postgres', 'psql', '-d', database, '-X', '-v', 'ON_ERROR_STOP=1'], { input: sql });
   if (outcome.status !== 0) throw new Error(outcome.stderr.trim() || outcome.stdout.trim());
 }
 
+function cleanupAuditResources() {
+  const errors = [];
+  const roles = [tenantA, tenantB, unauthenticated, dataRole, securityOwner, dbOwner];
+  try { adminSql(`SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${database}' AND pid <> pg_backend_pid();`); } catch (error) { errors.push(`TERMINATE:${error.message}`); }
+  try { adminSql(`DROP DATABASE IF EXISTS ${database};`); } catch (error) { errors.push(`DROP_DATABASE:${error.message}`); }
+  for (const role of roles) {
+    try { adminSql(`DROP ROLE IF EXISTS ${role};`); } catch (error) { errors.push(`DROP_ROLE:${role}:${error.message}`); }
+  }
+  let residualDatabases = [];
+  let residualRoles = [];
+  try { residualDatabases = adminSql(`SELECT datname FROM pg_database WHERE datname='${database}';`).split('\n').filter(Boolean); } catch (error) { errors.push(`VERIFY_DATABASE:${error.message}`); }
+  try { residualRoles = adminSql(`SELECT rolname FROM pg_roles WHERE rolname IN (${roles.map((role) => `'${role}'`).join(',')}) ORDER BY rolname;`).split('\n').filter(Boolean); } catch (error) { errors.push(`VERIFY_ROLES:${error.message}`); }
+  return { ok: errors.length === 0 && residualDatabases.length === 0 && residualRoles.length === 0, residualDatabases, residualRoles, errors };
+}
+
+function cleanupOnce() {
+  if (!cleanupState) cleanupState = cleanupAuditResources();
+  return cleanupState;
+}
+
+function writeRedactedEvidence(payload) {
+  writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
+  chmodSync(auditFile, 0o600);
+}
+
+function installSignalCleanup() {
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.once(signal, () => {
+      const cleanup = cleanupOnce();
+      try {
+        writeRedactedEvidence({ status: cleanup.ok ? 'FAIL_INTERRUPTED' : 'FAIL_CLEANUP', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, interruption: signal, cleanup });
+      } catch {}
+      process.stderr.write(`Hybrid identity proof interrupted; redacted evidence: ${auditFile}\n`);
+      process.exit(2);
+    });
+  }
+}
+
 async function main() {
-  setup();
+  try {
+    setup();
+    if (process.env.W02_HYGIENE_FORCE_EXCEPTION === '1') throw new Error('HYGIENE_INJECTED_EXCEPTION');
+    if (process.env.W02_HYGIENE_SELF_INTERRUPT === '1') {
+      process.kill(process.pid, 'SIGTERM');
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      return;
+    }
   expectFailure('T01', 'no tenant login has no table access', () => tenantSql(unauthenticated, passwordUnauthenticated, 'SELECT label FROM proof.records;'));
   expectSuccess('T02', 'tenant A reads only A', () => tenantSql(tenantA, passwordA, "SELECT session_user, label FROM proof.records ORDER BY label;"), (o) => o.code === 0 && o.stdout === `${tenantA}|record-a`);
   expectSuccess('T03', 'tenant B reads only B', () => tenantSql(tenantB, passwordB, "SELECT session_user, label FROM proof.records ORDER BY label;"), (o) => o.code === 0 && o.stdout === `${tenantB}|record-b`);
@@ -241,7 +285,11 @@ async function main() {
   adminSql(`UPDATE security.role_organization SET active=true WHERE organization_id='${organizationA}';`, database);
 
   const hardFailures = results.filter((r) => !r.pass).map((r) => r.id);
-  const evidence = {
+    if (process.env.W02_HYGIENE_FORCE_ASSERTION_FAILURE === '1') {
+      record('HYG-ASSERT', 'controlled cleanup assertion path', 'injected assertion failure', false, 'HYGIENE_INJECTED_ASSERTION_FAILURE');
+      hardFailures.push('HYG-ASSERT');
+    }
+    const evidence = {
     status: hardFailures.length === 0 ? 'PASS_DATABASE_IDENTITY_PROOF_PARTIAL' : 'FAIL',
     startedAt,
     finishedAt: new Date().toISOString(),
@@ -252,15 +300,19 @@ async function main() {
     hardFailures,
     limitations: ['T20 runs direct concurrent PostgreSQL connections in the harness but is summarized separately by the runner.', 'T23 broker unavailable is a contract gate only because no broker service is implemented in this proof.', 'Session, membership, and policy staleness require a broker/session authority integration and remain unproven.'],
   };
-  writeFileSync(auditFile, `${JSON.stringify(evidence, null, 2)}\n`, { mode: 0o600 });
-  chmodSync(auditFile, 0o600);
-  process.stdout.write(`${JSON.stringify({ status: evidence.status, evidenceFile: auditFile, databaseAlias: database, hardFailures }, null, 2)}\n`);
-  process.exitCode = hardFailures.length === 0 ? 0 : 2;
+    evidence.cleanup = cleanupOnce();
+    if (!evidence.cleanup.ok) evidence.status = 'FAIL_CLEANUP';
+    writeRedactedEvidence(evidence);
+    process.stdout.write(`${JSON.stringify({ status: evidence.status, evidenceFile: auditFile, databaseAlias: database, hardFailures, cleanupFailures: evidence.cleanup.errors }, null, 2)}\n`);
+    process.exitCode = evidence.status === 'PASS_DATABASE_IDENTITY_PROOF_PARTIAL' ? 0 : 2;
+  } catch (error) {
+    const cleanup = cleanupOnce();
+    const evidence = { status: cleanup.ok ? 'FAIL_SETUP_OR_HARNESS' : 'FAIL_CLEANUP', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, error: 'REDACTED_HARNESS_ERROR', cleanup };
+    writeRedactedEvidence(evidence);
+    process.stderr.write(`Hybrid identity proof failed; redacted evidence: ${auditFile}\n`);
+    process.exitCode = 2;
+  }
 }
 
-main().catch((error) => {
-  const evidence = { status: 'FAIL_SETUP_OR_HARNESS', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, error: String(error.message || error) };
-  writeFileSync(auditFile, `${JSON.stringify(evidence, null, 2)}\n`, { mode: 0o600 });
-  process.stderr.write(`Hybrid identity proof failed; redacted evidence: ${auditFile}\n`);
-  process.exitCode = 2;
-});
+installSignalCleanup();
+main();

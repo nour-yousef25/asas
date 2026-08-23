@@ -2,24 +2,24 @@
 
 | Field | State |
 |---|---|
-| Current phase | Phase 2 — RLS identity reconciliation complete design-only; audit artifact hygiene pending |
-| Current WP | `W02-RLS-IDENTITY-CONTRACT-RECONCILIATION` |
-| Current branch | `w02-rls-identity-contract-reconciliation` |
-| Current commit | pending reconciliation documentation commit; execution baseline `bfbf0ae` |
+| Current phase | Phase 3 — two-scope remediation complete; Full Pre-Execution Audit pending |
+| Current WP | `W02-AUDIT-ARTIFACT-HYGIENE-FIX` closed hygiene-only |
+| Current branch | `w02-audit-artifact-hygiene-fix` |
+| Current commit | pending hygiene closure commit; execution baseline `bfbf0ae` |
 | Last safe Broker coverage baseline | `bfbf0ae32ed1b687f50e45f84e887177d577d45c` |
-| Current blocker | `W02-TEMPORARY-AUDIT-CREDENTIAL-ARTIFACT`: 0644 password-named audit files remain in `/tmp`; RLS identity conflict is resolved design-only by ADR-W02-009 |
+| Current blocker | no active remediation blocker; operational/family prerequisites have not been assessed by the required fresh full audit |
 | Preservation | `865c639ffdcead9a6a1588b711b7ce704cefdab8` preserves the pre-execution checklist mutation without reset/stash/delete |
-| Evidence status | Broker B01–B60, Coverage Guard, Evidence Recorder, evidence validation, cleanup and scoped regression PASS audit-only; no new RLS evidence run |
-| Next authorized action | `W02-AUDIT-ARTIFACT-HYGIENE-FIX` only, then full pre-execution audit from a clean branch |
+| Evidence status | Broker B01–B60/coverage evidence PASS audit-only; RLS identity reconciliation PASS design-only; hygiene E-HYG-01..04, strict scan and regression PASS; no new RLS implementation evidence run |
+| Next authorized action | fresh W02 Full Pre-Execution Audit only; it may issue READY or BLOCKED, never start implementation |
 
 ## Preconditions Confirmed
 
-The full pre-execution audit confirmed a clean preservation checkpoint, Broker coverage evidence, and no disposable Broker audit database or `broker_*` roles. It identified a material conflict between the original RLS plan and the later accepted raw-GUC rejection, plus two historical password-named audit artifacts with mode `0644` under `/tmp`. No security contract was selected by inference and no secret contents were read.
+The pre-execution findings were remediated in two bounded scopes. ADR-W02-009 reconciled the Raw GUC conflict design-only. The hygiene scope revoked/removes disposable audit roles/databases, removed password-named files without reading their contents, eliminated credential-bearing setup SQL files, and passed strict cleanup/scan evidence. These results do not prove operational readiness.
 
 ## Forbidden Actions
 
-No production database, credentials, environment, package version, historical migration, Prisma production schema, `db push`, extension, superuser/owner/`BYPASSRLS` runtime proof, global credential, fallback tenant, first membership, client tenant authority, Broker lifecycle, RLS, Queue/Redis/Cache, Storage, Users/Memberships, Documents, Reports/Privacy/Vault, Activation, IDP, W03, or handover work may begin before the identity-contract conflict is explicitly reconciled.
+No production database, credentials, environment, package version, historical migration, Prisma production schema, `db push`, extension, superuser/owner/`BYPASSRLS` runtime proof, global credential, fallback tenant, first membership, client tenant authority, Broker lifecycle, RLS, Queue/Redis/Cache, Storage, Users/Memberships, Documents, Reports/Privacy/Vault, Activation, IDP, W03, or handover work may begin before a fresh full pre-execution audit explicitly returns READY and a separate implementation scope is authorized.
 
 ## Stop Rule
 
-If a source-of-truth document conflicts with an accepted security decision, issue a blocker and stop. Do not alter the decision, weaken the evidence, select a fallback identity source, or continue to an implementation scope.
+If the fresh audit finds a security conflict, missing evidence, unsafe artifact, or unmet prerequisite, issue a blocker and stop. Do not weaken evidence, select a fallback identity source, or continue to an implementation scope.

@@ -11,4 +11,5 @@
 | Broker Audit Proof | B01–B60 | exact B01–B60 PASS; Coverage Gate, E1–E8, validation, and cleanup PASS | `W02-BROKER-TEST-COVERAGE-RERUN-EVIDENCE.json` | COMPLETE AUDIT-ONLY | production Broker/RLS gates remain separate |
 | RLS Waves | all tenant-owned families | not run | ADR-W02-009 reconciles identity design only; no current migration | NOT STARTED | Broker lifecycle/support/family ownership/repository/permission gates remain |
 | Queue/Storage/IAM/Documents | tenant isolation | not started | no closure | NOT STARTED | ordered prerequisites |
-| W02 Global Closure | all W02 gates | not available | pre-execution audit found active identity-contract and audit-artifact blockers | BLOCKED | close both blockers, then restart from clean audit baseline |
+| W02 Audit Artifact Hygiene | temporary credentials/evidence/cleanup | strict E-HYG-01..04 and artifact scan PASS | report/evidence recorded | COMPLETE — HYGIENE-ONLY | no implementation implied |
+| W02 Global Closure | all W02 gates | not available | identity design and artifact hygiene blockers closed in limited scopes; implementation prerequisites remain | NOT READY FOR IMPLEMENTATION | fresh full pre-execution audit must issue READY or BLOCKED |

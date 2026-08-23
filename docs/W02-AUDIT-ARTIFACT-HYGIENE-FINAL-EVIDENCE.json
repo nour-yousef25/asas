@@ -1,0 +1,47 @@
+{
+  "scope": "W02-AUDIT-ARTIFACT-HYGIENE-FIX",
+  "status": "PASS_HYGIENE_ONLY",
+  "sensitiveArtifacts": {
+    "initialPaths": [
+      "/tmp/w02-rls-audit-owner-pass.txt",
+      "/tmp/w02-rls-app-pass.txt"
+    ],
+    "contentRead": false,
+    "initialMode": "0644",
+    "postCleanupSensitiveArtifactCount": 0
+  },
+  "auditResources": {
+    "revokedAndRemoved": [
+      "asas_rls_wave1_audit_1787424500",
+      "asas_rls_wave1_seed_1787424640",
+      "asas_rls_app_1787424500",
+      "asas_rls_owner_1787424500",
+      "asas_rls_seed_owner_1787424640"
+    ],
+    "postCleanupHybridResidueCount": 0,
+    "postCleanupBrokerResidueCount": 0
+  },
+  "harnessHardening": {
+    "hybridSetupCredentialFile": "removed; SQL passed through stdin",
+    "brokerSetupCredentialFile": "removed; SQL passed through stdin",
+    "evidenceMode": "0600",
+    "cleanup": "idempotent success/failure/exception/interruption paths",
+    "falseGreenFoundAndClosed": "self-test initially omitted database/role residue checks; it now rejects them"
+  },
+  "tests": {
+    "E-HYG-01_success": "PASS",
+    "E-HYG-02_assertionFailure": "PASS",
+    "E-HYG-03_exception": "PASS",
+    "E-HYG-04_interruption": "PASS",
+    "brokerB01_B60Cleanup": "PASS",
+    "brokerB16EarlyCleanup": "PASS",
+    "redactedArtifactScan": "PASS",
+    "regression": "PASS"
+  },
+  "secretsPrintedOrCommitted": false,
+  "productionResourcesTouched": false,
+  "limitations": [
+    "This evidence closes audit artifact hygiene only.",
+    "It does not prove production credential authority, Broker lifecycle, RLS readiness, or any later W02 implementation scope."
+  ]
+}

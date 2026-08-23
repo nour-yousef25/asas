@@ -8,6 +8,7 @@
 | RLS identity contract reconciliation | RESOLVED DESIGN-ONLY | implementation remains blocked by lifecycle/support/family gates | ADR-W02-009 |
 | tenant-bound login/broker architecture | ACCEPTED DESIGN-ONLY | all RLS waves | Broker lifecycle/Operations implementation scope |
 | Broker B01–B60 audit coverage | COMPLETE AUDIT-ONLY | production Broker lifecycle and RLS Wave 1 remain separately gated | separate Security/Architecture authorization |
+| audit credential artifact hygiene | RESOLVED HYGIENE-ONLY | full pre-execution integrity scan | E-HYG-01..04 and strict redacted scan |
 | provider role/credential lifecycle | OPEN | Cloud/Dedicated/Self-Hosted rollout | Operations/hosting owner |
 | role scale/pooling benchmarks | OPEN | 1,000+ organization rollout | DBA/Operations |
 | family ownership/cutover | PARTIAL | wave entry | each WP5 family closure |

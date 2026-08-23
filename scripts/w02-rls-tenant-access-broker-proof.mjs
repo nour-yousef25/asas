@@ -298,8 +298,7 @@ CREATE POLICY proof_records ON proof.records FOR ALL TO ${dataRole} USING (organ
 CREATE POLICY proof_children ON proof.record_children FOR ALL TO ${dataRole} USING (organization_id=security.current_organization()) WITH CHECK (organization_id=security.current_organization());
 ALTER TABLE proof.records FORCE ROW LEVEL SECURITY; ALTER TABLE proof.record_children FORCE ROW LEVEL SECURITY;
 RESET ROLE;`;
-  writeFileSync(sqlFile, sql, { mode: 0o644 });
-  const out = run('sudo', ['-u', 'postgres', 'psql', '-d', database, '-X', '-v', 'ON_ERROR_STOP=1', '-f', sqlFile]);
+  const out = run('sudo', ['-u', 'postgres', 'psql', '-d', database, '-X', '-v', 'ON_ERROR_STOP=1'], { input: sql });
   if (out.status !== 0) throw new Error(out.stderr.trim() || out.stdout.trim());
 }
 
@@ -319,6 +318,28 @@ function cleanupAuditResources() {
   return { ok: errors.length === 0 && residualDatabases.length === 0 && residualRoles.length === 0, residualDatabases, residualRoles, errors };
 }
 
+function installSignalCleanup() {
+  for (const signal of ['SIGINT', 'SIGTERM']) {
+    process.once(signal, () => {
+      const cleanup = cleanupAuditResources();
+      try {
+        writeFileSync(auditFile, `${JSON.stringify({ status: cleanup.ok ? 'FAIL_INTERRUPTED' : 'FAIL_CLEANUP', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, interruption: signal, cleanup }, null, 2)}\n`, { mode: 0o600 });
+        chmodSync(auditFile, 0o600);
+      } catch {}
+      process.exit(2);
+    });
+  }
+}
+
+function classifyHarnessError(error) {
+  const name = String(error?.name || 'Error');
+  if (name === 'ReferenceError') return 'REFERENCE_ERROR';
+  if (name === 'TypeError') return 'TYPE_ERROR';
+  if (name === 'SyntaxError') return 'SYNTAX_ERROR';
+  if (name === 'RangeError') return 'RANGE_ERROR';
+  return 'HARNESS_ERROR';
+}
+
 async function main() {
   setup();
   const authority = new CredentialAuthority(new Map([
@@ -335,10 +356,12 @@ async function main() {
     record('B16', 'cross-organization membership denied', 'user A, organization A, existing membership of A in B', 'DENY MEMBERSHIP_ORGANIZATION_MISMATCH', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipAInOrganizationB,correlationId:c})), (o) => o.error === 'MEMBERSHIP_ORGANIZATION_MISMATCH');
     const hardFailures = evidence.filter((item) => item.result !== 'PASS').map((item) => item.id);
     const payload = { status: hardFailures.length === 0 ? 'PASS_B16_CONTRACT_FIX' : 'FAIL', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, postgresVersion: adminSql('SHOW server_version;'), evidence, auditLog, hardFailures, scope: 'B16 fixture-only proof' };
+    payload.cleanup = cleanupAuditResources();
+    if (!payload.cleanup.ok) payload.status = 'FAIL_CLEANUP';
     writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
     chmodSync(auditFile, 0o600);
     process.stdout.write(`${JSON.stringify({ status: payload.status, evidenceFile: auditFile, databaseAlias: database, hardFailures }, null, 2)}\n`);
-    process.exitCode = hardFailures.length === 0 ? 0 : 2;
+    process.exitCode = payload.status === 'PASS_B16_CONTRACT_FIX' ? 0 : 2;
     return;
   }
 
@@ -447,8 +470,10 @@ async function main() {
 
 main().catch((error) => {
   const cleanup = cleanupAuditResources();
-  const payload = { status: cleanup.ok ? 'FAIL_SETUP_OR_HARNESS' : 'FAIL_CLEANUP', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, error: String(error.message || error), evidence: [], evidenceComplete: false, cleanup, cleanupFailures: cleanup.ok ? [] : ['AUDIT_CLEANUP_FAILED'] };
+  const payload = { status: cleanup.ok ? 'FAIL_SETUP_OR_HARNESS' : 'FAIL_CLEANUP', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, error: 'REDACTED_HARNESS_ERROR', errorCode: classifyHarnessError(error), evidence: [], evidenceComplete: false, cleanup, cleanupFailures: cleanup.ok ? [] : ['AUDIT_CLEANUP_FAILED'] };
   writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
   process.stderr.write(`Broker proof failed; redacted evidence: ${auditFile}\n`);
   process.exitCode = 2;
 });
+
+installSignalCleanup();
