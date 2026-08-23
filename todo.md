@@ -351,6 +351,7 @@
 - [x] تنفيذ nullable-root upgrade rehearsal من قاعدة pre-successor مع legacy preservation وA/B admission.
 - [x] تنفيذ dashboard root-page tenant-bound runtime cutover بدليل مستقل؛ لا global Prisma أو dashboard fallback.
 - [ ] إغلاق Member/KPI API/detail data-plane surfaces التي بقيت global Prisma، قبل إدخالها في أي RLS أو ادعاء dashboard family complete.
+- [x] إعداد inventory لمسارات Member/KPI المتبقية وتثبيت Member/KPIRecord/payment ownership dependencies قبل التحويل.
 - [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.
 - [ ] تقييم وتنفيذ Financial RLS Wave فقط عند اكتمال جميع البوابات، مع rehearsal وrollback وA/B concurrency proof.
 - [ ] متابعة عائلات W02 الباقية وفق Dependency Map، ثم إصدار قرار W02 COMPLETE أو blocker عالمي حقيقي موثق.
