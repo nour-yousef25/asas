@@ -3,7 +3,7 @@
 | Item | Current status |
 |---|---|
 | W02 | IN PROGRESS |
-| Current scope | Donor/Donation F01–F10 وBudget/Expense BE01–BE10 وcontrol-plane ledger CP01–CP12 وnullable-root NR01–NR15/UR01–UR10 وdashboard root D01–D10 — COMPLETE LIMITED AUDIT RUNTIME؛ Member/KPI surfaces — OPEN |
+| Current scope | local audit runtime evidence مكتمل للعائلات المسجلة؛ Member/KPI WIP غير مدمج؛ Queue/Storage/Root Documents وUsers/Memberships inventories مفتوحة ولا تمنح W02 closure |
 | Branch | `w02-global-closure-execution` |
 | Baseline for fix | `4d687c` clean Global Closure execution baseline |
 | Last safe Hybrid Identity proof | `d86cca9` |
