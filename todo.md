@@ -259,6 +259,31 @@
 
 - [ ] **BLOCKED:** harness أعاد PASS داخلياً لكنه لم يسجل كل IDs الإلزامية في `W02-RLS-TENANT-ACCESS-BROKER-TEST-MATRIX`؛ لا يقبل هذا PASS ولا تبدأ lifecycle/RLS قبل scope إصلاح coverage مستقل وإعادة proof كاملة.
 
+## W02 — BROKER TEST COVERAGE FIX
+
+- [ ] مطابقة inventory القانونية B01–B60 مع harness وإضافة gate ترفض missing/duplicate/unregistered/invalid/no-result IDs.
+- [ ] إضافة B05 وB06 وB09 وB27 وB45 وB46 كـassertions مستقلة مع evidence منفصلة بلا دمج IDs أو تعديل expected results.
+- [ ] إضافة false-green self-tests لحالات missing/duplicate/unregistered/no-result/exception/early-stop/mismatch/hard-failure/missing-evidence.
+- [ ] إعادة B01–B60 كاملة من PostgreSQL audit database جديدة وتحقق آلي من evidence coverage ثم regression والتقرير النهائي أو blocker.
+
+## W02-BROKER-TEST-COVERAGE-FIX-RERUN-HARNESS-FIX
+
+- [ ] مراجعة الوثائق الرسمية وGit baseline وتسجيل Root Cause لمسار `out` قبل أي تعديل تقني.
+- [ ] إصلاح scope/lifetime لمسار Evidence Recorder فقط، مع منع evidence غير المهيأة من الوصول إلى PASS.
+- [ ] إضافة Evidence Recorder self-tests E1–E8 لمسارات success/failure/exception/missing output/undefined variable/schema/duplicate/unregistered.
+- [ ] تشغيل false-green guard ثم إعادة B01–B60 بالترتيب من PostgreSQL audit database جديدة مع evidence وcleanup قابلين للتحقق.
+- [ ] تنفيذ regression المحدد، والتحقق آلياً من evidence/coverage/security/cleanup وتوثيق PASS أو BLOCKED فقط.
+- [ ] إنشاء التقرير/evidence أو blocker، وتثبيت Git على branch مخصص دون أي نطاق لاحق.
+
+## W02-BROKER-RERUN-GIT-SAFETY-AND-COVERAGE-FIX
+
+- [ ] جرد كامل worktree المتسخة وGit baseline والـdiff بلا تعديل، وحفظ evidence نصي قابل للمراجعة.
+- [ ] إنشاء preservation branch من `42a1832` وحفظ التغييرات الحالية في commit أو commits واضحة دون فقدان أي ملف.
+- [ ] تصنيف كل تغيير محفوظ إلى KEEP-FOR-RERUN أو POSSIBLE-LATER أو HISTORICAL / DO-NOT-MERGE أو UNRELATED.
+- [ ] إنشاء `w02-broker-test-coverage-rerun-fix` نظيفة من `42a1832` وتوثيق merge-base والشجرة النظيفة.
+- [ ] مراجعة وإدخال الحد الأدنى المصنف KEEP-FOR-RERUN فقط، ثم إصلاح Evidence Recorder/Coverage Guard وإضافة E1–E8.
+- [ ] تشغيل B01–B60 كاملة على PostgreSQL audit جديدة، ثم regression/evidence/cleanup/docs/Git؛ التوقف دون نطاق W02 لاحق.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.

@@ -11,6 +11,8 @@
     "test:w02:wp3": "tsx scripts/w02-wp3-instance-identity-integration.ts",
     "test:w02:wp4": "tsx scripts/w02-wp4-tenant-backfill-integration.ts",
     "test:w02:wp5:reports": "tsx scripts/w02-wp5-3-report-generation-integration.ts",
+    "test:w02:broker:coverage-guard": "node scripts/w02-broker-test-coverage-guard.mjs",
+    "test:w02:broker": "node scripts/w02-rls-tenant-access-broker-proof.mjs",
     "test:w01:redis": "tsx scripts/w01-redis-bullmq-integration.ts",
     "worker:communications": "node scripts/communications-worker.mjs",
     "prisma:local": "node scripts/prisma-local.mjs",
