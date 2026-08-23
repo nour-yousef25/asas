@@ -1,5 +1,14 @@
 # متابعة تنفيذ W01 — ASAS Plus
 
+## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
+
+- [ ] مصالحة source of truth وGit/evidence/ADRs وتحديث dependency graph الحي قبل كل scope جديد.
+- [ ] تنفيذ MembershipRepository ومسارات users/memberships tenant-bound مع PostgreSQL audit harness ومدقق exact.
+- [ ] تنفيذ trusted Queue tenant envelope وworker validation وRedis/Cache isolation proof على audit target آمن.
+- [ ] تنفيذ private Storage/Root Documents ownership adapter وprovider-safe evidence لمسارات upload/download/revoke.
+- [ ] إعادة تقييم Financial RLS فقط بعد إغلاق ownership/API/runtime/provider gates؛ لا RLS قبلها.
+- [ ] تشغيل clean/upgrade/failure/regression وإصدار W02 final classification صادق بلا false-green.
+
 - [ ] استخراج جميع الميزات المصنفة `Wave = W01` من Master Feature Inventory v1.1 وربطها بالـADRs وWave Mapping.
 - [ ] تدقيق بنية Canonical Baseline الحالية وتحديد نقاط التوسع الفعلية دون إنشاء معمارية موازية.
 - [ ] تنفيذ `FND-001` وفق تعريفه المعتمد، مع اختبارات وعقد استخدام قابل لإعادة الاستعمال.
