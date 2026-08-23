@@ -1,4 +1,6 @@
-import { prisma } from "@/lib/db";
+import { dashboardRepository } from "@/lib/dashboard-repository";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { ProgressBar } from "@/components/ui/progress-bar";
@@ -13,43 +15,12 @@ import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
 export default async function DashboardPage() {
-  const [
-    totalDonations,
-    activeMembers,
-    totalMembers,
-    activeBeneficiaries,
-    activeProjects,
-    completedProjects,
-    recentDonations,
-    projects,
-    kpis,
-  ] = await Promise.all([
-    prisma.donation.aggregate({ where: { status: "COMPLETED" }, _sum: { amount: true } }),
-    prisma.member.count({ where: { status: "ACTIVE" } }),
-    prisma.member.count(),
-    prisma.beneficiary.count({ where: { status: "ACTIVE" } }),
-    prisma.project.count({ where: { status: "ACTIVE" } }),
-    prisma.project.count({ where: { status: "COMPLETED" } }),
-    prisma.donation.findMany({
-      where: { status: "COMPLETED" },
-      include: { donor: { select: { name: true } }, project: { select: { title: true } }, campaign: { select: { title: true } } },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    }),
-    prisma.project.findMany({
-      where: { status: { in: ["ACTIVE", "PLANNING"] } },
-      orderBy: { completionPercent: "desc" },
-      take: 4,
-    }),
-    prisma.kPI.findMany({
-      where: { status: "ACTIVE" },
-      include: { records: { orderBy: { period: "desc" }, take: 1 } },
-      take: 6,
-    }),
-  ]);
+  const context = await requireTenantContext();
+  await requirePermission(context, "dashboard.read");
+  const { totalDonations, activeMembers, totalMembers, activeBeneficiaries, activeProjects, completedProjects, recentDonations, projects, kpis } = await dashboardRepository.getSnapshot(context);
 
   const avgKpiPercent = kpis.length > 0
-    ? Math.round(kpis.reduce((sum, k) => sum + (k.records[0]?.percent ?? 0), 0) / kpis.length)
+    ? Math.round(kpis.reduce((sum, k) => sum + k.latestPercent, 0) / kpis.length)
     : 0;
 
   return (
@@ -62,7 +33,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="إجمالي التبرعات"
-          value={`${(totalDonations._sum.amount ?? 0).toLocaleString("ar-SA")} ر.س`}
+          value={`${totalDonations.toLocaleString("ar-SA")} ر.س`}
           color="primary"
           subtitle="التبرعات المكتملة"
           icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 15h2a4 4 0 0 0 0-8M5 11h6M2 21v-2l3-3.5M9 13l1-1a2 2 0 0 1 3 3l-3 3-3-3a2 2 0 0 1 0-3 2 2 0 0 1 3 0z"/></svg>}
@@ -143,12 +114,12 @@ export default async function DashboardPage() {
                 <div key={d.id} className="flex items-center justify-between rounded-lg border p-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-                      {(d.donor?.name ?? d.guestName ?? "؟").charAt(0)}
+                      {(d.donorName ?? d.guestName ?? "؟").charAt(0)}
                     </div>
                     <div>
-                      <p className="font-medium">{d.donor?.name ?? d.guestName ?? "متبرع مجهول"}</p>
+                      <p className="font-medium">{d.donorName ?? d.guestName ?? "متبرع مجهول"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {d.project?.title ?? d.campaign?.title ?? "تبرع عام"} ·{" "}
+                        {d.projectTitle ?? d.campaignTitle ?? "تبرع عام"} ·{" "}
                         {formatDistanceToNow(d.createdAt, { addSuffix: true, locale: ar })}
                       </p>
                     </div>

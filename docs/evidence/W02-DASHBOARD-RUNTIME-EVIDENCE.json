@@ -1,0 +1,114 @@
+{
+  "status": "PASS_DASHBOARD_RUNTIME",
+  "startedAt": "2026-08-23T20:15:43.964Z",
+  "finishedAt": "2026-08-23T20:15:48.116Z",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "D01",
+    "D02",
+    "D03",
+    "D04",
+    "D05",
+    "D06",
+    "D07",
+    "D08",
+    "D09",
+    "D10"
+  ],
+  "evidence": [
+    {
+      "id": "D01",
+      "expected": "DashboardRepository consumes Broker lease and provider-verified A session_user",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D02",
+      "expected": "A/B snapshots retain only their tenant aggregates",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D03",
+      "expected": "foreign related donor/project names are masked from A snapshot",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D04",
+      "expected": "KPI and KPIRecord snapshot values require the same tenant owner",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D05",
+      "expected": "missing tenant ownership yields empty/zero aggregates rather than global data",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D06",
+      "expected": "stale session and revoked lease fail before dashboard data operation",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D07",
+      "expected": "provider outage fails closed with no global Prisma fallback",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D08",
+      "expected": "parallel A/B snapshots use separate tenant clients and discard each checkout",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D09",
+      "expected": "raw GUC and SET ROLE do not change dashboard identity",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "D10",
+      "expected": "proof roles use no bypass/raw identity/global credential and cleanup remains fail-closed",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalTenantCredentialUsed": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

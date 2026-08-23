@@ -1,0 +1,21 @@
+{
+  "status": "PASS_DASHBOARD_RUNTIME_EVIDENCE",
+  "mandatoryIds": ["D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10"],
+  "executedIds": ["D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10"],
+  "failures": {
+    "status": false,
+    "mandatoryIdsMismatch": false,
+    "missing": [],
+    "duplicate": [],
+    "unknown": [],
+    "failedRows": [],
+    "hardFailures": [],
+    "cleanup": false,
+    "hygiene": false,
+    "credentialsPersisted": false,
+    "productionTouched": false,
+    "rawGuc": false,
+    "globalCredential": false,
+    "bypass": false
+  }
+}

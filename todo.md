@@ -349,7 +349,8 @@
 - [x] إثبات audit authority المختار على PostgreSQL disposable: A/B/control-plane، منع forgery/cross-write/replay/false-success، cleanup ومدقق exact.
 - [x] إصدار ownership decision صريح لـMember وKPI/KPIRecord وتنفيذ clean migration/admission rehearsal بعد تحقق audit boundary.
 - [x] تنفيذ nullable-root upgrade rehearsal من قاعدة pre-successor مع legacy preservation وA/B admission.
-- [ ] تنفيذ dashboard tenant-bound runtime cutover بدليل مستقل؛ لا global Prisma أو dashboard fallback.
+- [x] تنفيذ dashboard root-page tenant-bound runtime cutover بدليل مستقل؛ لا global Prisma أو dashboard fallback.
+- [ ] إغلاق Member/KPI API/detail data-plane surfaces التي بقيت global Prisma، قبل إدخالها في أي RLS أو ادعاء dashboard family complete.
 - [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.
 - [ ] تقييم وتنفيذ Financial RLS Wave فقط عند اكتمال جميع البوابات، مع rehearsal وrollback وA/B concurrency proof.
 - [ ] متابعة عائلات W02 الباقية وفق Dependency Map، ثم إصدار قرار W02 COMPLETE أو blocker عالمي حقيقي موثق.
