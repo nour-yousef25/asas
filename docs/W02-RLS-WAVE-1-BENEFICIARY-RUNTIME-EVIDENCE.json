@@ -1,0 +1,172 @@
+{
+  "status": "PASS_RLS_WAVE1_BENEFICIARY_RUNTIME",
+  "startedAt": "2026-08-23T08:21:25.658Z",
+  "finishedAt": "2026-08-23T08:21:29.187Z",
+  "databaseAlias": "asas_rls_wave1_audit_1787473285657_89866",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "R01",
+    "R02",
+    "R03",
+    "R04",
+    "R05",
+    "R06",
+    "R07",
+    "R08",
+    "R09",
+    "R10",
+    "R11",
+    "R12",
+    "R13",
+    "R14",
+    "R15"
+  ],
+  "evidence": [
+    {
+      "id": "R01",
+      "expected": "unmapped login principal sees zero rows and cannot write",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:27.839Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R02",
+      "expected": "tenant A direct read/update/insert against B are denied by RLS",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:27.914Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R03",
+      "expected": "tenant B direct read/update/insert against A are denied by RLS",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:27.991Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R04",
+      "expected": "raw GUC and client organization spoof do not change session_user RLS identity",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:27.996Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R05",
+      "expected": "SET ROLE cannot switch a tenant login into another role",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:27.997Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R06",
+      "expected": "authority discards each tenant client rather than reusing a cross-tenant pool",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:28.276Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R07",
+      "expected": "parallel A/B runtime operations retain own session_user and rows",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:28.434Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R08",
+      "expected": "revoked lease and stale session are denied before RLS data-plane execution",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:28.460Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R09",
+      "expected": "provider failure denies runtime without a global Prisma fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:28.472Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R10",
+      "expected": "role-map rotation rejects old A login and authorizes only new mapped principal",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:28.633Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R11",
+      "expected": "BeneficiaryDocument child and parent join remain tenant-isolated",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:28.911Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R12",
+      "expected": "BeneficiaryRepository runs through Broker-bound tenant Prisma under FORCE RLS",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:29.008Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R13",
+      "expected": "Beneficiary dashboard routes retain server context, permission guard and repository usage",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:29.008Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R14",
+      "expected": "tenant principals cannot read or create nullable/unmapped beneficiary roots",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:29.012Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "R15",
+      "expected": "clean migration rehearsal enables and forces RLS with all three policies and non-bypass tenant roles",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-23T08:21:29.187Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}
