@@ -291,7 +291,7 @@
 - [x] تثبيت canonical baseline وقراءة كامل تفويض W02 والوثائق/السجلات/المصفوفات وinventory/WP reports، مع clean execution branch وخطة dependency-ordered.
 - [x] تنفيذ وإثبات Tenant Access Broker lifecycle والـtenant role provisioning/rotation/revocation/pooling ببيئة PostgreSQL audit حقيقية؛ تبقى provider production/HA/scale/hosting acceptance بوابات تشغيلية صريحة.
 - [ ] إغلاق tenant ownership وTenantContext وIAM/SoD وrepository/API/direct-Prisma paths لكل surface حساس مع negative runtime evidence. Beneficiary root family prerequisite O01–O06 مكتمل؛ بقية families/IAM ما زالت مفتوحة.
-- [ ] تنفيذ RLS waves المطلوبة بمigrations forward-only وclean/upgrade/rollback rehearsals وA/B/concurrency/direct-SQL proof حقيقي.
+- [ ] **BLOCKED:** تنفيذ RLS Wave 1 Beneficiary يتطلب `W02-TENANT-BOUND-RUNTIME-CONNECTION-AUTHORITY`؛ global Prisma/DATABASE_URL وRaw GUC/owner fallback ممنوعة. لا تبدأ الموجات اللاحقة.
 - [ ] إغلاق Queue/Redis/Cache وStorage وRoot Documents وReports/exports tenant isolation، private delivery، cleanup، وruntime evidence الحقيقي.
 - [ ] إغلاق Privacy/Retention/Legal Hold وVault/secret lifecycle وActivation/IDP/Audit/Health وSupport/DR requirements الداخلة فعلياً ضمن W02.
 - [ ] تشغيل global migration/backfill/rollback/DR rehearsals وregression/security scans وتحديث closure matrices/evidence/Git؛ إعلان COMPLETE أو BLOCKED فقط.
