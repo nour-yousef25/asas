@@ -2,7 +2,7 @@
 
 ## Canonical Execution Baseline
 
-The clean execution baseline is `4d687c80991f3b2bb9c5a5084cefd864120b7783` on `w02-global-closure-execution`, descended from the post-remediation readiness decision `a61d4bd`. Historical worktrees remain untouched. The baseline contains no runtime RLS policy, no production credential change, and no active temporary audit resource.
+The execution baseline began at `4d687c80991f3b2bb9c5a5084cefd864120b7783` on `w02-global-closure-execution`, descended from the post-remediation readiness decision `a61d4bd`. Authority closure is committed at `32f8468`; Beneficiary RLS Wave 1 is committed at `8177a4b`. Historical worktrees remain untouched. No production credential, deployment, data or active temporary audit resource was changed.
 
 ## Execution Rule
 
@@ -12,9 +12,9 @@ The W02 Global Closure Directive is authoritative for execution order, subject t
 
 | Order | Internal scope | Why it precedes the next scope | Exit gate |
 |---:|---|---|---|
-| 1 | Broker lifecycle and operations | ADR-W02-009 makes Broker-issued, tenant-bound runtime identity a prerequisite to RLS | workload identity, membership/session/policy validation, lease/replay/revocation/rotation/pooling/failure/recovery evidence and responsibility matrix |
-| 2 | Ownership and tenant-sensitive path inventory/cutover | RLS cannot safely protect a family while API/repository/dashboard/direct Prisma paths bypass its context | explicit ownership contracts and real negative API/repository evidence for the selected family |
-| 3 | Beneficiary RLS Wave 1 | Beneficiary is the first direct-owner candidate; documents remain excluded until storage/ownership closure | forward migration, non-owner runtime role, RLS/Force RLS, clean/upgrade/rollback rehearsal, direct A/B/concurrency proof |
+| 1 | Broker lifecycle and operations | ADR-W02-009 makes Broker-issued, tenant-bound runtime identity a prerequisite to RLS | **CLOSED AUDIT RUNTIME** — B01–B60, L01–L10 and A01–A15, including lease/rotation/revocation/pooling/failure evidence; production operations remain separate |
+| 2 | Ownership and tenant-sensitive path inventory/cutover | RLS cannot safely protect a family while API/repository/dashboard/direct Prisma paths bypass its context | **CLOSED FOR BENEFICIARY ONLY** — O01–O07 and authority-bound repository path; each later family repeats this gate |
+| 3 | Beneficiary RLS Wave 1 | Beneficiary is the first direct-owner candidate; documents remain excluded until storage/ownership closure | **CLOSED AUDIT RUNTIME** — R01–R15 migration/rehearsal/Force RLS/direct A-B/concurrency evidence; production/DR remain separate |
 | 4 | Financial/Budget and remaining RLS waves | each family has distinct children, nullable roots, and direct runtime paths | per-family ownership/cutover/migration/rehearsal/evidence closure |
 | 5 | Queue/Redis/Cache, Storage/Documents, Reports/Exports | these paths have independent runtime authorities and cannot inherit HTTP context implicitly | real runtime namespaces/envelopes/private delivery/negative A-B/retry/cleanup evidence |
 | 6 | IAM/Privacy/Vault/Activation/IDP/Observability | policy, classification, secret, audit and service boundaries must be closed around the converted data plane | domain-specific negative/recovery/evidence gates |
@@ -24,6 +24,6 @@ The W02 Global Closure Directive is authoritative for execution order, subject t
 
 W02 requires **operational recovery readiness** for the tenant credential/Broker boundary: documented owners, revocation/rotation behavior, failure handling, clean audit recovery evidence, and a bounded DR rehearsal. The W02 Implementation Plan retains full production deployment, full central-license transfer/recovery, and full production DR as non-goals outside W02. No production service is changed by the W02 audit/staging rehearsals.
 
-## First Executable Scope
+## Next Executable Scope
 
-`W02-BROKER-LIFECYCLE-AND-OPERATIONAL-READINESS` begins next. It must not create an application-wide global credential or a Raw GUC identity path. It must use an externalized credential authority boundary; the application receives only a tenant-specific, short-lived lease descriptor and never durable tenant secrets.
+`W02-FINANCIAL-FAMILY-OWNERSHIP-AND-RUNTIME-INVENTORY` begins next. It must inventory Budget, Expense and direct financial Prisma/API/page paths, classify nullable roots and child relations, establish server-side TenantContext plus permission semantics, and create family-specific negative repository/API evidence before any financial RLS migration. It must not create an application-wide global credential, a Raw GUC identity path, or infer ownership for unmapped rows.

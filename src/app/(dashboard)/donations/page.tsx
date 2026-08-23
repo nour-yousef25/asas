@@ -1,9 +1,11 @@
-import { prisma } from "@/lib/db";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeader, DataTable } from "@/components/shared/data-table";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { financialRepository } from "@/lib/financial-repository";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
 
 export const dynamic = "force-dynamic";
 
@@ -32,15 +34,9 @@ type Donation = {
 };
 
 export default async function DonationsPage() {
-  const donations = (await prisma.donation.findMany({
-    include: {
-      donor: { select: { name: true } },
-      campaign: { select: { title: true } },
-      project: { select: { title: true } },
-      invoice: { select: { invoiceNo: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  })) as Donation[];
+  const context = await requireTenantContext();
+  await requirePermission(context, "donation.read");
+  const { data: donations } = (await financialRepository.listDonations(context, { skip: 0, take: 200 })) as { data: Donation[]; total: number };
 
   const total = donations.filter((d) => d.status === "COMPLETED").reduce((sum, d) => sum + d.amount, 0);
   const guestDonations = donations.filter((d) => d.isGuest).length;

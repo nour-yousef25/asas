@@ -3,7 +3,7 @@
 | Item | Current status |
 |---|---|
 | W02 | IN PROGRESS |
-| Current scope | W02 RLS Wave 1 — Beneficiary completed as audit runtime; next domain must be independently scoped |
+| Current scope | W02 Financial family ownership/runtime inventory and constrained Donor/Donation cutover — IN PROGRESS |
 | Branch | `w02-global-closure-execution` |
 | Baseline for fix | `4d687c` clean Global Closure execution baseline |
 | Last safe Hybrid Identity proof | `d86cca9` |

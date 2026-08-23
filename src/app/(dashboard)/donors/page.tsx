@@ -1,10 +1,12 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader, DataTable } from "@/components/shared/data-table";
 import { formatCurrency } from "@/lib/format";
+import { financialRepository } from "@/lib/financial-repository";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
 
 export const dynamic = "force-dynamic";
 
@@ -27,10 +29,9 @@ type Donor = {
 };
 
 export default async function DonorsPage() {
-  const donors = (await prisma.donor.findMany({
-    include: { _count: { select: { donations: true } } },
-    orderBy: { totalDonations: "desc" },
-  })) as Donor[];
+  const context = await requireTenantContext();
+  await requirePermission(context, "donor.read");
+  const donors = (await financialRepository.listDonors(context)).map((donor) => ({ ...donor, _count: { donations: donor.donations.length } })) as Donor[];
 
   return (
     <div className="space-y-6">
