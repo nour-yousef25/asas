@@ -5,6 +5,7 @@
 | canonical Organization tenant | CLOSED | all tenant waves | ADR-W02-001 |
 | server-side TenantContext | CLOSED foundation | broker session lookup | WP5-1 contract |
 | raw GUC RLS identity | REJECTED | ADR-W02-002 implementation text | successor ADR approval |
+| RLS identity contract reconciliation | BLOCKED | all RLS waves and dependent tenant runtime scopes | Architecture/Security approval |
 | tenant-bound login/broker decision | PROPOSED, not approved | all RLS waves | Architecture/Security/Product |
 | Broker B01–B60 audit coverage | COMPLETE AUDIT-ONLY | production Broker lifecycle and RLS Wave 1 remain separately gated | separate Security/Architecture authorization |
 | provider role/credential lifecycle | OPEN | Cloud/Dedicated/Self-Hosted rollout | Operations/hosting owner |

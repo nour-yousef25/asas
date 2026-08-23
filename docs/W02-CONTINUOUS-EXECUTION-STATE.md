@@ -2,24 +2,24 @@
 
 | Field | State |
 |---|---|
-| Current phase | Phase 1 — B16 Contract Fix preflight complete |
-| Current WP | `W02-RLS-TENANT-ACCESS-BROKER-B16-CONTRACT-FIX` |
-| Current branch | `w02-rls-broker-b16-contract-fix` |
-| Current commit | `af2008a143fae0e516bb55164c528ec6ec6e97d9` |
-| Last Hybrid Identity safe baseline | `d86cca921af694c59108c56779fd054cc0163a14` |
-| Current blocker | B16 expected `MEMBERSHIP_ORGANIZATION_MISMATCH`, actual `MEMBERSHIP_ABSENT` |
-| Isolated worktree | `w02-rls-tenant-access-broker-proof` has known uncommitted `todo.md` execution-directive notes; it was not altered, deleted, committed, or merged |
-| Evidence status | Hybrid database identity proof PASS; Broker B01–B15 PASS; B16 FAIL; B17–B60 and regression NOT RUN |
-| Next authorized action | B16 fixture-only proof on a new disposable PostgreSQL audit database |
+| Current phase | Phase 1 — Full W02 pre-execution audit stopped on security-contract conflict |
+| Current WP | `W02-FULL-CONTINUOUS-EXECUTION-AND-CLOSURE` |
+| Current branch | `w02-full-closure-contract-conflict` |
+| Current commit | pending blocker documentation commit; execution baseline `bfbf0ae` |
+| Last safe Broker coverage baseline | `bfbf0ae32ed1b687f50e45f84e887177d577d45c` |
+| Current blocker | `W02-RLS-IDENTITY-CONTRACT-CONFLICT`: plan M6 describes raw transaction-local GUC identity while `W02-D-02` rejects raw GUC identity |
+| Preservation | `865c639ffdcead9a6a1588b711b7ce704cefdab8` preserves the pre-execution checklist mutation without reset/stash/delete |
+| Evidence status | Broker B01–B60, Coverage Guard, Evidence Recorder, evidence validation, cleanup and scoped regression PASS audit-only; no new RLS evidence run |
+| Next authorized action | approved `W02-RLS-IDENTITY-CONTRACT-RECONCILIATION`, then restart audit from a clean branch |
 
 ## Preconditions Confirmed
 
-The B16 branch was created cleanly from the committed Broker blocker at `af2008a`. Required W02 contracts, decision register, dependency map, RLS blocker register, Hybrid proof report, Broker blocker report, Prisma schema, package manifest, and Broker harness are present.
+The full pre-execution audit confirmed a clean preservation checkpoint, Broker coverage evidence, and no disposable Broker audit database or `broker_*` roles. It also identified a material conflict between the original RLS plan and the later accepted raw-GUC rejection. No security contract was selected by inference.
 
 ## Forbidden Actions
 
-No production database, credentials, environment, package version, historical migration, Prisma production schema, `db push`, extension, superuser/owner/`BYPASSRLS` runtime proof, global credential, fallback tenant, first membership, client tenant authority, RLS Wave 1, Queue/Redis/Cache, Storage, Users/Memberships, Documents, W03, or handover work may begin before B16 and complete Broker proof gates pass.
+No production database, credentials, environment, package version, historical migration, Prisma production schema, `db push`, extension, superuser/owner/`BYPASSRLS` runtime proof, global credential, fallback tenant, first membership, client tenant authority, Broker lifecycle, RLS, Queue/Redis/Cache, Storage, Users/Memberships, Documents, Reports/Privacy/Vault, Activation, IDP, W03, or handover work may begin before the identity-contract conflict is explicitly reconciled.
 
 ## Stop Rule
 
-If B16 does not produce exactly `DENY:MEMBERSHIP_ORGANIZATION_MISMATCH`, issue a blocker and stop. Do not change the expected reason, weaken the test, or continue to Broker B17 onward.
+If a source-of-truth document conflicts with an accepted security decision, issue a blocker and stop. Do not alter the decision, weaken the evidence, select a fallback identity source, or continue to an implementation scope.
