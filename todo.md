@@ -278,6 +278,14 @@
 - [ ] تنفيذ Activation core وIDP framework فقط ضمن W02، ثم scan كامل للـtenant-sensitive surfaces وdependency/security register.
 - [ ] إجراء clean database/upgrade rehearsals وfailure recovery وglobal regression وfinal security/closure matrices/report/Git integrity؛ إعلان W02 COMPLETE فقط إن تحققت كل البوابات.
 
+## W02-TWO-SCOPE-BLOCKER-REMEDIATION
+
+- [ ] إجراء Git Safety Gate كامل وتحديد ما إذا كان scope reconciliation وscope artifact hygiene مستقلين على الملفات/worktrees قبل التنفيذ.
+- [ ] تنفيذ `W02-RLS-IDENTITY-CONTRACT-RECONCILIATION` توثيقياً فقط: ADR successor، M6/plan/matrices/registers، identity anchor، lifecycle/support/evidence requirements بلا runtime أو migration.
+- [ ] تنفيذ `W02-AUDIT-ARTIFACT-HYGIENE-FIX`: metadata-only inventory، التحقق من relevance، إزالة آمنة بعد الضمان، hardening harness، scan redacted، واختبارات cleanup.
+- [ ] تشغيل scoped tests ثم Prisma/TypeScript/Jest/Communications/build بعد كل نطاق مع evidence redacted وcleanup PASS.
+- [ ] حفظ commits وbranches مستقلة، ثم إعادة Full Pre-Execution Audit وإصدار READY أو BLOCKED فقط دون بدء RLS/Broker lifecycle/Queue/Storage/IAM/Documents/W03.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.
