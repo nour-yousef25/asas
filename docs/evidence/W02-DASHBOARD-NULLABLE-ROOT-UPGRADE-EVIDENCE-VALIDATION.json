@@ -1,0 +1,21 @@
+{
+  "status": "PASS_DASHBOARD_NULLABLE_ROOT_UPGRADE_EVIDENCE",
+  "mandatoryIds": ["UR01", "UR02", "UR03", "UR04", "UR05", "UR06", "UR07", "UR08", "UR09", "UR10"],
+  "executedIds": ["UR01", "UR02", "UR03", "UR04", "UR05", "UR06", "UR07", "UR08", "UR09", "UR10"],
+  "failures": {
+    "status": false,
+    "mandatoryIdsMismatch": false,
+    "missing": [],
+    "duplicate": [],
+    "unknown": [],
+    "failedRows": [],
+    "hardFailures": [],
+    "cleanup": false,
+    "hygiene": false,
+    "credentialsPersisted": false,
+    "productionTouched": false,
+    "rawGuc": false,
+    "globalCredential": false,
+    "bypass": false
+  }
+}

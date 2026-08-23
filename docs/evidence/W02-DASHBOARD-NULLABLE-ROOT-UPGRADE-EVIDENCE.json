@@ -1,0 +1,114 @@
+{
+  "status": "PASS_DASHBOARD_NULLABLE_ROOT_UPGRADE",
+  "startedAt": "2026-08-23T20:08:17.684Z",
+  "finishedAt": "2026-08-23T20:08:23.153Z",
+  "environment": "disposable-postgresql-upgrade",
+  "mandatoryIds": [
+    "UR01",
+    "UR02",
+    "UR03",
+    "UR04",
+    "UR05",
+    "UR06",
+    "UR07",
+    "UR08",
+    "UR09",
+    "UR10"
+  ],
+  "evidence": [
+    {
+      "id": "UR01",
+      "expected": "pre-successor baseline deploy excludes nullable-root migration",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR02",
+      "expected": "legacy pre-successor Member/KPI/KPIRecord rows survive successor with nullable owners",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR03",
+      "expected": "successor migration is recorded once and control tables/functions are present",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR04",
+      "expected": "all proof roles remain NOSUPERUSER and NOBYPASSRLS",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR05",
+      "expected": "A/B session_user remains tenant login and direct root updates are denied",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR06",
+      "expected": "A/B apply only assignments matching session_user organization",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR07",
+      "expected": "KPI parent-child upgrade apply is atomic and cross-tenant parent claim is denied",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR08",
+      "expected": "assignment and ledger writers cannot mutate tenant roots and tenants cannot forge control rows",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR09",
+      "expected": "upgrade ledger rejects replay and retains exact operation outcomes",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UR10",
+      "expected": "upgrade proof has no raw GUC identity, global tenant credential, bypass, production touch or cleanup residue",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-upgrade",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalTenantCredentialUsed": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}
