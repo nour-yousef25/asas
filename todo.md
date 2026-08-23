@@ -343,7 +343,7 @@
 - [x] تحويل مسارات Budget/Expense المحددة إلى TenantContext + semantic permission + TenantBoundPrismaExecutor، ثم إثباتها على PostgreSQL disposable.
 - [x] جرد dashboard المختلط وتثبيت blocker ownership لـMember وKPI/KPIRecord؛ لا tenant-bound cutover قبل manifest/backfill مستقل.
 - [ ] إغلاق mixed dashboard tenant-bound aggregation scope بدليل مستقل.
-- [ ] إغلاق nullable-root ownership/backfill requirements ودليل التوافق قبل Financial RLS.
+- [ ] **BLOCKED:** إغلاق nullable-root ownership/backfill requirements ودليل التوافق قبل Financial RLS؛ يلزم ADR لمسار control-plane multi-org audit المتوافق مع FORCE RLS.
 - [ ] إغلاق DR/HA/scale evidence وعقد provider التشغيلي قبل أي Financial RLS.
 - [ ] تقييم وتنفيذ Financial RLS Wave فقط عند اكتمال جميع البوابات، مع rehearsal وrollback وA/B concurrency proof.
 - [ ] متابعة عائلات W02 الباقية وفق Dependency Map، ثم إصدار قرار W02 COMPLETE أو blocker عالمي حقيقي موثق.

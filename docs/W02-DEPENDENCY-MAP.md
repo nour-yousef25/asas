@@ -17,7 +17,8 @@
 | Financial Donor/Donation runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | F01–F10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root backfill |
 | Financial Budget/Expense runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | BE01–BE10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root hardening |
 | Mixed dashboard ownership aggregation | BLOCKED FOR CUTOVER | Financial RLS is prohibited | `Member` و`KPI/KPIRecord` يفتقدان legal organization owner؛ يلزم nullable-root ownership/backfill قبل tenant-bound aggregation proof |
-| Nullable-root and operational readiness | OPEN | Financial RLS is prohibited | hardening/backfill compatibility plus provider DR/HA/scale evidence required |
+| Nullable-root ownership/backfill | BLOCKED — ARCHITECTURAL / SECURITY DECISION REQUIRED | dashboard cutover and Financial RLS are prohibited | multi-organization control-plane audit conflicts with tenant-scoped FORCE RLS audit_logs; ADR required before rehearsal |
+| Provider DR/HA/scale readiness | OPEN | Financial RLS is prohibited | deployment-owned provider, recovery, role-scale and pool capacity evidence required |
 | remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
 | Queue/Storage/IAM/Documents | DEFERRED | their own RLS waves | separate authorization |
