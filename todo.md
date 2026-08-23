@@ -245,6 +245,15 @@
 - [ ] تنفيذ A/B negative proof للـspoofing والمembership/session/policy والـlease/replay/revocation/pooling/failure على PostgreSQL حقيقية.
 - [ ] تشغيل regression المناسب وحفظ evidence وإصدار PASS/PARTIAL/BLOCKED؛ لا RLS Wave 1 أو نطاق لاحق.
 - [ ] **BLOCKED:** B16 لم يحقق reason contract المتوقع؛ أعاد `MEMBERSHIP_ABSENT` بدلاً من `MEMBERSHIP_ORGANIZATION_MISMATCH`. لا يُعدّل الاختبار أو expected result ولا تُستكمل اختبارات الأمن قبل قرار/تصحيح مستقل.
+- [x] **RESOLVED LIMITED:** B16 fixture-only proof أعاد `DENY:MEMBERSHIP_ORGANIZATION_MISMATCH` على قاعدة تدقيق جديدة؛ تبدأ إعادة Broker Proof كاملة من B01 فقط.
+
+## W02 — FULL CLOSURE EXECUTION DIRECTIVE
+
+- [x] إجراء read-only pre-execution audit وإصدار `W02-CONTINUOUS-EXECUTION-STATE.md` مع baseline/blocker/evidence/forbidden actions.
+- [x] إغلاق B16 بfixture/authority contract محدود مع المحافظة على reason المتوقع، ثم إعادة Broker Proof كاملة من قاعدة تدقيق نظيفة.
+- [ ] إثبات Broker lifecycle وtenant identities ثم تنفيذ RLS waves مرحلياً فقط بعد البوابات الصريحة.
+- [ ] تنفيذ Queue/Redis/Cache ثم Storage ثم Users/Memberships وRoot Documents، وفق ownership/runtime evidence مستقلة لكل نطاق.
+- [ ] تنفيذ موجات W02 المتبقية المعتمدة، ثم hardening/regression/closure matrix؛ التوقف الفوري عند blocker أمني أو عقدي أو إنتاجي.
 
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 

@@ -1,0 +1,14 @@
+# W02 Closure Matrix
+
+| Work package | Requirement | Runtime evidence | Documentation/Git | Status | Residual risk / dependency |
+|---|---|---|---|---|---|
+| WP0 | architecture gates | documentation scope | committed historical evidence | COMPLETE | later runtime work still required |
+| WP1–WP3 | foundation/IAM/instance contracts | prior audit evidence | historical commits | COMPLETE by prior closure | revalidate after dependent changes |
+| WP4 | ownership/backfill | clean/upgrade evidence | prior reports | COMPLETE foundation | later family/runtime gates remain |
+| WP5-1/2/3 | context/repository/report generation | A/B evidence | prior reports | PARTIAL | export and remaining surfaces deferred |
+| Hybrid Identity | tenant-bound PostgreSQL roles | A/B direct identity PASS | `d86cca9` | COMPLETE limited proof | Broker boundary required |
+| Broker B16 contract fix | exact cross-organization membership reason | B16 PASS with user A membership in organization B | current B16 evidence | COMPLETE LIMITED | full Broker rerun required |
+| Broker Audit Proof | B01–B60 | B01–B15 prior PASS; B16 fix PASS; B17–B60 not yet rerun | `af2008a` + current B16 evidence | IN PROGRESS | full fresh Broker rerun |
+| RLS Waves | all tenant-owned families | not authorized | no current migration | NOT STARTED | Broker proof complete + family gates |
+| Queue/Storage/IAM/Documents | tenant isolation | not started | no closure | NOT STARTED | ordered prerequisites |
+| W02 Global Closure | all W02 gates | not available | not available | NOT READY | all prior rows COMPLETE |

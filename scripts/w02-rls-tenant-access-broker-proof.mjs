@@ -19,6 +19,7 @@ const userA = 'aaaaaaaa-0000-4000-8000-000000000001';
 const userB = 'bbbbbbbb-0000-4000-8000-000000000002';
 const membershipA = 'aaaaaaaa-0000-4000-8000-000000000101';
 const membershipB = 'bbbbbbbb-0000-4000-8000-000000000102';
+const membershipAInOrganizationB = 'aaaaaaaa-0000-4000-8000-000000000103';
 const passwordBroker = randomBytes(30).toString('base64url');
 const passwordA = randomBytes(30).toString('base64url');
 const passwordB = randomBytes(30).toString('base64url');
@@ -218,7 +219,7 @@ CREATE TABLE security.memberships (membership_id uuid PRIMARY KEY, user_id uuid 
 CREATE TABLE security.tenant_role_mapping (mapping_id uuid PRIMARY KEY, organization_id uuid NOT NULL, tenant_role text NOT NULL, credential_ref text NOT NULL, active boolean NOT NULL DEFAULT true);
 CREATE TABLE security.role_organization (role_oid oid PRIMARY KEY, organization_id uuid NOT NULL UNIQUE, active boolean NOT NULL DEFAULT true);
 INSERT INTO security.users VALUES ('${userA}', true, 1, false), ('${userB}', true, 1, false);
-INSERT INTO security.memberships VALUES ('${membershipA}','${userA}','${organizationA}',true,false,1,true), ('${membershipB}','${userB}','${organizationB}',true,false,1,true);
+INSERT INTO security.memberships VALUES ('${membershipA}','${userA}','${organizationA}',true,false,1,true), ('${membershipB}','${userB}','${organizationB}',true,false,1,true), ('${membershipAInOrganizationB}','${userA}','${organizationB}',true,false,1,true);
 INSERT INTO security.tenant_role_mapping VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaa1','${organizationA}','${tenantA}','cred-a',true), ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbb1','${organizationB}','${tenantB}','cred-b',true);
 INSERT INTO security.role_organization VALUES ('${tenantA}'::regrole::oid,'${organizationA}',true), ('${tenantB}'::regrole::oid,'${organizationB}',true);
 CREATE FUNCTION security.current_organization() RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, security AS $$ SELECT organization_id FROM security.role_organization WHERE role_oid=session_user::regrole::oid AND active $$;
@@ -254,6 +255,17 @@ async function main() {
   const leaseA = (corr) => broker.issueLease(makeContext({ userId: userA, organizationId: organizationA, membershipId: membershipA, correlationId: corr }));
   const leaseB = (corr) => broker.issueLease(makeContext({ userId: userB, organizationId: organizationB, membershipId: membershipB, correlationId: corr }));
 
+  if (process.env.W02_B16_ONLY === '1') {
+    record('B16', 'cross-organization membership denied', 'user A, organization A, existing membership of A in B', 'DENY MEMBERSHIP_ORGANIZATION_MISMATCH', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipAInOrganizationB,correlationId:c})), (o) => o.error === 'MEMBERSHIP_ORGANIZATION_MISMATCH');
+    const hardFailures = evidence.filter((item) => item.result !== 'PASS').map((item) => item.id);
+    const payload = { status: hardFailures.length === 0 ? 'PASS_B16_CONTRACT_FIX' : 'FAIL', startedAt, finishedAt: new Date().toISOString(), databaseAlias: database, postgresVersion: adminSql('SHOW server_version;'), evidence, auditLog, hardFailures, scope: 'B16 fixture-only proof' };
+    writeFileSync(auditFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
+    chmodSync(auditFile, 0o600);
+    process.stdout.write(`${JSON.stringify({ status: payload.status, evidenceFile: auditFile, databaseAlias: database, hardFailures }, null, 2)}\n`);
+    process.exitCode = hardFailures.length === 0 ? 0 : 2;
+    return;
+  }
+
   record('B01', 'A exact broker selection', 'trusted context A', 'A lease and A identity', (c) => { const l=leaseA(c); return broker.execute(l, makeContext({ userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c }), 'SELECT session_user,label FROM proof.records;'); }, (o) => o.sessionUser === tenantA && o.stdout === `${tenantA}|record-a`);
   record('B02', 'B exact broker selection', 'trusted context B', 'B lease and B identity', (c) => { const l=leaseB(c); return broker.execute(l, makeContext({ userId:userB,organizationId:organizationB,membershipId:membershipB,correlationId:c }), 'SELECT session_user,label FROM proof.records;'); }, (o) => o.sessionUser === tenantB && o.stdout === `${tenantB}|record-b`);
   record('B03', 'A cannot read B through broker', 'A lease foreign query', 'zero rows', (c) => { const l=leaseA(c); return broker.execute(l, makeContext({ userId:userA,organizationId:organizationA,membershipId:membershipA,correlationId:c }), `SELECT count(*) FROM proof.records WHERE organization_id='${organizationB}';`); }, (o) => o.stdout === '0');
@@ -270,7 +282,7 @@ async function main() {
   adminSql(`UPDATE security.memberships SET revoked=true WHERE membership_id='${membershipA}';`, database);
   record('B15', 'revoked membership denied', 'revoked A membership', 'DENY MEMBERSHIP_REVOKED', (c) => leaseA(c), (o) => o.error === 'MEMBERSHIP_REVOKED');
   adminSql(`UPDATE security.memberships SET revoked=false WHERE membership_id='${membershipA}';`, database);
-  record('B16', 'cross-organization membership denied', 'A user B membership', 'DENY membership organization mismatch', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipB,correlationId:c})), (o) => o.error === 'MEMBERSHIP_ORGANIZATION_MISMATCH');
+  record('B16', 'cross-organization membership denied', 'A user membership in B organization', 'DENY membership organization mismatch', (c) => broker.issueLease(makeContext({userId:userA,organizationId:organizationA,membershipId:membershipAInOrganizationB,correlationId:c})), (o) => o.error === 'MEMBERSHIP_ORGANIZATION_MISMATCH');
   adminSql(`UPDATE security.users SET session_version=2 WHERE user_id='${userA}';`, database);
   record('B17', 'stale session denied', 'A session v1 vs authority v2', 'DENY STALE_SESSION', (c) => leaseA(c), (o) => o.error === 'STALE_SESSION');
   adminSql(`UPDATE security.users SET session_version=1 WHERE user_id='${userA}';`, database);

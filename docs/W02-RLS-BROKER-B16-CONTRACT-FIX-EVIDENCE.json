@@ -1,0 +1,38 @@
+{
+  "status": "PASS_B16_CONTRACT_FIX",
+  "startedAt": "2026-08-23T03:19:00.189Z",
+  "finishedAt": "2026-08-23T03:19:00.767Z",
+  "databaseAlias": "asas_broker_audit_1787455140189_63702",
+  "postgresVersion": "16.15 (Ubuntu 16.15-0ubuntu0.24.04.1)",
+  "evidence": [
+    {
+      "id": "B16",
+      "purpose": "cross-organization membership denied",
+      "setup": "disposable PostgreSQL audit fixture and broker harness",
+      "command": "broker-harness",
+      "inputClass": "user A, organization A, existing membership of A in B",
+      "expected": "DENY MEMBERSHIP_ORGANIZATION_MISMATCH",
+      "actual": "DENY:MEMBERSHIP_ORGANIZATION_MISMATCH",
+      "databaseIdentity": "none",
+      "tenant": "none",
+      "correlationId": "58619ca0-d958-4355-b57f-911a9a5f8f7a",
+      "timestamp": "2026-08-23T03:19:00.767Z",
+      "result": "PASS",
+      "failureReason": null
+    }
+  ],
+  "auditLog": [
+    {
+      "timestamp": "2026-08-23T03:19:00.767Z",
+      "decision": "DENY",
+      "reason": "MEMBERSHIP_ORGANIZATION_MISMATCH",
+      "correlationId": "58619ca0-d958-4355-b57f-911a9a5f8f7a",
+      "organizationId": "11111111-1111-4111-8111-111111111111",
+      "membershipId": "aaaaaaaa-0000-4000-8000-000000000103",
+      "leaseId": "none",
+      "tenantRoleId": "none"
+    }
+  ],
+  "hardFailures": [],
+  "scope": "B16 fixture-only proof"
+}
