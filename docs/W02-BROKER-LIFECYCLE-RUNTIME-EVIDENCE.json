@@ -1,0 +1,119 @@
+{
+  "status": "PASS_BROKER_LIFECYCLE_RUNTIME_PROOF",
+  "startedAt": "2026-08-23T06:38:32.042Z",
+  "finishedAt": "2026-08-23T06:38:34.486Z",
+  "databaseAlias": "asas_broker_lifecycle_audit_1787467112041_81711",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "L01",
+    "L02",
+    "L03",
+    "L04",
+    "L05",
+    "L06",
+    "L07",
+    "L08",
+    "L09",
+    "L10"
+  ],
+  "evidence": [
+    {
+      "id": "L01",
+      "expected": "A lease executes only as tenant A and sees zero foreign rows",
+      "actual": "broker_lifecycle_a_1787467112041_81711|0",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.323Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L02",
+      "expected": "B lease executes only as tenant B and sees zero foreign rows",
+      "actual": "broker_lifecycle_b_1787467112041_81711|0",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.381Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L03",
+      "expected": "A/B leases use different connection partitions",
+      "actual": "REDACTED_OBJECT",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.381Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L04",
+      "expected": "A lease with B context is denied before authority",
+      "actual": "LEASE_CONNECTION_OR_CORRELATION_MISMATCH",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.390Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L05",
+      "expected": "lease replay is denied",
+      "actual": "LEASE_REPLAY",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.392Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L06",
+      "expected": "stale session blocks new lease",
+      "actual": "STALE_SESSION",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.397Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L07",
+      "expected": "stale policy blocks new lease",
+      "actual": "STALE_POLICY",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.403Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L08",
+      "expected": "principal revocation blocks new A lease",
+      "actual": "PRINCIPAL_MAPPING_ABSENT",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.411Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L09",
+      "expected": "rotation selects and executes only new active principal",
+      "actual": "broker_lifecycle_a_1787467112041_81711_g2|0",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.476Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "L10",
+      "expected": "authority uncertainty fails closed",
+      "actual": "AUTHORITY_OR_OPERATION_FAILURE",
+      "result": "PASS",
+      "timestamp": "2026-08-23T06:38:34.486Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false
+}

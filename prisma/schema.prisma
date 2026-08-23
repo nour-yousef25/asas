@@ -12,20 +12,20 @@ datasource db {
 // ============================================
 
 model User {
-  id            String    @id @default(cuid())
-  name          String
-  email         String    @unique
-  phone         String?   @unique
-  password      String?
-  nationalId    String?   @unique
-  avatar        String?
-  role          Role      @default(MEMBER)
-  isActive      Boolean   @default(true)
-  authVersion   Int       @default(1)
+  id                   String    @id @default(cuid())
+  name                 String
+  email                String    @unique
+  phone                String?   @unique
+  password             String?
+  nationalId           String?   @unique
+  avatar               String?
+  role                 Role      @default(MEMBER)
+  isActive             Boolean   @default(true)
+  authVersion          Int       @default(1)
   activeOrganizationId String?
-  lastLoginAt   DateTime?
-  emailVerified DateTime?
-  phoneVerified DateTime?
+  lastLoginAt          DateTime?
+  emailVerified        DateTime?
+  phoneVerified        DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -46,15 +46,17 @@ model User {
   createdProjects         Project[]                  @relation("ProjectCreator")
   boardMemberships        BoardMember[]
   organizationMemberships OrganizationMembership[]
-  activeOrganization      Organization?             @relation("ActiveOrganization", fields: [activeOrganizationId], references: [id], onDelete: SetNull)
-  supportAccessRequests   PlatformSupportAccess[]   @relation("SupportRequester")
-  supportAccessApprovals  PlatformSupportAccess[]   @relation("SupportApprover")
+  activeOrganization      Organization?              @relation("ActiveOrganization", fields: [activeOrganizationId], references: [id], onDelete: SetNull)
+  supportAccessRequests   PlatformSupportAccess[]    @relation("SupportRequester")
+  supportAccessApprovals  PlatformSupportAccess[]    @relation("SupportApprover")
   connectedChannels       ConnectedChannel[]         @relation("ChannelCreator")
   communicationContent    CommunicationContentItem[] @relation("CommunicationContentCreator")
   communicationCampaigns  CommunicationCampaign[]    @relation("CommunicationCampaignOwner")
   communicationReviews    CommunicationReview[]      @relation("ReviewAuthor")
   approvedPublications    PublicationPlan[]          @relation("PublicationApprover")
   aiProposals             AIProposal[]               @relation("AIProposalAuthor")
+  tenantAccessLeases      TenantAccessLease[]
+  tenantBrokerAuditEvents TenantBrokerAuditEvent[]
 
   @@map("users")
 }
@@ -81,8 +83,8 @@ model Permission {
   module      String
   action      String
 
-  users UserPermission[]
-  organizationRolePermissions OrganizationRolePermission[]
+  users                         UserPermission[]
+  organizationRolePermissions   OrganizationRolePermission[]
   membershipPermissionOverrides MembershipPermissionOverride[]
 
   @@map("permissions")
@@ -126,35 +128,38 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  boardMembers           BoardMember[]
-  assemblyMeetings       AssemblyMeeting[]
-  financialAccounts      FinancialAccount[]
-  settings               SiteSetting[]
-  memberships            OrganizationMembership[]
-  activeUsers            User[]                     @relation("ActiveOrganization")
-  roles                  OrganizationRole[]
-  supportAccessRequests  PlatformSupportAccess[]
-  connectedChannels      ConnectedChannel[]
-  brandVoiceKit          BrandVoiceKit?
-  communicationCampaigns CommunicationCampaign[]
-  communicationContent   CommunicationContentItem[]
-  publicationPlans       PublicationPlan[]
-  webhookEvents          WebhookEvent[]
-  metricSnapshots        MetricSnapshot[]
-  auditLogs              AuditLog[]
-  beneficiaries          Beneficiary[]
-  donors                 Donor[]
-  donations              Donation[]
-  donationCampaigns      DonationCampaign[]
-  projects               Project[]
-  newsItems              News[]
-  events                 Event[]
-  tasks                  Task[]
-  surveys                Survey[]
-  documents              Document[]
-  budgets                Budget[]
-  budgetItems            BudgetItem[]
-  expenses               Expense[]
+  boardMembers            BoardMember[]
+  assemblyMeetings        AssemblyMeeting[]
+  financialAccounts       FinancialAccount[]
+  settings                SiteSetting[]
+  memberships             OrganizationMembership[]
+  activeUsers             User[]                     @relation("ActiveOrganization")
+  roles                   OrganizationRole[]
+  supportAccessRequests   PlatformSupportAccess[]
+  connectedChannels       ConnectedChannel[]
+  brandVoiceKit           BrandVoiceKit?
+  communicationCampaigns  CommunicationCampaign[]
+  communicationContent    CommunicationContentItem[]
+  publicationPlans        PublicationPlan[]
+  webhookEvents           WebhookEvent[]
+  metricSnapshots         MetricSnapshot[]
+  auditLogs               AuditLog[]
+  beneficiaries           Beneficiary[]
+  donors                  Donor[]
+  donations               Donation[]
+  donationCampaigns       DonationCampaign[]
+  projects                Project[]
+  newsItems               News[]
+  events                  Event[]
+  tasks                   Task[]
+  surveys                 Survey[]
+  documents               Document[]
+  budgets                 Budget[]
+  budgetItems             BudgetItem[]
+  expenses                Expense[]
+  databasePrincipals      TenantDatabasePrincipal[]
+  tenantAccessLeases      TenantAccessLease[]
+  tenantBrokerAuditEvents TenantBrokerAuditEvent[]
 
   @@map("organizations")
 }
@@ -164,21 +169,23 @@ model Organization {
 // ============================================
 
 model OrganizationMembership {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   organizationId String
   userId         String
-  role           Role     @default(MEMBER)
-  isDefault      Boolean  @default(false)
-  isActive       Boolean  @default(true)
-  policyVersion  Int      @default(1)
+  role           Role      @default(MEMBER)
+  isDefault      Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  policyVersion  Int       @default(1)
   revokedAt      DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organizationRoles MembershipRole[]
-  permissionOverrides MembershipPermissionOverride[]
+  organization            Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user                    User                           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationRoles       MembershipRole[]
+  permissionOverrides     MembershipPermissionOverride[]
+  tenantAccessLeases      TenantAccessLease[]
+  tenantBrokerAuditEvents TenantBrokerAuditEvent[]
 
   @@unique([organizationId, userId])
   @@index([userId, isActive])
@@ -208,7 +215,7 @@ model OrganizationRole {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  organization Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   permissions  OrganizationRolePermission[]
   memberships  MembershipRole[]
 
@@ -242,12 +249,12 @@ model MembershipRole {
 }
 
 model MembershipPermissionOverride {
-  membershipId  String
-  permissionId  String
-  effect        PermissionEffect
-  reason        String
-  expiresAt     DateTime?
-  createdAt     DateTime @default(now())
+  membershipId String
+  permissionId String
+  effect       PermissionEffect
+  reason       String
+  expiresAt    DateTime?
+  createdAt    DateTime         @default(now())
 
   membership OrganizationMembership @relation(fields: [membershipId], references: [id], onDelete: Cascade)
   permission Permission             @relation(fields: [permissionId], references: [id], onDelete: Cascade)
@@ -278,6 +285,95 @@ model PlatformSupportAccess {
   @@index([organizationId, status, expiresAt])
   @@index([requesterId, status])
   @@map("platform_support_access")
+}
+
+// ============================================
+// W02 — Tenant Access Broker lifecycle metadata
+// Credential material remains external to Prisma, database records, Git and logs.
+// ============================================
+
+enum TenantDatabasePrincipalStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum TenantAccessLeaseStatus {
+  ACTIVE
+  CONSUMED
+  REVOKED
+  EXPIRED
+}
+
+model TenantDatabasePrincipal {
+  id                  String                        @id @default(cuid())
+  organizationId      String
+  principalName       String                        @unique
+  credentialReference String                        @unique
+  generation          Int                           @default(1)
+  status              TenantDatabasePrincipalStatus @default(ACTIVE)
+  activatedAt         DateTime                      @default(now())
+  revokedAt           DateTime?
+  createdAt           DateTime                      @default(now())
+  updatedAt           DateTime                      @updatedAt
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leases       TenantAccessLease[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, generation])
+  @@map("tenant_database_principals")
+}
+
+model TenantAccessLease {
+  id                        String                  @id @default(cuid())
+  organizationId            String
+  membershipId              String
+  userId                    String
+  tenantDatabasePrincipalId String
+  correlationId             String
+  connectionId              String                  @unique
+  contextFingerprint        String
+  status                    TenantAccessLeaseStatus @default(ACTIVE)
+  issuedAt                  DateTime                @default(now())
+  expiresAt                 DateTime
+  consumedAt                DateTime?
+  revokedAt                 DateTime?
+  createdAt                 DateTime                @default(now())
+  updatedAt                 DateTime                @updatedAt
+
+  organization      Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  membership        OrganizationMembership  @relation(fields: [membershipId], references: [id], onDelete: Cascade)
+  user              User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  databasePrincipal TenantDatabasePrincipal @relation(fields: [tenantDatabasePrincipalId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status, expiresAt])
+  @@index([membershipId, status])
+  @@index([userId, status])
+  @@index([correlationId])
+  @@map("tenant_access_leases")
+}
+
+model TenantBrokerAuditEvent {
+  id                        String   @id @default(cuid())
+  organizationId            String?
+  membershipId              String?
+  userId                    String?
+  tenantDatabasePrincipalId String?
+  leaseId                   String?
+  correlationId             String
+  decision                  String
+  reasonCode                String
+  source                    String
+  createdAt                 DateTime @default(now())
+
+  organization Organization?           @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  membership   OrganizationMembership? @relation(fields: [membershipId], references: [id], onDelete: SetNull)
+  user         User?                   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([correlationId])
+  @@index([leaseId])
+  @@map("tenant_broker_audit_events")
 }
 
 enum SocialPlatform {
@@ -790,25 +886,25 @@ model VolunteerActivity {
 // ============================================
 
 model Beneficiary {
-  id            String            @id @default(cuid())
+  id             String            @id @default(cuid())
   organizationId String?
-  userId        String?           @unique
-  name          String
-  nationalId    String?
-  phone         String
-  email         String?
-  address       String?
-  city          String?
-  gender        Gender            @default(MALE)
-  dateOfBirth   DateTime?
-  familyMembers Int?
-  incomeLevel   String?
-  needCategory  String?
-  status        BeneficiaryStatus @default(ACTIVE)
-  notes         String?
+  userId         String?           @unique
+  name           String
+  nationalId     String?
+  phone          String
+  email          String?
+  address        String?
+  city           String?
+  gender         Gender            @default(MALE)
+  dateOfBirth    DateTime?
+  familyMembers  Int?
+  incomeLevel    String?
+  needCategory   String?
+  status         BeneficiaryStatus @default(ACTIVE)
+  notes          String?
 
   user         User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
-  organization Organization?          @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization Organization?         @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   documents    BeneficiaryDocument[]
 
   createdAt DateTime @default(now())
@@ -909,21 +1005,21 @@ model DonorCommunication {
 // ============================================
 
 model Donation {
-  id            String         @id @default(cuid())
+  id             String         @id @default(cuid())
   organizationId String?
-  donorId       String?
-  campaignId    String?
-  projectId     String?
-  amount        Float
-  currency      String         @default("SAR")
-  paymentMethod String?
-  paymentRef    String?
-  status        DonationStatus @default(PENDING)
-  isAnonymous   Boolean        @default(false)
-  isGuest       Boolean        @default(false)
-  guestName     String?
-  guestPhone    String?
-  guestEmail    String?
+  donorId        String?
+  campaignId     String?
+  projectId      String?
+  amount         Float
+  currency       String         @default("SAR")
+  paymentMethod  String?
+  paymentRef     String?
+  status         DonationStatus @default(PENDING)
+  isAnonymous    Boolean        @default(false)
+  isGuest        Boolean        @default(false)
+  guestName      String?
+  guestPhone     String?
+  guestEmail     String?
 
   donor        Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
   organization Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -1078,14 +1174,14 @@ model News {
   id             String     @id @default(cuid())
   organizationId String?
   title          String
-  slug        String     @unique
-  content     String     @db.Text
-  summary     String?
-  imageUrl    String?
-  category    String?
-  status      NewsStatus @default(DRAFT)
-  publishedAt DateTime?
-  authorId    String?
+  slug           String     @unique
+  content        String     @db.Text
+  summary        String?
+  imageUrl       String?
+  category       String?
+  status         NewsStatus @default(DRAFT)
+  publishedAt    DateTime?
+  authorId       String?
 
   author       User?         @relation("NewsAuthor", fields: [authorId], references: [id], onDelete: SetNull)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -1215,16 +1311,16 @@ model Event {
   id             String      @id @default(cuid())
   organizationId String?
   title          String
-  description String?
-  imageUrl    String?
-  startDate   DateTime
-  endDate     DateTime?
-  location    String?
-  capacity    Int?
-  status      EventStatus @default(UPCOMING)
+  description    String?
+  imageUrl       String?
+  startDate      DateTime
+  endDate        DateTime?
+  location       String?
+  capacity       Int?
+  status         EventStatus @default(UPCOMING)
 
   attendees    EventAttendance[]
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1275,13 +1371,13 @@ model Task {
   title          String
   description    String?
   status         TaskStatus   @default(TODO)
-  priority    TaskPriority @default(MEDIUM)
-  dueDate     DateTime?
-  completedAt DateTime?
-  creatorId   String?
-  assigneeId  String
-  department  String?
-  tags        String[]
+  priority       TaskPriority @default(MEDIUM)
+  dueDate        DateTime?
+  completedAt    DateTime?
+  creatorId      String?
+  assigneeId     String
+  department     String?
+  tags           String[]
 
   creator      User?         @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
@@ -1355,13 +1451,13 @@ model Survey {
   title          String
   description    String?
   status         SurveyStatus @default(DRAFT)
-  startDate   DateTime?
-  endDate     DateTime?
-  isPublic    Boolean      @default(false)
+  startDate      DateTime?
+  endDate        DateTime?
+  isPublic       Boolean      @default(false)
 
   questions    SurveyQuestion[]
   responses    SurveyResponse[]
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1643,21 +1739,20 @@ enum TransactionType {
 }
 
 model Budget {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   organizationId String?
   title          String
   fiscalYear     String
   totalAmount    Float
-  spentAmount    Float        @default(0)
-  status         BudgetStatus @default(DRAFT)
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  items BudgetItem[]
+  spentAmount    Float         @default(0)
+  status         BudgetStatus  @default(DRAFT)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  items          BudgetItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([organizationId])
-
   @@map("budgets")
 }
 
@@ -1669,19 +1764,18 @@ enum BudgetStatus {
 }
 
 model BudgetItem {
-  id             String  @id @default(cuid())
+  id             String        @id @default(cuid())
   organizationId String?
   budgetId       String
   category       String
   description    String?
   allocated      Float
-  spent          Float   @default(0)
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  budget   Budget    @relation(fields: [budgetId], references: [id], onDelete: Cascade)
-  expenses Expense[] @relation("BudgetItemToExpense") // العلاقة المعاكس
+  spent          Float         @default(0)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  budget         Budget        @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  expenses       Expense[]     @relation("BudgetItemToExpense") // العلاقة المعاكس
 
   @@index([organizationId])
-
   @@map("budget_items")
 }
 
@@ -1697,11 +1791,10 @@ model Expense {
   approvedById   String?
   invoiceUrl     String?
   budgetItemId   String?
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  budgetItem BudgetItem? @relation("BudgetItemToExpense", fields: [budgetItemId], references: [id], onDelete: SetNull)
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  budgetItem     BudgetItem?   @relation("BudgetItemToExpense", fields: [budgetItemId], references: [id], onDelete: SetNull)
 
   @@index([organizationId])
-
   @@map("expenses")
 }
 
@@ -1809,14 +1902,14 @@ enum InstallationStateStatus {
 }
 
 model InstallationState {
-  id                     String                  @id @default("singleton")
-  status                 InstallationStateStatus @default(UNCONFIGURED)
-  releaseVersion         String?
-  lastPreflightAt        DateTime?
-  completedAt            DateTime?
+  id                      String                  @id @default("singleton")
+  status                  InstallationStateStatus @default(UNCONFIGURED)
+  releaseVersion          String?
+  lastPreflightAt         DateTime?
+  completedAt             DateTime?
   recoveryUnlockExpiresAt DateTime?
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
 
   @@map("installation_state")
 }
@@ -1921,13 +2014,13 @@ model Document {
   id             String  @id @default(cuid())
   organizationId String?
   name           String
-  fileUrl       String
-  fileType      String
-  size          Int
-  category      String?
-  relatedEntity String? // e.g., "User", "Project"
-  relatedId     String?
-  uploadedById  String?
+  fileUrl        String
+  fileType       String
+  size           Int
+  category       String?
+  relatedEntity  String? // e.g., "User", "Project"
+  relatedId      String?
+  uploadedById   String?
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
 

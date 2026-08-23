@@ -11,7 +11,7 @@ const migrationPath = path.join(
 describe("W01 schema/migration consistency fix", () => {
   it("keeps the canonical runtime contract on enum-backed users.role", async () => {
     const schema = await readFile(schemaPath, "utf8");
-    expect(schema).toContain("role          Role      @default(MEMBER)");
+    expect(schema).toMatch(/role\s+Role\s+@default\(MEMBER\)/);
     expect(schema).toContain("enum Role {");
     expect(schema).not.toContain("roleId        String?");
   });

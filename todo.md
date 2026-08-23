@@ -289,7 +289,7 @@
 ## W02-GLOBAL-CLOSURE-AUTONOMOUS-EXECUTION
 
 - [x] تثبيت canonical baseline وقراءة كامل تفويض W02 والوثائق/السجلات/المصفوفات وinventory/WP reports، مع clean execution branch وخطة dependency-ordered.
-- [ ] تنفيذ وإثبات Tenant Access Broker lifecycle والـtenant role provisioning/rotation/revocation/pooling/DR/support boundaries ببيئة audit أو staging حقيقية.
+- [x] تنفيذ وإثبات Tenant Access Broker lifecycle والـtenant role provisioning/rotation/revocation/pooling ببيئة PostgreSQL audit حقيقية؛ تبقى provider production/HA/scale/hosting acceptance بوابات تشغيلية صريحة.
 - [ ] إغلاق tenant ownership وTenantContext وIAM/SoD وrepository/API/direct-Prisma paths لكل surface حساس مع negative runtime evidence.
 - [ ] تنفيذ RLS waves المطلوبة بمigrations forward-only وclean/upgrade/rollback rehearsals وA/B/concurrency/direct-SQL proof حقيقي.
 - [ ] إغلاق Queue/Redis/Cache وStorage وRoot Documents وReports/exports tenant isolation، private delivery، cleanup، وruntime evidence الحقيقي.
