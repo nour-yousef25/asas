@@ -237,6 +237,15 @@
 - [x] تشغيل negative proof الحقيقي: direct SQL وA↔B transaction switch وGUC/payload/CRUD/children/join/rollback/pooling/concurrency.
 - [x] تشغيل revocation/rotation/failure proof وتوثيق evidence لكل حالة ثم إصدار readiness أو blocker؛ لا RLS Wave 1 أو نطاقات أخرى. **RESULT: database identity PASS; broker/session/policy proof absent; Wave 1 BLOCKED.**
 
+## W02 — RLS TENANT ACCESS BROKER AUDIT PROOF
+
+- [x] تنفيذ Preflight من baseline `d86cca9` وفتح branch `w02-rls-tenant-access-broker-proof` النظيفة؛ لا تغييرات غير مثبتة في baseline.
+- [ ] توثيق Broker/lease/support/test contracts وتحديث سجلات القرار والاعتماديات والـblockers.
+- [ ] إنشاء authority وBroker harness وtenant A/B PostgreSQL fixtures تدقيقية مستقلة بلا credentials في source أو evidence.
+- [ ] تنفيذ A/B negative proof للـspoofing والمembership/session/policy والـlease/replay/revocation/pooling/failure على PostgreSQL حقيقية.
+- [ ] تشغيل regression المناسب وحفظ evidence وإصدار PASS/PARTIAL/BLOCKED؛ لا RLS Wave 1 أو نطاق لاحق.
+- [ ] **BLOCKED:** B16 لم يحقق reason contract المتوقع؛ أعاد `MEMBERSHIP_ABSENT` بدلاً من `MEMBERSHIP_ORGANIZATION_MISMATCH`. لا يُعدّل الاختبار أو expected result ولا تُستكمل اختبارات الأمن قبل قرار/تصحيح مستقل.
+
 ## W02-WP4-BACKFILL-CONTRACT-FIX — ONLY SCOPE
 
 - [x] تدقيق `runLegacyTenantBackfill` ومستدعيه والعلاقات/fixtures والمصدر الفعلي، مع تسجيل Git state.

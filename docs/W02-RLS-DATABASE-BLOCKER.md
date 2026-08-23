@@ -37,3 +37,7 @@
 ## Alternative Architecture Update
 
 تمت إضافة `W02-RLS-ALTERNATIVE-ARCHITECTURE-DECISION.md`. يقترح Hybrid Tenant-Bound Login Principal بدلاً من raw GUC، لكنه **PROPOSED/BLOCKED** حتى تعتمد Architecture/Security/Product broker منفصلة، lifecycle لأدوار/credentials tenant، ومصفوفة استضافة واختبارات PostgreSQL حقيقية. لا يزيل هذا الـblocker ولا يسمح بالتنفيذ.
+
+## Broker Proof Update
+
+`W02-RLS-TENANT-ACCESS-BROKER-BLOCKER.md` يسجل فشل B16 في exact reason contract. الـBroker أعاد denial fail-closed لكنه لم يثبت `MEMBERSHIP_ORGANIZATION_MISMATCH` كما يطلب الاختبار؛ لذلك يبقى RLS Wave 1 محجوباً ولا تعتبر Broker boundary مكتملة.

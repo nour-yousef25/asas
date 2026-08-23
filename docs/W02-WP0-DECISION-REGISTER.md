@@ -15,6 +15,7 @@
 | D-W02-11 | Nafath لا ينفذ في W02؛ IdP framework base فقط | ACCEPTED | W02 plan/Wave Mapping | يمنع connector scope creep | W15 requires separate authorization |
 | D-W02-12 | لا conflict مانع بين W01 baseline وW02 readiness/source/schema | VERIFIED FOR WP0 | Readiness report/current source audit | WP0 can close documentation gates | re-evaluate before WP1 migration design |
 | D-W02-13 | raw GUC لا يصلح tenant identity؛ يقترح Hybrid Tenant-Bound Login Principal مع broker منفصل | PROPOSED — BLOCKED | direct A→B failure; Alternative Architecture Decision | يخلف فقط هوية RLS في ADR-002 بعد اعتماد صريح | Architecture/Security/Product يعتمدون broker, role lifecycle, provider matrix |
+| D-W02-14 | Broker audit proof توقف عند B16 reason contract mismatch؛ لا تغيير expected result تلقائياً | BLOCKED | `W02-RLS-TENANT-ACCESS-BROKER-BLOCKER.md` | يمنع اكتمال broker وRLS Wave 1 | اعتماد B16 fixture أو contract revision مستقل |
 
 ## Conflict Register
 
