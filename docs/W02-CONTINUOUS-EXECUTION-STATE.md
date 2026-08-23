@@ -7,14 +7,14 @@
 | Current branch | `w02-full-closure-contract-conflict` |
 | Current commit | pending blocker documentation commit; execution baseline `bfbf0ae` |
 | Last safe Broker coverage baseline | `bfbf0ae32ed1b687f50e45f84e887177d577d45c` |
-| Current blocker | `W02-RLS-IDENTITY-CONTRACT-CONFLICT`: plan M6 describes raw transaction-local GUC identity while `W02-D-02` rejects raw GUC identity |
+| Current blocker | `W02-RLS-IDENTITY-CONTRACT-CONFLICT` plus `W02-TEMPORARY-AUDIT-CREDENTIAL-ARTIFACT`: 0644 password-named audit files remain in `/tmp` |
 | Preservation | `865c639ffdcead9a6a1588b711b7ce704cefdab8` preserves the pre-execution checklist mutation without reset/stash/delete |
 | Evidence status | Broker B01–B60, Coverage Guard, Evidence Recorder, evidence validation, cleanup and scoped regression PASS audit-only; no new RLS evidence run |
 | Next authorized action | approved `W02-RLS-IDENTITY-CONTRACT-RECONCILIATION`, then restart audit from a clean branch |
 
 ## Preconditions Confirmed
 
-The full pre-execution audit confirmed a clean preservation checkpoint, Broker coverage evidence, and no disposable Broker audit database or `broker_*` roles. It also identified a material conflict between the original RLS plan and the later accepted raw-GUC rejection. No security contract was selected by inference.
+The full pre-execution audit confirmed a clean preservation checkpoint, Broker coverage evidence, and no disposable Broker audit database or `broker_*` roles. It identified a material conflict between the original RLS plan and the later accepted raw-GUC rejection, plus two historical password-named audit artifacts with mode `0644` under `/tmp`. No security contract was selected by inference and no secret contents were read.
 
 ## Forbidden Actions
 

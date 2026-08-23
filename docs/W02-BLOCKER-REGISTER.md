@@ -7,5 +7,6 @@
 | W02-BROKER-B16 | Broker membership authority | High | RESOLVED LIMITED | B16 fixture lacked an existing user A / organization B membership | Broker rerun required before later W02 phases | rerun B01–B60 from clean audit database |
 | W02-BROKER-COVERAGE | Broker security proof | Critical | RESOLVED AUDIT-ONLY | internal PASS did not verify mandatory-ID completeness; rerun now validates exact B01–B60 coverage and cleanup | production Broker/RLS still require their own approved scopes | stop; separate authorization required |
 | W02-RLS-IDENTITY-CONTRACT-CONFLICT | RLS identity contract | Critical | ACTIVE | W02 plan M6 prescribes transaction-local GUC identity while accepted W02-D-02 rejects raw GUC identity | all RLS waves and dependent tenant runtime scopes | approved identity-contract reconciliation only |
+| W02-TEMPORARY-AUDIT-CREDENTIAL-ARTIFACT | Audit credential hygiene | High | ACTIVE | password-named historical audit files remain in `/tmp` with mode 0644 | W02 final Git/runtime integrity and all continuous execution | approved artifact-hygiene fix and post-cleanup scan |
 
 No active blocker may be bypassed by default tenant selection, `organizationMemberships[0]`, a global credential, a role fallback, a changed expected result, or an incomplete proof result.
