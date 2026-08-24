@@ -2,7 +2,7 @@
 
 ## الملخص التنفيذي
 
-التصنيف النهائي الحالي هو **W02 BLOCKED — CODE/ARCHITECTURE**. لا توجد دعوى `W02 COMPLETE`: أُغلق مسار Users/Memberships tenant-bound محلياً بالأدلة، لكن بقيت عوائق محلية عالية الأهمية في Queue/Redis/Cache وStorage/Root Documents، إضافة إلى prerequisite خارجي لبيئة provider target-like وDR/HA/scale. لا يستبدل دليل runtime المحدود عقد global identity onboarding/control-plane ولا دليل الإنتاج.
+التصنيف النهائي الحالي هو **W02 BLOCKED — CODE/ARCHITECTURE**. لا توجد دعوى `W02 COMPLETE`: أُغلق مسارا Users/Memberships وQueue/Redis/Cache محلياً بالأدلة، لكن بقي Storage/Root Documents مانعاً محلياً، إضافة إلى prerequisite خارجي لبيئة provider target-like وDR/HA/scale. لا يستبدل دليل runtime المحدود عقد global identity onboarding/control-plane ولا دليل الإنتاج.
 
 ## الأساس المرجعي
 
@@ -19,12 +19,12 @@
 | Nullable roots/dashboard/ledger | COMPLETE LIMITED AUDIT RUNTIME | CP01–CP12 وNR/UR وD01–D10 |
 | Member/KPI | COMPLETE LIMITED AUDIT RUNTIME | MK01–MK10، مدقق exact، cleanup/hygiene، TypeScript/Jest/build |
 | Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | UM01–UM10، مدقق exact، quarantine لـ`/api/users`، cleanup/hygiene، TypeScript/Jest/build |
+| Queue/Redis/Cache | COMPLETE LIMITED AUDIT RUNTIME | Q01–Q10، Redis ACL/Broker envelope/worker، مدقق exact، cleanup/hygiene؛ legacy SMS/Notification quarantined |
 
 ## النطاقات المفتوحة والعوائق
 
 | النطاق | الحالة | ما يمنع الإغلاق |
 |---|---|---|
-| Queue/Redis/Cache | BLOCKED — CODE/ARCHITECTURE | global queue names/payloads، worker Prisma عالمي وInMemory fallback؛ يلزم envelope وRedis proof |
 | Storage/Root Documents | BLOCKED — CODE/ARCHITECTURE | caller paths وURLs مباشرة وfallbacks؛ يلزم private artifact authority وprovider adapter/proof |
 | Financial RLS | BLOCKED — EXTERNAL DEPLOYMENT PREREQUISITE | provider target-like وDT01–DT06 لم تنفذ؛ لا RLS قبلها |
 
@@ -38,4 +38,4 @@
 
 ## الخطوة التالية الدقيقة
 
-يبنى Queue envelope/worker adapter مع Redis disposable proof، ثم private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure؛ ولا يعاد فتح global identity onboarding قبل عقد product/control-plane صريح.
+يبنى private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure؛ ولا يعاد فتح global identity onboarding أو SMS/Notification queue قبل عقود product/control-plane/ownership صريحة.

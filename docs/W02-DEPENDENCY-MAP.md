@@ -27,5 +27,5 @@
 | remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
 | Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | global identity onboarding remains distinct; W02 closure is still blocked by Queue/Storage/provider | ADR-W02-013; UM01–UM10 exact PostgreSQL proof, validator, quarantine of `/api/users` |
-| Queue/Redis/Cache | BLOCKED — LOCAL CODE/DESIGN | queue/cache W02 closure | tenant envelope/worker validation/Redis proof required |
+| Queue/Redis/Cache | COMPLETE LIMITED AUDIT RUNTIME | production worker/provider activation and SMS/Notification reactivation remain separately blocked | Q01–Q10 exact Redis/PostgreSQL disposable proof; legacy surfaces fail-closed |
 | Storage/Root Documents | BLOCKED — LOCAL SECURITY/DESIGN | storage/documents W02 closure | private artifact authority/provider-safe proof required |
