@@ -14,4 +14,10 @@ describe("Membership tenant-bound cutover guard", () => {
     expect(source).toMatch(/identity\.membership\.manage/);
     expect(source).not.toMatch(/from "@\/lib\/db"|prisma\./);
   });
+
+  it("keeps IAM and policy membership data-plane tenant-bound", () => {
+    const source = ["src/lib/iam.ts", "src/lib/policy.ts"].map((path) => readFileSync(path, "utf8")).join("\n");
+    expect(source).toMatch(/requireTenantBoundPrismaExecutor/);
+    expect(source).not.toMatch(/from "@\/lib\/db"|\bprisma\.|current_setting|set_config|DATABASE_URL/);
+  });
 });
