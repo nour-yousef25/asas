@@ -46,8 +46,15 @@ export default function EvaluationsPage() {
     setEvaluations(await res.json());
   };
   const loadUsers = async () => {
-    const res = await fetch("/api/users");
-    setUsers(await res.json());
+    const res = await fetch("/api/memberships?page=1&pageSize=100");
+    if (!res.ok) {
+      setUsers([]);
+      return;
+    }
+    const payload = await res.json();
+    setUsers((payload?.data?.data ?? []).flatMap((membership: { user?: { id: string; name?: string } }) => (
+      membership.user?.id && membership.user?.name ? [{ id: membership.user.id, name: membership.user.name }] : []
+    )));
   };
 
   React.useEffect(() => { load(); loadUsers(); }, []);

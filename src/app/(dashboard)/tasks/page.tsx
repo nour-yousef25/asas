@@ -29,15 +29,16 @@ export default function TasksPage() {
   React.useEffect(() => {
     const loadAssignees = async () => {
       try {
-        const response = await fetch("/api/users");
+        const response = await fetch("/api/memberships?page=1&pageSize=100");
         if (!response.ok) return;
         const payload = await response.json();
-        const users = Array.isArray(payload) ? payload : payload.data ?? payload.users ?? [];
+        const memberships = payload?.data?.data ?? [];
         setAssigneeOptions(
-          users.map((user: { id: string; name?: string; email?: string }) => ({
-            value: user.id,
-            label: user.name || user.email || user.id,
-          })),
+          memberships.flatMap((membership: { user?: { id: string; name?: string; email?: string } }) => (
+            membership.user?.id
+              ? [{ value: membership.user.id, label: membership.user.name || membership.user.email || membership.user.id }]
+              : []
+          )),
         );
       } catch {
         setAssigneeOptions([]);

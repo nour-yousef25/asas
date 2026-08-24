@@ -21,4 +21,4 @@
 
 ## أثر التنفيذ
 
-يتطلب الإغلاق implementation منفصل لـMembershipRepository وسياسات permissions محددة ومسارات API مفصولة: listing membership-scoped للمستأجر، وglobal identity onboarding/control-plane لا يفعّل إلا بعقد product/identity صريح. إلى ذلك الحين يبقى `/api/users` **BLOCKED — LOCAL CODE/ARCHITECTURE** ولا يعتبر جزءاً من Member/KPI PASS أو Financial RLS readiness.
+يتطلب الإغلاق implementation منفصل لـMembershipRepository وسياسات permissions محددة ومسارات API مفصولة: listing membership-scoped للمستأجر، وglobal identity onboarding/control-plane لا يفعّل إلا بعقد product/identity صريح. إلى حين توفر ذلك العقد، تم **عزل** `GET/POST /api/users` صراحةً بحالة `410 GLOBAL_IDENTITY_SURFACE_QUARANTINED`، وأزيلت استدعاءاته من شاشات dashboard. لا يمثل العزل عقد onboarding أو دليلاً على global identity management، ولا يغيّر تصنيف هذا النطاق إلى COMPLETE قبل دليل UM runtime والتوثيق الصريح للـcontrol-plane الناقص.

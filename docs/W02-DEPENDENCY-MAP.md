@@ -26,6 +26,6 @@
 | Provider DR/HA/scale readiness | OPEN | Financial RLS is prohibited | deployment-owned provider, recovery, role-scale and pool capacity evidence required |
 | remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
-| Users/Memberships | BLOCKED — LOCAL CODE/ARCHITECTURE | global identity and tenant membership closure | ADR-W02-013; membership repository/policy/API/runtime proof required |
+| Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | global identity onboarding remains distinct; W02 closure is still blocked by Queue/Storage/provider | ADR-W02-013; UM01–UM10 exact PostgreSQL proof, validator, quarantine of `/api/users` |
 | Queue/Redis/Cache | BLOCKED — LOCAL CODE/DESIGN | queue/cache W02 closure | tenant envelope/worker validation/Redis proof required |
 | Storage/Root Documents | BLOCKED — LOCAL SECURITY/DESIGN | storage/documents W02 closure | private artifact authority/provider-safe proof required |

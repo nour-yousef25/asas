@@ -1,0 +1,18 @@
+{
+  "valid": true,
+  "required": [
+    "UM01",
+    "UM02",
+    "UM03",
+    "UM04",
+    "UM05",
+    "UM06",
+    "UM07",
+    "UM08",
+    "UM09",
+    "UM10"
+  ],
+  "missing": [],
+  "duplicates": [],
+  "failed": []
+}

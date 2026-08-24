@@ -1,0 +1,159 @@
+{
+  "status": "PASS_USERS_MEMBERSHIPS_RUNTIME",
+  "startedAt": "2026-08-24T05:57:06.488Z",
+  "finishedAt": "2026-08-24T05:57:13.339Z",
+  "databaseAlias": "asas_users_memberships_audit_1787551026487_128889",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "UM01",
+    "UM02",
+    "UM03",
+    "UM04",
+    "UM05",
+    "UM06",
+    "UM07",
+    "UM08",
+    "UM09",
+    "UM10"
+  ],
+  "evidence": [
+    {
+      "id": "UM01",
+      "expected": "Broker consumes a one-time lease and the provider verifies tenant A session_user",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:08.969Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM02",
+      "expected": "A/B membership list, search, pagination and detail isolate memberships while User remains identity-only",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:09.397Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM03",
+      "expected": "Foreign membership detail, revoke, role and override mutations deny; tenant audit rows cannot leak across A/B",
+      "actual": {
+        "foreignDetail": true,
+        "foreignRevoke": true,
+        "foreignRevokeCode": "AUTHORITY_OR_OPERATION_FAILURE",
+        "foreignMembershipUntouched": true,
+        "foreignRole": true,
+        "foreignOverride": true,
+        "auditRows": [
+          {
+            "id": "audit-a",
+            "organizationId": "11111111-1111-4111-8111-111111111111"
+          }
+        ]
+      },
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:10.016Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM04",
+      "expected": "Membership creation accepts only an existing active global User and stamps the organization from TenantContext",
+      "actual": {
+        "createdOrganizationMatchesContext": true,
+        "createdUserMatchesInput": true,
+        "inactiveDenied": true,
+        "inactiveCode": "AUTHORITY_OR_OPERATION_FAILURE",
+        "inactiveMembershipCount": 0
+      },
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:10.226Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM05",
+      "expected": "Duplicate same-organization identity and cross-tenant mutation deny; explicitly seeded shared identity remains valid in both organizations",
+      "actual": {
+        "duplicate": true,
+        "duplicateCode": "AUTHORITY_OR_OPERATION_FAILURE",
+        "duplicateMembershipCount": 1,
+        "crossTenantMutation": true,
+        "crossTenantMutationCode": "AUTHORITY_OR_OPERATION_FAILURE",
+        "foreignMembershipUntouched": true,
+        "sharedA": {
+          "userMatches": true,
+          "organizationMatches": true
+        },
+        "sharedB": {
+          "userMatches": true,
+          "organizationMatches": true
+        }
+      },
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:10.591Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM06",
+      "expected": "Role binding and permission overrides use actual tables, default-deny applies, and self-escalation/SoD are denied",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:12.087Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM07",
+      "expected": "Revocation disables the membership, increments policy version, and fails closed for later data-plane access",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:12.191Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM08",
+      "expected": "Lease replay/revocation and stale session/policy snapshots deny before a data-plane operation",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:12.304Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM09",
+      "expected": "Provider outage, A1→A2 rotation, A/B parallel checkout and discard remain fail-closed and identity-separated",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:12.662Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "UM10",
+      "expected": "Sources avoid unsafe authority patterns; non-owner roles, correlation audit records, cleanup and hygiene are required",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T05:57:12.886Z",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

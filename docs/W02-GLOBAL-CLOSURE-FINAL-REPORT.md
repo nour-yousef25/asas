@@ -2,7 +2,7 @@
 
 ## الملخص التنفيذي
 
-التصنيف النهائي الحالي هو **W02 BLOCKED — CODE/ARCHITECTURE**. لا توجد دعوى `W02 COMPLETE`: بقيت عوائق محلية عالية الأهمية في Users/Memberships وQueue/Redis/Cache وStorage/Root Documents، إضافة إلى prerequisite خارجي لبيئة provider target-like وDR/HA/scale. العقود الجديدة تجعل العوائق قابلة للتنفيذ ولا تستبدل الدليل runtime.
+التصنيف النهائي الحالي هو **W02 BLOCKED — CODE/ARCHITECTURE**. لا توجد دعوى `W02 COMPLETE`: أُغلق مسار Users/Memberships tenant-bound محلياً بالأدلة، لكن بقيت عوائق محلية عالية الأهمية في Queue/Redis/Cache وStorage/Root Documents، إضافة إلى prerequisite خارجي لبيئة provider target-like وDR/HA/scale. لا يستبدل دليل runtime المحدود عقد global identity onboarding/control-plane ولا دليل الإنتاج.
 
 ## الأساس المرجعي
 
@@ -18,12 +18,12 @@
 | Donor/Donation وBudget/Expense | COMPLETE LIMITED AUDIT RUNTIME | F01–F10 وBE01–BE10؛ لا Financial RLS |
 | Nullable roots/dashboard/ledger | COMPLETE LIMITED AUDIT RUNTIME | CP01–CP12 وNR/UR وD01–D10 |
 | Member/KPI | COMPLETE LIMITED AUDIT RUNTIME | MK01–MK10، مدقق exact، cleanup/hygiene، TypeScript/Jest/build |
+| Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | UM01–UM10، مدقق exact، quarantine لـ`/api/users`، cleanup/hygiene، TypeScript/Jest/build |
 
 ## النطاقات المفتوحة والعوائق
 
 | النطاق | الحالة | ما يمنع الإغلاق |
 |---|---|---|
-| Users/Memberships | BLOCKED — CODE/ARCHITECTURE | global Prisma/auth-only في `/api/users`؛ يلزم MembershipRepository وpolicy/API runtime proof وفق ADR-W02-013 |
 | Queue/Redis/Cache | BLOCKED — CODE/ARCHITECTURE | global queue names/payloads، worker Prisma عالمي وInMemory fallback؛ يلزم envelope وRedis proof |
 | Storage/Root Documents | BLOCKED — CODE/ARCHITECTURE | caller paths وURLs مباشرة وfallbacks؛ يلزم private artifact authority وprovider adapter/proof |
 | Financial RLS | BLOCKED — EXTERNAL DEPLOYMENT PREREQUISITE | provider target-like وDT01–DT06 لم تنفذ؛ لا RLS قبلها |
@@ -38,4 +38,4 @@
 
 ## الخطوة التالية الدقيقة
 
-يبنى `MembershipRepository` وAPI tenant-bound مع harness exact مستقل، ثم Queue envelope/worker adapter وRedis disposable proof، ثم private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure.
+يُراجع ويُدمج مسار Users/Memberships المثبت إلى canonical، ثم يبنى Queue envelope/worker adapter مع Redis disposable proof، ثم private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure؛ ولا يعاد فتح global identity onboarding قبل عقد product/control-plane صريح.
