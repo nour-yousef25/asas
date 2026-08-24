@@ -8,7 +8,7 @@
 - [x] تنفيذ W02-F Privacy/Retention/Legal Hold/Export abstractions fail-closed مع نقل قيم السياسة القانونية إلى POST-W02 owner decisions.
 - [x] تنفيذ W02-G certificate/activation state machine وverification contract provider-neutral مع tests expiry/revoke/replay/binding.
 - [x] تنفيذ W02-H IdP framework provider-neutral مع mapping/session/revocation contracts وmock/sandbox proof.
-- [ ] تحويل أو حجر كل surface داخلي W02 متبقٍ، ثم migrations/rehearsals/evidence/regression وقرار W02 INTERNAL closure.
+- [x] تحويل أو حجر كل surface داخلي W02 متبقٍ، ثم migrations/rehearsals/evidence/regression وقرار W02 INTERNAL closure.
 
 - [x] تنفيذ Git/evidence/state audit وفق `pasted_content_49` وإصدار `docs/W02-FINAL-AUTONOMOUS-CLOSURE-STATE.md` مع preservation branch للشجرة المتسخة السابقة.
 - [x] إعادة بناء dependency graph والتحقق من validators Users/Queue/Storage/Financial/Migration/Portability بعد canonical checkout.
