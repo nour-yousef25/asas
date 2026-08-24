@@ -22,6 +22,9 @@ async function main() {
   const close = async () => { await Promise.all(workers.map((worker) => worker.close())); await prisma.$disconnect(); };
   process.once("SIGTERM", () => { void close().then(() => process.exit(0)); });
   process.once("SIGINT", () => { void close().then(() => process.exit(0)); });
+  // Keep the supervisor observable while provisioning is empty; it owns no global queue.
+  setInterval(() => undefined, 60_000);
+  await new Promise<void>(() => undefined);
 }
 
 void main().catch((error) => { console.error("Tenant publication supervisor failed:", error instanceof Error ? error.message : "UNKNOWN"); process.exit(1); });
