@@ -28,4 +28,4 @@
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
 | Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | global identity onboarding remains distinct; W02 closure is still blocked by Queue/Storage/provider | ADR-W02-013; UM01–UM10 exact PostgreSQL proof, validator, quarantine of `/api/users` |
 | Queue/Redis/Cache | COMPLETE LIMITED AUDIT RUNTIME | production worker/provider activation and SMS/Notification reactivation remain separately blocked | Q01–Q10 exact Redis/PostgreSQL disposable proof; legacy surfaces fail-closed |
-| Storage/Root Documents | BLOCKED — LOCAL SECURITY/DESIGN | storage/documents W02 closure | private artifact authority/provider-safe proof required |
+| Storage/Root Documents | COMPLETE LIMITED AUDIT RUNTIME | production bucket/KMS/provider/DR/HA/scale activation remains external | S01–S10 exact PostgreSQL + memory-only provider proof; raw surfaces fail-closed |

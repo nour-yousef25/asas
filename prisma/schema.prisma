@@ -154,6 +154,7 @@ model Organization {
   tasks                   Task[]
   surveys                 Survey[]
   documents               Document[]
+  privateArtifacts        PrivateArtifact[]
   budgets                 Budget[]
   budgetItems             BudgetItem[]
   expenses                Expense[]
@@ -2035,7 +2036,28 @@ model Document {
   uploadedById   String?
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  privateArtifact PrivateArtifact?
 
   @@index([organizationId])
   @@map("documents")
+}
+
+model PrivateArtifact {
+  id             String   @id
+  organizationId String
+  documentId     String   @unique
+  objectKey      String   @unique
+  version        Int      @default(1)
+  contentType    String
+  size           Int
+  state          String   @default("ACTIVE")
+  uploadedById   String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Restrict)
+  document     Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, state])
+  @@map("private_artifacts")
 }

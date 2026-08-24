@@ -1,5 +1,5 @@
 # W02 — Storage Tenant Isolation Blocker
 
-الحالة: **LOCAL SECURITY/DESIGN BLOCKER.** `src/lib/storage.ts` يستقبل path من caller، ويستعمل credential bucket عاماً، ويصدر URLs عامة، ولا يملك `TenantContext` أو namespace مستأجرياً أو authorization على document ownership. كما يحتوي development fallbacks لمفاتيح MinIO؛ لا يجوز استخدامها كإعداد إنتاجي أو evidence.
+الحالة: **RESOLVED — COMPLETE LIMITED AUDIT RUNTIME.** حُجر `src/lib/storage.ts` و`/api/upload` fail-closed؛ لا يقبلان path من caller ولا يحتفظان bucket credential أو URL عام أو MinIO fallback. المسار الجديد `PrivateArtifactRepository` يأخذ `TenantContext` الخادمي، ويبني key خادمي immutable، ويثبت ownership في metadata وPostgreSQL RLS قبل provider injected opaque delivery.
 
-المسار المطلوب قبل إغلاق Storage: حذف fallback الأمني من data-plane، trusted tenant context server-side، object prefix لا يختاره العميل، DB ownership check، signed URL محدود object/action/expiry، delete/download denial A/B، rotation/replay/cleanup evidence. لا ينفذ provider حقيقي أو credentials داخل هذا scope.
+أثبت S01–S10 A/B وforged artifact/path وexpiry وrevoke/stale policy وreplace/delete وoutage وparallel وcleanup/hygiene عبر PostgreSQL disposable وmemory-only provider. يبقى bucket/KMS/credential resolution وmalware scanning وretention/backup وprovider availability وDR/HA/scale **EXTERNAL DEPLOYMENT PREREQUISITE**؛ لا تعد هذه الأدلة تشغيل provider حقيقياً ولا تعيد السطح الخام.

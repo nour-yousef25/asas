@@ -1,3 +1,3 @@
 # W02 — Root Documents / Upload Inventory
 
-`/api/upload` يختار object path من `session.user.id` ويستدعي storage العام، ولا يثبت `TenantContext` أو ownership document أو namespace مستأجرياً. documents تظهر ضمن BeneficiaryRepository للقراءة المقيدة، لكن upload/download/delete لا يملك بعد data-plane contract متصل بها. لذلك Root Documents API لا يمكن اعتباره مكتملًا ولا يدخل في RLS closure قبل حل Storage isolation وبناء document ownership/authorization مستقل.
+حُجر `/api/upload` بحالة `410` لأن عقده القديم كان يختار path من user ويرجع URL عاماً. المسار المحلي الجديد `/api/documents` يمر عبر `TenantContext` وpolicy وBroker/tenant Prisma و`PrivateArtifactRepository`؛ لا يقبل path/organizationId من العميل، ولا يرجع URL عاماً. S01–S10 تثبت ownership وmetadata/RLS وdelivery opaque/revoke/replace/outage محلياً. يبقى provider production وbucket/KMS/DR/HA/scale خارج هذا الإغلاق المحدود.
