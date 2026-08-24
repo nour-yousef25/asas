@@ -1,0 +1,75 @@
+{
+  "status": "PASS_W02_INTERNAL_SECURITY_MIGRATION_REHEARSAL",
+  "startedAt": "2026-08-24T16:39:36.927Z",
+  "finishedAt": "2026-08-24T16:39:45.884Z",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "MGR-I01",
+    "MGR-I02",
+    "MGR-I03",
+    "MGR-I04",
+    "MGR-I05",
+    "MGR-I06",
+    "MGR-I07",
+    "MGR-I08"
+  ],
+  "evidence": [
+    {
+      "id": "MGR-I01",
+      "expected": "pristine official deploy applies the internal security migration and eight FORCE RLS tables",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I02",
+      "expected": "pre-WP6 baseline deploy omits only the internal security migration",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I03",
+      "expected": "upgrade uses the official forward-only migration and adds all eight RLS policies",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I04",
+      "expected": "upgraded A/B sessions see only their own secret references",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I05",
+      "expected": "unmapped role and cross-tenant row insert fail closed after upgrade",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I06",
+      "expected": "migration source hash is unchanged through upgrade and forbids raw GUC identity",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I07",
+      "expected": "recovery is discard/rebuild with clean official deploy, not historical rollback",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-I08",
+      "expected": "mandatory IDs are exact and prior gates are all recorded",
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "rollbackClaim": "No production rollback: disposable upgrade databases are discarded and rebuilt by official forward migrations."
+}

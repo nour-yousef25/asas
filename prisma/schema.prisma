@@ -90,6 +90,54 @@ model Permission {
   @@map("permissions")
 }
 
+// W02 internal contracts use references, hashes and redacted metadata only.
+enum SecretRecordStatus {
+  ACTIVE
+  ROTATED
+  REVOKED
+}
+
+enum DataClassification {
+  PUBLIC
+  INTERNAL
+  CONFIDENTIAL
+  RESTRICTED
+}
+
+enum PrivacyRequestType {
+  ACCESS
+  EXPORT
+  DELETE
+  CORRECT
+}
+
+enum PrivacyRequestStatus {
+  REQUESTED
+  POLICY_REQUIRED
+  APPROVED
+  REJECTED
+  LEGAL_HOLD
+  COMPLETED
+}
+
+enum ActivationStatus {
+  PENDING
+  ACTIVATED
+  REVOKED
+  EXPIRED
+}
+
+enum IdentityProviderEnvironment {
+  SANDBOX
+  PRODUCTION
+}
+
+enum IdentityProviderStatus {
+  ACTIVE
+  DISABLED
+  REVOKED
+}
+
 model UserPermission {
   userId       String
   permissionId String
@@ -164,6 +212,14 @@ model Organization {
   databasePrincipals      TenantDatabasePrincipal[]
   tenantAccessLeases      TenantAccessLease[]
   tenantBrokerAuditEvents TenantBrokerAuditEvent[]
+  secretRecords           SecretRecord[]
+  secretAccessAudits      SecretAccessAudit[]
+  privacyRequests         PrivacyRequest[]
+  privacyPolicyBindings   PrivacyPolicyBinding[]
+  activationRecords       ActivationRecord[]
+  identityProviderConfigs IdentityProviderConfig[]
+  identitySubjectBindings IdentitySubjectBinding[]
+  identityCallbackStates  IdentityProviderCallbackState[]
 
   @@map("organizations")
 }
@@ -1906,6 +1962,170 @@ model SiteSetting {
 // ============================================
 // W01 — حالة تهيئة النسخة (لا تتضمن ترخيصاً أو بيانات تشغيلية)
 // ============================================
+
+// W02 — Vault, privacy, activation and IdP contracts.
+// No provider credential, plaintext secret, private key or tenant authority is stored here.
+model SecretRecord {
+  id              String             @id @default(cuid())
+  organizationId  String
+  providerKey     String
+  purpose         String
+  opaqueReference String
+  keyVersion      String
+  status          SecretRecordStatus @default(ACTIVE)
+  rotatedFromId   String?
+  createdById     String
+  revokedAt       DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, providerKey, purpose, keyVersion])
+  @@index([organizationId, providerKey, purpose, status])
+  @@map("secret_records")
+}
+
+model SecretAccessAudit {
+  id             String   @id @default(cuid())
+  organizationId String
+  secretRecordId String
+  actorId        String
+  action         String
+  purpose        String
+  outcome        String
+  correlationId  String
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, secretRecordId, createdAt])
+  @@index([correlationId])
+  @@map("secret_access_audits")
+}
+
+model PrivacyPolicyBinding {
+  id              String             @id @default(cuid())
+  organizationId  String
+  recordType      String
+  classification  DataClassification
+  policyReference String?
+  isApproved      Boolean            @default(false)
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, recordType])
+  @@index([organizationId, classification, isApproved])
+  @@map("privacy_policy_bindings")
+}
+
+model PrivacyRequest {
+  id             String               @id @default(cuid())
+  organizationId String
+  requesterId    String
+  type           PrivacyRequestType
+  recordType     String
+  classification DataClassification
+  purposeCode    String
+  status         PrivacyRequestStatus @default(POLICY_REQUIRED)
+  legalHold      Boolean              @default(false)
+  decisionReason String?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  completedAt    DateTime?
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+  @@index([organizationId, requesterId, createdAt])
+  @@map("privacy_requests")
+}
+
+model ActivationRecord {
+  id                     String           @id @default(cuid())
+  organizationId         String
+  licenseKeyId           String
+  instanceId             String
+  certificateFingerprint String
+  activationCodeHash     String
+  activationCodeSalt     String
+  status                 ActivationStatus @default(PENDING)
+  attemptCount           Int              @default(0)
+  expiresAt              DateTime
+  consumedAt             DateTime?
+  revokedAt              DateTime?
+  createdById            String
+  correlationId          String
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, licenseKeyId, instanceId])
+  @@index([organizationId, status, expiresAt])
+  @@map("activation_records")
+}
+
+model IdentityProviderConfig {
+  id                String                      @id @default(cuid())
+  organizationId    String
+  providerKey       String
+  environment       IdentityProviderEnvironment
+  clientSecretRefId String?
+  issuerUri         String?
+  subjectClaim      String                      @default("sub")
+  status            IdentityProviderStatus      @default(DISABLED)
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+
+  organization    Organization                     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subjectBindings IdentitySubjectBinding[]
+  callbackStates  IdentityProviderCallbackState[]
+
+  @@unique([organizationId, providerKey, environment])
+  @@index([organizationId, status])
+  @@map("identity_provider_configs")
+}
+
+model IdentitySubjectBinding {
+  id                       String   @id @default(cuid())
+  organizationId           String
+  identityProviderConfigId String
+  membershipId             String
+  subjectHash              String
+  isActive                 Boolean  @default(true)
+  revokedAt                DateTime?
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerConfig IdentityProviderConfig @relation(fields: [identityProviderConfigId], references: [id], onDelete: Cascade)
+
+  @@unique([identityProviderConfigId, subjectHash])
+  @@unique([identityProviderConfigId, membershipId])
+  @@index([organizationId, membershipId, isActive])
+  @@map("identity_subject_bindings")
+}
+
+model IdentityProviderCallbackState {
+  id                       String   @id @default(cuid())
+  organizationId           String
+  identityProviderConfigId String
+  membershipId             String
+  stateHash                String   @unique
+  expiresAt                DateTime
+  consumedAt               DateTime?
+  createdAt                DateTime @default(now())
+
+  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  providerConfig IdentityProviderConfig @relation(fields: [identityProviderConfigId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, expiresAt])
+  @@index([identityProviderConfigId, expiresAt])
+  @@map("identity_provider_callback_states")
+}
 
 enum InstallationStateStatus {
   UNCONFIGURED

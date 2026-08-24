@@ -1,0 +1,137 @@
+{
+  "status": "PASS_W02_INTERNAL_SECURITY_RUNTIME",
+  "startedAt": "2026-08-24T16:37:56.753Z",
+  "finishedAt": "2026-08-24T16:38:00.940Z",
+  "environment": "disposable-postgresql-audit",
+  "databaseAlias": "asas_w02_internal_1787589476753_129188",
+  "mandatoryIds": [
+    "INT01",
+    "INT02",
+    "INT03",
+    "INT04",
+    "INT05",
+    "INT06",
+    "INT07",
+    "INT08",
+    "INT09",
+    "INT10",
+    "INT11",
+    "INT12",
+    "INT13",
+    "INT14"
+  ],
+  "evidence": [
+    {
+      "id": "INT01",
+      "expected": "migration deploys all seven FORCE RLS tenant tables and tenant roles lack bypass",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT02",
+      "expected": "secret references are isolated A/B and cross-tenant writes are denied",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT03",
+      "expected": "privacy policy/request reads and no-map role fail closed",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT04",
+      "expected": "activation and IdP roots are isolated by session_user",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT05",
+      "expected": "foreign IdP config child writes are denied",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT06",
+      "expected": "SET ROLE cannot switch session identity",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT07",
+      "expected": "Broker executor exposes expected session_user and repository stamps org A/B",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT08",
+      "expected": "repository rejects foreign secret revoke and audit remains tenant scoped",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT09",
+      "expected": "privacy contract remains default-deny and legal hold overrides approved policy",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT10",
+      "expected": "activation state rejects expired/replayed/revoked state before acceptance",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT11",
+      "expected": "membership mismatch prevents IdP subject binding",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT12",
+      "expected": "provider outage fails closed and no global fallback occurs",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT13",
+      "expected": "parallel A/B operations discard every checkout and source forbids unsafe authority",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "INT14",
+      "expected": "mandatory IDs are unique and all previous gates recorded",
+      "actual": true,
+      "result": "PASS",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}
