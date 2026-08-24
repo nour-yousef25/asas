@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "node:fs/promises";
+import { timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db";
 import { collectHealthReport } from "@/lib/health/health-service";
 import { verifyBackupManifest } from "@/lib/lifecycle/backup";
@@ -9,7 +10,19 @@ import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
+function hasHealthAuthorization(request: NextRequest) {
+  const expected = process.env.ASAS_HEALTH_TOKEN;
+  const actual = request.headers.get("x-asas-health-token");
+  if (!expected || !actual) return false;
+  const left = Buffer.from(expected);
+  const right = Buffer.from(actual);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
+
 export async function GET(request: NextRequest) {
+  if (!hasHealthAuthorization(request)) {
+    return NextResponse.json({ error: "غير مصرح" }, { status: 401, headers: { "cache-control": "no-store" } });
+  }
   const correlationId = request.headers.get("x-correlation-id") ?? crypto.randomUUID();
   try {
     const report = await withCorrelationId(correlationId, () =>

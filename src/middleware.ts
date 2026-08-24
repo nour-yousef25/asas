@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
-const publicPaths = ["/login", "/api/auth", "/donate", "/store"];
+const publicPaths = ["/login", "/api/auth", "/api/health", "/donate", "/store"];
 
 function getClientIp(request: NextRequest): string {
   return (
