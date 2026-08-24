@@ -40,6 +40,13 @@ function hasAcceptedCredentialPermissions(file: Awaited<ReturnType<typeof stat>>
   return allowedReadGroupId !== undefined && mode === 0o640 && Number(file.uid) === 0 && Number(file.gid) === allowedReadGroupId;
 }
 
+function connectionFailureCode(error: unknown) {
+  const candidate = typeof error === "object" && error !== null && "errorCode" in error && typeof error.errorCode === "string"
+    ? error.errorCode
+    : undefined;
+  return candidate && /^P[0-9]{4}$/.test(candidate) ? `TENANT_CONNECTION_AUTHORITY_${candidate}` : "TENANT_CONNECTION_AUTHORITY_UNAVAILABLE";
+}
+
 /**
  * Reads one root-provisioned credential file per exact opaque reference. The
  * application only receives a scoped Prisma checkout for one tenant operation.
@@ -73,8 +80,8 @@ export class FileTenantConnectionProvider implements TenantConnectionProvider {
     const prisma = this.prismaFactory(validateTenantUrl(raw.trim(), request.principalName));
     try {
       await prisma.$connect();
-    } catch {
-      denied("TENANT_CONNECTION_AUTHORITY_UNAVAILABLE");
+    } catch (error) {
+      denied(connectionFailureCode(error));
     }
 
     let discarded = false;

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily ASAS Plus production backup retention
+
+[Timer]
+OnCalendar=*-*-* 03:40:00 UTC
+Persistent=true
+RandomizedDelaySec=15m
+Unit=asasplus-production-backup-retention.service
+
+[Install]
+WantedBy=timers.target

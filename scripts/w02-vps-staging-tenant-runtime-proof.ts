@@ -1,5 +1,5 @@
 /**
- * Staging-only target proof. Provisioning/cleanup remains a root-owned VPS
+ * Target-VPS proof. Provisioning/cleanup remains a root-owned VPS
  * operation; this harness runs as the unprivileged `asasplus` service user.
  * It never reads credential material directly: file-backed providers do that.
  */
@@ -30,13 +30,14 @@ type Fixture = Readonly<{
 
 type Evidence = Readonly<{ id: string; expected: string; result: "PASS" | "FAIL"; actual: string }>;
 
-const fixturePath = process.env.ASAS_VPS_STAGING_PROOF_FIXTURE_FILE;
-const evidencePath = process.env.ASAS_VPS_STAGING_PROOF_EVIDENCE_FILE;
+const fixturePath = process.env.ASAS_VPS_PROOF_FIXTURE_FILE ?? process.env.ASAS_VPS_STAGING_PROOF_FIXTURE_FILE;
+const evidencePath = process.env.ASAS_VPS_PROOF_EVIDENCE_FILE ?? process.env.ASAS_VPS_STAGING_PROOF_EVIDENCE_FILE;
+const targetEnvironment = process.env.ASAS_VPS_PROOF_ENVIRONMENT ?? "staging";
 const tenantCredentialDirectory = process.env.TENANT_CREDENTIAL_DIRECTORY;
 const queueCredentialDirectory = process.env.TENANT_QUEUE_CREDENTIAL_DIRECTORY;
 
 if (!fixturePath || !evidencePath || !tenantCredentialDirectory || !queueCredentialDirectory) {
-  throw new Error("VPS_STAGING_PROOF_CONFIGURATION_MISSING");
+  throw new Error("VPS_PROOF_CONFIGURATION_MISSING");
 }
 
 const fixture = JSON.parse(readFileSync(fixturePath, "utf8")) as Fixture;
@@ -64,8 +65,11 @@ async function record(id: string, expected: string, action: () => Promise<boolea
   try {
     const passed = await action();
     evidence.push({ id, expected, result: passed ? "PASS" : "FAIL", actual: passed ? "ASSERTION_TRUE" : "ASSERTION_FALSE" });
-  } catch {
-    evidence.push({ id, expected, result: "FAIL", actual: "REDACTED_EXCEPTION" });
+  } catch (error) {
+    const candidate = typeof error === "object" && error !== null && "code" in error && typeof error.code === "string" ? error.code : undefined;
+    const safeCode = candidate && /^[A-Z0-9_:-]{1,128}$/.test(candidate) ? candidate : undefined;
+    const safeClass = error instanceof Error && /^[A-Za-z0-9_]{1,64}$/.test(error.constructor.name) ? error.constructor.name : "UNKNOWN";
+    evidence.push({ id, expected, result: "FAIL", actual: safeCode ?? `REDACTED_${safeClass}` });
   }
 }
 
@@ -105,7 +109,7 @@ async function main() {
       where: { organizationId, status: "ACTIVE", queueCredentialReference: { not: null } },
       select: { queueCredentialReference: true },
     });
-    if (!principal?.queueCredentialReference) throw new Error("VPS_STAGING_QUEUE_REFERENCE_ABSENT");
+    if (!principal?.queueCredentialReference) throw new Error("VPS_QUEUE_REFERENCE_ABSENT");
     return principal.queueCredentialReference;
   }, undefined, { allowedReadGroupId: credentialReadGroupId("TENANT_QUEUE_CREDENTIAL_ALLOWED_GROUP_ID") });
   const closers: Array<() => Promise<void>> = [];
@@ -180,7 +184,7 @@ async function main() {
     const inspectedB = new Queue(publicationQueueName(fixture.organizationB), { connection: queueB.redis });
     closers.push(async () => { await inspectedA.close(); await inspectedB.close(); await queueA.discard(); await queueB.discard(); });
     stage = "VPS09";
-    await record("VPS09", "A/B tenant queue jobs are processed by the active staging supervisor without provider egress", async () => {
+    await record("VPS09", "A/B tenant queue jobs are processed by the active tenant supervisor without provider egress", async () => {
       const [jobA, jobB] = await Promise.all([
         enqueuePublication({ context: contextA, publicationPlanId: fixture.planA, delay: 0, options: { attempts: 1 } }),
         enqueuePublication({ context: contextB, publicationPlanId: fixture.planB, delay: 0, options: { attempts: 1 } }),
@@ -210,7 +214,7 @@ async function main() {
         "src/lib/tenant-file-connection-provider.ts",
         "src/lib/tenant-file-queue-provider.ts",
         "src/lib/tenant-queue.ts",
-        "scripts/w02-vps-staging-tenant-runtime-proof.ts",
+        process.env.ASAS_VPS_PROOF_SOURCE_FILE ?? "scripts/w02-vps-staging-tenant-runtime-proof.ts",
       ].map((path) => readFileSync(path, "utf8")).join("\n");
       const forbidden = ["current" + "_setting", "set" + "_config"];
       return forbidden.every((primitive) => !source.includes(primitive));
@@ -221,15 +225,15 @@ async function main() {
   }
 
   const hardFailures = evidence.filter((item) => item.result !== "PASS").map((item) => item.id);
-  const status = hardFailures.length === 0 ? "PASS_VPS_STAGING_TENANT_RUNTIME" : "FAIL_VPS_STAGING_TENANT_RUNTIME";
-  save({ status, startedAt, finishedAt: new Date().toISOString(), environment: "asasplus_staging_vps", mandatoryIds: evidence.map((item) => item.id), evidence, hardFailures, credentialsPersistedInEvidence: false, productionResourcesTouched: false, rawGucIdentityUsed: false, globalDataPlaneCredentialUsed: false, ownerOrBypassUsedForTenantEvidence: false });
+  const status = hardFailures.length === 0 ? "PASS_VPS_TENANT_RUNTIME" : "FAIL_VPS_TENANT_RUNTIME";
+  save({ status, startedAt, finishedAt: new Date().toISOString(), environment: targetEnvironment, mandatoryIds: evidence.map((item) => item.id), evidence, hardFailures, credentialsPersistedInEvidence: false, controlledFixtureScope: true, productionTrafficEnabled: false, unrelatedProductionResourcesTouched: false, rawGucIdentityUsed: false, globalDataPlaneCredentialUsed: false, ownerOrBypassUsedForTenantEvidence: false });
   process.stdout.write(`${JSON.stringify({ status, hardFailures, evidenceFile: evidencePath })}\n`);
   process.exitCode = hardFailures.length === 0 ? 0 : 2;
 }
 
 void main().catch((error) => {
   const code = error instanceof Error && /^[A-Z0-9_:-]{1,128}$/.test(error.message) ? error.message : "REDACTED_HARNESS_ERROR";
-  save({ status: "FAIL_VPS_STAGING_HARNESS", stage, error: code, environment: "asasplus_staging_vps", credentialsPersistedInEvidence: false });
-  process.stderr.write("VPS staging tenant proof failed; redacted evidence written.\n");
+  save({ status: "FAIL_VPS_TENANT_HARNESS", stage, error: code, environment: targetEnvironment, credentialsPersistedInEvidence: false });
+  process.stderr.write("VPS tenant proof failed; redacted evidence written.\n");
   process.exitCode = 2;
 });

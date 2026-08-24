@@ -2,6 +2,13 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [x] تثبيت baseline production readiness: Git canonical، release staging المعتمد، ومراجعة production-ASAS-only read-only بلا DNS أو traffic.
+- [x] تدقيق وإعداد production PostgreSQL/roles وRedis وsystemd/filesystem/logs/resources وtenant-bound runtime في مساحة ASAS فقط وبخطة revert.
+- [x] إعداد production backup/restore/retention/manifest وrollback/recovery، ثم rehearsal محصور في ASAS بلا تغيير قاعدة أو traffic إنتاجي.
+- [x] تدقيق public vhost وTLS/OpenLiteSpeed readiness بلا تفعيل route أو تعديل public asasplus.shop vhost، وإعداد production smoke/cutover gates.
+- [x] تقييم secrets rotation، health/readiness، scheduler، storage، Auth/IdP، mail، integrations، وlicense/certificate؛ external gaps موثقة كـBLOCKED — EXTERNAL INPUT REQUIRED.
+- [x] إصدار `PRODUCTION-READINESS-FINAL-REPORT.md` و`PRODUCTION-CUTOVER-RUNBOOK.md` و`PRODUCTION-ROLLBACK-RUNBOOK.md` ثم commit/push بلا production switch.
+
 - [x] إنشاء OpenLiteSpeed staging access path أو host-header معزول لـASAS فقط، مع snapshot/rollback وعدم تغيير DNS أو production traffic.
 - [x] provision tenant A/B staging principals وopaque database/queue credentials وإثبات Broker/`session_user`/RLS/A-B/revocation/replay/pool isolation.
 - [x] إثبات worker processing وqueue isolation على staging tenants؛ لا legacy global worker أو global queue credential.
