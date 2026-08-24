@@ -2,6 +2,21 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [ ] إنشاء Git preservation bundle/mirror ونسخة ASAS-only وreports قبل أي release أو database change على VPS.
+- [ ] إنشاء app/deploy isolation وrelease/shared/backup paths وsecret structure المحمية على VPS، من دون تأثير على المواقع القائمة.
+- [ ] إنشاء dedicated ASAS PostgreSQL/Redis isolation المتوافق مع W02 ووقف scope المطلوب فقط إذا غاب secret أو connection authority حقيقي.
+- [ ] clone canonical Git والتحقق من التاريخ، ثم dependency reconciliation وstaging build/migration/runtime تحت مستخدم غير root.
+- [ ] إعداد systemd للـweb والworker وstaging OpenLiteSpeed reverse proxy بلا تغيير DNS أو production vhost traffic.
+- [ ] إثبات staging/runtime/RLS/worker/backup/rollback وإصدار production readiness report.
+- [ ] لا تغيير DNS ولا production switch إلا بعد عبارة المستخدم الصريحة: «انشر على asasplus.shop الآن».
+
+- [ ] إنشاء SSH key مؤقت خاص بالهجرة وعرض public key فقط؛ انتظار تأكيد إضافة المفتاح قبل اتصال VPS.
+- [ ] تنفيذ Project/VPS inventory read-only فقط، بلا تثبيت أو تعديل خدمة أو DNS أو CyberPanel أو database أو migration.
+- [ ] إنشاء Git preservation artifact والتحقق من refs/objects/history بين المصدر والوجهة قبل أي deployment.
+- [ ] حفظ المعرفة التشغيلية وW02 في وثائق migration/runbooks وManus dependency map بلا أسرار أو system prompts.
+- [ ] اقتراح target architecture وdeployment readiness وخطة التنفيذ التفصيلية قبل إنشاء أي production service.
+- [ ] تنفيذ migration بعد الجرد والحفظ والخطة وفق نقاط توقف وموافقات العمليات الحساسة المطلوبة.
+
 - [ ] تثبيت canonical baseline وقراءة كامل `pasted_content_50` وسجلات W02 قبل code changes جديدة.
 - [ ] إجراء inventory نهائي لكل W02 API/repository/job/worker/storage/auth/report surface وتصنيفه A/B/C/D.
 - [x] تنفيذ W02-E Vault/Secrets provider-neutral contracts واختبارات fail-closed وredaction بدون KMS أو credentials حقيقية.
