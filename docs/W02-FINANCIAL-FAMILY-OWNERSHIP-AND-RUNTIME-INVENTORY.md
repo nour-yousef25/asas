@@ -2,12 +2,12 @@
 
 ## قرار النطاق
 
-**الحالة: inventory مكتمل؛ دليل Budget/Expense وDonor/Donation audit-runtime مغلقان؛ RLS المالي غير مصرح به بعد.** يكشف الحصر أن كلمة «financial» تضم عائلتين مختلفتين لا يجوز دمجهما في policy واحدة: **Budget/Expense**، و**Donor/Donation/Campaign/Invoice/Project**. كل root الحالي يحمل `organizationId` قابلاً لـ`NULL`، بينما بعض الأبناء يرثون الملكية عبر relation فقط. لذلك لا تُنشأ RLS migration قبل backfill موثق وrepository/API cutover ودليل runtime مستقل لكل عائلة مختارة.
+**الحالة: inventory مكتمل؛ RLS المالي المحلي المنعزل مغلق على موجتين، لكنه ليس دليلاً على provider أو Production.** يكشف الحصر أن كلمة «financial» تضم عائلتين مختلفتين لا يجوز دمجهما في policy واحدة: **Budget/Expense**، و**Donor/Donation/Campaign/Invoice/Project**. كل root الحالي يحمل `organizationId` قابلاً لـ`NULL`، بينما بعض الأبناء يرثون الملكية عبر relation فقط. لذلك تطبق policies الجديدة fail-closed ولا تنسب صفوف `NULL` أو children غامضة إلى tenant افتراضي.
 
 | العائلة | roots المنظمة | الأبناء الموروثة | حالة الملكية/RLS |
 |---|---|---|---|
-| Budget/Expense | `budgets`, `budget_items`, `expenses` | `BudgetItem → Budget`، و`Expense → BudgetItem` عند الارتباط | ownership/backfill control-plane موجود، ومسارات API/repository runtime أصبحت tenant-bound مع BE01–BE10 PASS. لا يزال nullable-root hardening وRLS وprovider الإنتاجي وdashboard المختلط خارج الإغلاق. |
-| Donor/Donation | `donors`, `donations`, `donation_campaigns`, `projects` | `donor_communications → Donor`، `invoices → Donation` | roots nullable والأبناء لا يحملون tenant key دائماً. repository ومسارا donors/donations أصبحا tenant-bound؛ F01–F10 PostgreSQL runtime PASS لمسارهم المحدد. **NOT READY** لـRLS حتى backfill/paths وبوابات العائلات المتبقية. |
+| Budget/Expense | `budgets`, `budget_items`, `expenses` | `BudgetItem → Budget`، و`Expense → BudgetItem` عند الارتباط | Wave3 يفرض `FORCE RLS` وrole-OID/`session_user` مع parent checks؛ BE-R01–BE-R12 PASS وcleanup=0 على PostgreSQL disposable. |
+| Donor/Donation | `donors`, `donations`, `donation_campaigns`, `projects` | `donor_communications → Donor`، `recurring_donations → Donor`، `invoices → Donation` | Wave2 يفرض `FORCE RLS` وfail-closed roots/children؛ FR01–FR15 PASS وcleanup=0 على PostgreSQL disposable. |
 | Dashboard المختلط | donation/project/beneficiary/KPI/member | عابر للعائلات | global direct Prisma؛ لا يمكن إدخاله في أي RLS family حتى تقسيم queries حسب ownership. **BLOCKING PATH**. |
 
 ## مسارات runtime المكتشفة
@@ -17,16 +17,18 @@
 | `src/lib/financial-repository.ts` | **محول** إلى `TenantBoundPrismaExecutor` ولا يستورد `db.ts` | F01–F10 أثبتت المسار tenant LOGIN/lease/session_user ولا تمنحه RLS-ready بمفرده | يبقى تحت بوابة family-wide backfill/paths. |
 | `src/app/(dashboard)/donations/page.tsx` | **محول** إلى server TenantContext + `donation.read` + repository | محمي بنيوياً وعبر runtime للمسار repository، لكن provider الإنتاجي لم يهيأ | لا RLS مالي قبل بوابات العائلة الكاملة. |
 | `src/app/(dashboard)/donors/page.tsx` | **محول** إلى server TenantContext + `donor.read` + repository | محمي بنيوياً وعبر runtime للمسار repository، لكن provider الإنتاجي لم يهيأ | لا RLS مالي قبل بوابات العائلة الكاملة. |
-| `src/app/(dashboard)/page.tsx` | aggregates/findMany global تشمل donations/projects/beneficiaries وغيرها | mixing owners؛ RLS family قد يكسر الصفحة أو يسرب | scope منفصلة لـdashboard aggregation بعد إغلاق families. |
+| `src/app/(dashboard)/page.tsx` | aggregates/findMany global تشمل donations/projects/beneficiaries وغيرها | mixing owners؛ لا يدخل في claim الإغلاق المحلي للموجتين | scope منفصلة لـdashboard aggregation؛ لا يعاد تفسيره كـFinancial RLS path. |
 | `src/lib/budget-ownership-backfill.ts` | global Prisma control-plane manifest/backfill | ليس data-plane request path، لكنه لا يصلح كـRLS runtime | يبقى control-plane فقط؛ تستكمله BE01–BE10 لمسار API/repository لا لـRLS. |
 
 ## نتيجة BE01–BE10
 
 أثبت harness مستقل على PostgreSQL disposable أن `BudgetExpenseRepository` يربط Budget/BudgetItem/Expense إلى tenant LOGIN/`session_user`/Broker Prisma، ويرفض parent child cross-tenant ويحتفظ بسلسلة owner الصحيحة. مر المدقق exact/fail-closed وhygiene، وانتهى cleanup بصفر residue. لا توجد Financial RLS migration أو policy نتيجة لهذا العمل. راجع [تقرير الإغلاق المحدود](./W02-BUDGET-EXPENSE-RUNTIME-COMPLETION.md).
 
-## شروط القرار التالي
+## نتيجة موجات Financial RLS المحلية
 
-لا تبدأ RLS لأي عائلة مالية قبل أن يثبت نطاق cutover التالي، كحد أدنى، أن كل UI/API/repository المحدد يستخدم server `TenantContext` وصلاحية semantic و`TenantBoundPrismaExecutor`، وأن foreign read/write/create relation تُرفض وتدقق، وأن nullable/unmapped roots لا تصلح لpolicy تخمينية. لا يستبدل scope هذا Queue/Storage/Document/IAM أو DR/HA/provider production gates.
+تغطي `20260824090000_w02_rls_wave2_donor_donation` الجذور Donor/Campaign/Project/Donation والأبناء DonorCommunication/RecurringDonation/Invoice، وتغطي `20260824093000_w02_rls_wave3_budget_expense` Budget/BudgetItem/Expense. اختبرت evidence المؤرشفة A/B direct SQL، `session_user`، children foreign-parent، nullable/unmapped fail-closed، Broker lease replay/revocation/stale context، rotation/provider outage، parallel/discard، hygiene وcleanup. يثبت `W02-FINANCIAL-MIGRATION-REHEARSAL-EVIDENCE.json` pristine deploy وupgrade من pre-Wave2 وforward-safe recovery بإتلاف audit DB وإعادة البناء الرسمي؛ **لا يدّعي rollback إنتاج**.
+
+لا يستبدل هذا scope Queue/Storage/Document/IAM أو provider/HA/DR/scale gates. ويظل dashboard المختلط scope منفصلاً لا تدخل نتائجه في موجتي RLS الماليتين.
 
 ## صلاحية الأدلة السابقة
 

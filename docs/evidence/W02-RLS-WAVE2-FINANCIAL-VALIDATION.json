@@ -1,0 +1,14 @@
+{
+  "valid": true,
+  "required": 15,
+  "observed": 15,
+  "missing": [],
+  "duplicate": [],
+  "failed": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "mode": "600"
+}

@@ -1,0 +1,160 @@
+{
+  "status": "PASS_RLS_WAVE2_FINANCIAL_RUNTIME",
+  "startedAt": "2026-08-24T07:47:53.505Z",
+  "finishedAt": "2026-08-24T07:47:58.273Z",
+  "environment": "disposable-postgresql-audit",
+  "databaseAlias": "asas_rls_financial_audit_1787557673504_143139",
+  "mandatoryIds": [
+    "FR01",
+    "FR02",
+    "FR03",
+    "FR04",
+    "FR05",
+    "FR06",
+    "FR07",
+    "FR08",
+    "FR09",
+    "FR10",
+    "FR11",
+    "FR12",
+    "FR13",
+    "FR14",
+    "FR15"
+  ],
+  "evidence": [
+    {
+      "id": "FR01",
+      "expected": "official financial migration enables FORCE RLS and exactly seven family policies without bypass roles",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR02",
+      "expected": "unmapped principal and nullable financial roots fail closed",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR03",
+      "expected": "A and B direct root reads and writes cannot cross organization",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR04",
+      "expected": "direct child and foreign-parent writes are denied by RLS",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR05",
+      "expected": "Broker-bound FinancialRepository A/B operations receive the correct session_user and RLS rows",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR06",
+      "expected": "repository foreign detail and relation creation deny with no cross-tenant read",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR07",
+      "expected": "repository stamps project ownership from context rather than caller authority",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR08",
+      "expected": "session_user remains tenant A when SET ROLE to B is denied",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR09",
+      "expected": "parallel A/B repositories retain distinct clients and identities",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR10",
+      "expected": "lease replay and revoked membership fail before financial execution",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR11",
+      "expected": "stale session and provider outage fail closed without global Prisma fallback",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR12",
+      "expected": "rotation retires A1 mapping and authenticates only A2",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR13",
+      "expected": "all financial dashboard/API/report source paths use tenant authority and reject raw GUC/global Prisma",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR14",
+      "expected": "all mandatory IDs recorded before this coverage gate are unique and complete",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "FR15",
+      "expected": "audit roles, source and migration are free of owner/bypass/global credential shortcuts",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

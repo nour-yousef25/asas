@@ -1,0 +1,99 @@
+{
+  "status": "PASS_FINANCIAL_MIGRATION_REHEARSAL",
+  "startedAt": "2026-08-24T07:57:22.064Z",
+  "finishedAt": "2026-08-24T07:57:31.895Z",
+  "environment": "disposable-postgresql-audit",
+  "mandatoryIds": [
+    "MGR-F01",
+    "MGR-F02",
+    "MGR-F03",
+    "MGR-F04",
+    "MGR-F05",
+    "MGR-F06",
+    "MGR-F07",
+    "MGR-F08",
+    "MGR-F09",
+    "MGR-F10"
+  ],
+  "evidence": [
+    {
+      "id": "MGR-F01",
+      "expected": "pristine official deploy applies both financial migrations",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F02",
+      "expected": "pre-Wave2 baseline deploy omits financial policy migrations",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F03",
+      "expected": "upgrade uses only official forward migrations and enables ten FORCE RLS tables",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F04",
+      "expected": "A/B direct reads see only their own financial roots after upgrade",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F05",
+      "expected": "foreign parent children are rejected after upgrade",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F06",
+      "expected": "unmapped roles and nullable roots fail closed after upgrade",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F07",
+      "expected": "migration history and source hashes preserve official forward-only files",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F08",
+      "expected": "forward-safe recovery is disposal then clean official deploy, not historical rollback",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F09",
+      "expected": "recovered clean database re-enforces mapped A tenant visibility",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "MGR-F10",
+      "expected": "evidence IDs are exact, sources forbid raw GUC identity, and no credentials persist",
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "rollbackClaim": "No production rollback: the disposable upgraded database was discarded and rebuilt by official forward migrations."
+}

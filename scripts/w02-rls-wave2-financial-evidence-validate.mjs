@@ -1,0 +1,14 @@
+import { readFileSync, statSync } from "node:fs";
+const file = process.argv[2];
+const ids = ["FR01", "FR02", "FR03", "FR04", "FR05", "FR06", "FR07", "FR08", "FR09", "FR10", "FR11", "FR12", "FR13", "FR14", "FR15"];
+if (!file) throw new Error("EVIDENCE_PATH_REQUIRED");
+const evidence = JSON.parse(readFileSync(file, "utf8"));
+const records = Array.isArray(evidence.evidence) ? evidence.evidence : [];
+const found = records.map((item) => item.id);
+const missing = ids.filter((id) => !found.includes(id));
+const duplicate = found.filter((id, index) => found.indexOf(id) !== index);
+const failed = records.filter((item) => item.result !== "PASS").map((item) => item.id);
+const mode = statSync(file).mode & 0o777;
+const valid = evidence.status === "PASS_RLS_WAVE2_FINANCIAL_RUNTIME" && missing.length === 0 && duplicate.length === 0 && failed.length === 0 && records.length === ids.length && evidence.cleanup?.ok === true && evidence.cleanup?.residueCount === 0 && evidence.hygiene?.status === "PASS" && evidence.credentialsPersisted === false && evidence.productionResourcesTouched === false && evidence.rawGucIdentityUsed === false && evidence.globalPrismaFallback === false && evidence.ownerOrBypassUsedForTenantEvidence === false && mode === 0o600;
+process.stdout.write(`${JSON.stringify({ valid, required: ids.length, observed: records.length, missing, duplicate: [...new Set(duplicate)], failed, cleanup: evidence.cleanup, mode: mode.toString(8) }, null, 2)}\n`);
+process.exitCode = valid ? 0 : 2;

@@ -12,9 +12,9 @@
 
 ## W02 FINAL CLOSURE — ISOLATED POSTGRESQL EXECUTION
 
-- [ ] تثبيت canonical الفعلي والشجرة النظيفة، واستكمال قراءة التفويض وW02 source-of-truth وGit/evidence/ADRs قبل أي تعديل.
-- [ ] إنشاء `W02-FINAL-CLOSURE-REMAINING-GATES.md` بمصفوفة تنفيذية تفرق بين local-code وaudit-rehearsal وexternal-provider gates.
-- [ ] توثيق بيئة PostgreSQL audit المعزولة الحالية وإثبات عدم اتصالها بالإنتاج أو حفظ أسرار في `W02-ISOLATED-POSTGRES-AUDIT-ENVIRONMENT.md`.
+- [x] تثبيت canonical الفعلي والشجرة النظيفة، واستكمال قراءة التفويض وW02 source-of-truth وGit/evidence/ADRs قبل أي تعديل.
+- [x] إنشاء `W02-FINAL-CLOSURE-REMAINING-GATES.md` بمصفوفة تنفيذية تفرق بين local-code وaudit-rehearsal وexternal-provider gates.
+- [x] توثيق بيئة PostgreSQL audit المعزولة الحالية وإثبات عدم اتصالها بالإنتاج أو حفظ أسرار في `W02-ISOLATED-POSTGRES-AUDIT-ENVIRONMENT.md`.
 - [ ] جرد Financial RLS وnullable roots وmixed dashboard وتحديد ما يمكن إثباته محلياً دون Raw GUC أو global credential أو bypass.
 - [ ] تنفيذ فقط موجات Financial RLS التي تستوفي prerequisites محلياً، مع A/B/direct-query/context-switch/migration/rollback/upgrade evidence ومدقق مستقل.
 - [ ] إجراء target-like local rehearsals الصادقة القابلة للمحاكاة دون ادعاء HA/DR/provider SLA، وتسجيل DT01–DT06 الخارجية إن بقيت غير متاحة.

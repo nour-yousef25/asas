@@ -22,6 +22,20 @@ describe("Financial tenant cutover structural guards", () => {
     expect(donations).toMatch(/requireTenantContext/);
     expect(donations).toMatch(/requirePermission\(context, \"donation\.read\"\)/);
     expect(donations).toMatch(/financialRepository\.listDonations/);
-    expect(donations).not.toMatch(/from \"@\/lib\/db\"/);
+    expect(donations).not.toMatch(/from "@\/lib\/db"/);
+  });
+
+  it("keeps projects APIs and report generation on tenant-bound authority", () => {
+    const projects = source("src/app/api/projects/route.ts");
+    const project = source("src/app/api/projects/[id]/route.ts");
+    const reports = source("src/modules/reports/report-service.ts");
+    expect(projects).toMatch(/requirePermission\(context, "project\.read"\)/);
+    expect(projects).toMatch(/financialRepository\.createProject/);
+    expect(project).toMatch(/requirePermission\(context, "project\.update"\)/);
+    expect(project).toMatch(/financialRepository\.deleteProject/);
+    expect(projects).not.toMatch(/from "@\/lib\/db"/);
+    expect(project).not.toMatch(/from "@\/lib\/db"/);
+    expect(reports).toMatch(/requireTenantBoundPrismaExecutor/);
+    expect(reports).not.toMatch(/from "@\/lib\/db"/);
   });
 });

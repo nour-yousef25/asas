@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { prisma } from "@/lib/db";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
+import { financialRepository } from "@/lib/financial-repository";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,9 +20,9 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 };
 
 export default async function ProjectsPage() {
-  const projects = await prisma.project.findMany({
-    orderBy: { createdAt: "desc" },
-  });
+  const context = await requireTenantContext();
+  await requirePermission(context, "project.read");
+  const projects = await financialRepository.listProjects(context);
 
   return (
     <div className="space-y-6">
