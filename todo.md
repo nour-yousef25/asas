@@ -8,12 +8,12 @@
 - [ ] تنفيذ وتدقيق production-safe `TenantConnectionProvider`/opaque credential resolver؛ لا يوجد implementation runtime حالي خارج harnesses، ولا يجوز استعمال global data-plane credential كبديل.
 - [ ] إنشاء tenant login principals وcredential references عبر authority الجديدة، وإثبات checkout/discard/RLS على staging قبل تشغيل request-data-plane.
 
-- [ ] إنشاء Git preservation bundle/mirror ونسخة ASAS-only وreports قبل أي release أو database change على VPS.
-- [ ] إنشاء app/deploy isolation وrelease/shared/backup paths وsecret structure المحمية على VPS، من دون تأثير على المواقع القائمة.
-- [ ] إنشاء dedicated ASAS PostgreSQL/Redis isolation المتوافق مع W02 ووقف scope المطلوب فقط إذا غاب secret أو connection authority حقيقي.
-- [ ] clone canonical Git والتحقق من التاريخ، ثم dependency reconciliation وstaging build/migration/runtime تحت مستخدم غير root.
-- [ ] إعداد systemd للـweb والworker وstaging OpenLiteSpeed reverse proxy بلا تغيير DNS أو production vhost traffic.
-- [ ] إثبات staging/runtime/RLS/worker/backup/rollback وإصدار production readiness report.
+- [x] إنشاء Git preservation bundle/mirror ونسخة ASAS-only وreports قبل أي release أو database change على VPS.
+- [x] إنشاء app/deploy isolation وrelease/shared/backup paths وsecret structure المحمية على VPS، من دون تأثير على المواقع القائمة.
+- [x] إنشاء dedicated ASAS PostgreSQL/Redis isolation المتوافق مع W02 ووقف scope المطلوب فقط إذا غاب secret أو connection authority حقيقي.
+- [x] clone canonical Git والتحقق من التاريخ، ثم dependency reconciliation وstaging build/migration/runtime تحت مستخدم غير root.
+- [x] إعداد systemd للـweb والworker staging على loopback؛ لا OpenLiteSpeed reverse proxy أو DNS أو production vhost traffic.
+- [x] إثبات staging/runtime/RLS/worker/backup/rollback وإصدار production readiness report.
 - [ ] لا تغيير DNS ولا production switch إلا بعد عبارة المستخدم الصريحة: «انشر على asasplus.shop الآن».
 
 - [ ] إنشاء SSH key مؤقت خاص بالهجرة وعرض public key فقط؛ انتظار تأكيد إضافة المفتاح قبل اتصال VPS.
