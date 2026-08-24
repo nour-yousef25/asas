@@ -5,3 +5,5 @@
 لا يغطي العقد `User` global identity creation أو يمنحه tenant ownership. ولا يقبل client organizationId أو activeOrganizationId أو first membership أو global Prisma fallback كبديل لأي ID.
 
 يشمل الإغلاق أيضاً مراجعة/تحويل أي data-plane للعضويات في `iam.ts` و`policy.ts`؛ أما `auth.ts` و`tenant-context.ts` و`tenant-access-broker.ts` فهي control/identity boundaries ولا تتحول إلى tenant data ownership. لا يكفي route `api/memberships` لإعلان الإغلاق ما دامت عملية عضوية حساسة تستدعي Prisma عالميّاً خارج هذه الحدود المعلنة.
+
+أكد الجرد أن مراجع Prisma الباقية في `auth.ts` و`tenant-context.ts` تقع ضمن حل هوية المستخدم، فحص session/membership، أو تبديل السياق المدقق؛ ولا تملك data-plane للعضويات. تبقى هذه الحدود تحت اختبارات Broker/session منفصلة، ولا يسمح هذا التصنيف لأي route أو IAM/Policy mutation بالعودة إلى Prisma العالمي.
