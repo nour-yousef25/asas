@@ -5,7 +5,7 @@
 | W02 | BLOCKED — CODE/ARCHITECTURE |
 | Current scope | local audit runtime evidence مكتمل للعائلات المسجلة، ومنها Member/KPI MK01–MK10 وUsers/Memberships UM01–UM10 وQueue/Redis Q01–Q10؛ Storage/Root Documents ما زالت مفتوحة ولا تمنح W02 closure |
 | Branch | `w02-global-closure-execution` |
-| Baseline for fix | `0c2ed7c` canonical Users/Memberships controlled integration |
+| Baseline for fix | `019d13f` canonical Queue/Redis controlled integration |
 | Last safe Hybrid Identity proof | `d86cca9` |
 | Current security gate | RESOLVED FOR AUDIT RUNTIME: Beneficiary data-plane requires Broker-bound tenant Prisma; production provider activation remains OPEN |
 | Next authorized action | تنفيذ Storage/Root Documents كمسار مستقل؛ يبقى Financial RLS محظوراً حتى عقد provider وتشغيل DR/HA/scale target-like |
