@@ -7,8 +7,8 @@
 | Check | Result |
 |---|---|
 | Canonical branch | `w02-global-closure-execution` |
-| Preservation baseline HEAD | `7cd4f2079da3e5936ed79addaf4908990fd64e1e` |
-| Commit count | 129 |
+| Final preservation HEAD | `fd4af5ce8fc98f0798fc96963bfb3222c3e5397c` |
+| Commit count | 130 |
 | Reference count | 35 |
 | Tags | 0 |
 | Source `git fsck --no-dangling --no-reflogs` | PASS |
@@ -20,7 +20,8 @@ The approved artifact is a complete Git mirror archive retained in the ASAS-only
 
 | Artifact | Location | Verification |
 |---|---|---|
-| Git mirror archive | `/opt/asasplus/backups/20260824T175856Z/asasplus-mirror.git.tgz` | SHA-256 PASS; extracted temporary restore passed `git fsck`; 129 commits, 35 refs, canonical HEAD exact |
+| Final Git mirror archive | `/opt/asasplus/backups/20260824T180206Z/asasplus-mirror.git.tgz` | SHA-256 PASS; extracted temporary restore passed `git fsck`; 130 commits, 35 refs, final canonical HEAD exact |
+| Initial Git mirror archive | `/opt/asasplus/backups/20260824T175856Z/asasplus-mirror.git.tgz` | SHA-256 PASS; extracted temporary restore passed `git fsck`; 129 commits, 35 refs, pre-report canonical HEAD exact |
 | Public website snapshot | `/opt/asasplus/backups/20260824T175856Z/asasplus-public_html.tgz` | archive listing and SHA-256 PASS |
 | ASAS vhost snapshot | `/opt/asasplus/backups/20260824T175856Z/asasplus-vhost.conf` | SHA-256 PASS |
 
