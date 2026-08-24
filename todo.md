@@ -4,6 +4,7 @@
 
 - [ ] مصالحة source of truth وGit/evidence/ADRs وتحديث dependency graph الحي قبل كل scope جديد.
 - [ ] تنفيذ MembershipRepository ومسارات users/memberships tenant-bound مع PostgreSQL audit harness ومدقق exact.
+- [ ] تحويل IAM/Policy membership data-plane إلى tenant-bound authority وإثبات role/override/SoD negatives ضمن harness Users/Memberships.
 - [ ] تنفيذ trusted Queue tenant envelope وworker validation وRedis/Cache isolation proof على audit target آمن.
 - [ ] تنفيذ private Storage/Root Documents ownership adapter وprovider-safe evidence لمسارات upload/download/revoke.
 - [ ] إعادة تقييم Financial RLS فقط بعد إغلاق ownership/API/runtime/provider gates؛ لا RLS قبلها.
