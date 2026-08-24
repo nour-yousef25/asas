@@ -2,7 +2,7 @@
 
 ## الحالة
 
-**DESIGN READY — RUNTIME BLOCKED.** القراءة الحالية لـ`storage.ts` تثبت أن caller يختار path، وأن `getSignedUrl` و`getPublicUrl` يعيدان URL مباشر، وأن development fallbacks تتضمن اعتماداً عاماً. لا تعد هذه الطبقة private storage أو tenant isolation.
+**COMPLETE LIMITED AUDIT RUNTIME.** حُجر `storage.ts` الخام و`/api/upload`، وأصبح `PrivateArtifactRepository` هو boundary المحلي: key خادمي، metadata مملوك للمنظمة، RLS `session_user`، وdelivery opaque قصير العمر من provider محقون. لا يعد ذلك provider production أو credential lifecycle proof.
 
 ## العقد الإلزامي
 
@@ -17,4 +17,4 @@
 
 ## الأدلة المطلوبة
 
-يلزم adapter قابل للـfake provider الاختباري الآمن أو disposable provider لا يحمل بيانات/credentials إنتاجية، ثم proof exact: forged org/path، guessed document ID، direct object access، expiry، revoke/stale session/policy، delete/replace/share، concurrency وprovider failure. حتى ذلك الحين تبقى upload/root documents/storage **BLOCKED — LOCAL SECURITY/DESIGN** ولا تعد `STORAGE_PATHS` الحالية namespace tenant-safe.
+نفذ adapter memory-only آمن داخل harness S01–S10، ويمر exact proof لـforged org/path وguessed artifact وexpiry وrevoke/stale policy وdelete/replace وconcurrency وprovider failure. لا تزال bucket/KMS/provider target-like وDR/HA/scale خارجية؛ ولا تعد delivery opaque المحلية signed URL provider production.

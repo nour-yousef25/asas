@@ -13,6 +13,7 @@ export const W02_PERMISSION_CATALOG = [
   ["support.access.request", "support", "access.request"], ["support.access.approve", "support", "access.approve"], ["support.access.revoke", "support", "access.revoke"],
   ["settings.read", "settings", "read"], ["settings.manage", "settings", "manage"],
   ["communications.publication.schedule", "communications", "publication.schedule"],
+  ["document.private.read", "document", "private.read"], ["document.private.upload", "document", "private.upload"], ["document.private.manage", "document", "private.manage"],
 ] as const;
 
 export type W02PermissionName = (typeof W02_PERMISSION_CATALOG)[number][0];

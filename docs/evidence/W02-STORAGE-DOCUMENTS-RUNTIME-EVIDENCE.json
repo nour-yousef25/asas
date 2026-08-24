@@ -1,0 +1,126 @@
+{
+  "status": "PASS_STORAGE_RUNTIME",
+  "startedAt": "2026-08-24T07:04:49.377Z",
+  "finishedAt": "2026-08-24T07:04:57.066Z",
+  "databaseAlias": "w02_storage_1787555089377_55f17c0a",
+  "environment": "disposable-postgresql-memory-artifact-audit",
+  "mandatoryIds": [
+    "S01",
+    "S02",
+    "S03",
+    "S04",
+    "S05",
+    "S06",
+    "S07",
+    "S08",
+    "S09",
+    "S10"
+  ],
+  "evidence": [
+    {
+      "id": "S01",
+      "expected": "Server derives a private A object key, persists tenant metadata, and never returns a public URL",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:52.476Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S02",
+      "expected": "A/B listing and delivery remain isolated by metadata ownership and per-tenant session_user",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:53.218Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S03",
+      "expected": "Foreign artifact guessed by B cannot download, replace, or delete A data",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:53.863Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S04",
+      "expected": "Foreign beneficiary reference and caller-supplied path authority fail closed before provider write",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:54.162Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S05",
+      "expected": "Opaque short-lived delivery requires owned artifact and expires at provider boundary",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:54.493Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S06",
+      "expected": "Stale policy and revoked membership fail closed before artifact delivery",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:54.502Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S07",
+      "expected": "Replace rotates immutable key/version and delete revokes future delivery",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:55.569Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S08",
+      "expected": "Provider outage rejects upload without metadata or object fallback",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:56.064Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S09",
+      "expected": "Parallel A/B uploads use distinct tenant keys and clients with no shared object namespace",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:56.584Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "S10",
+      "expected": "Source, role, audit, discard, cleanup, and hygiene checks remain safe",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T07:04:56.754Z",
+      "environment": "disposable-postgresql-memory-artifact-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false,
+  "provider": "memory-only-test-double"
+}
