@@ -6,7 +6,7 @@
 
 ## الأساس المرجعي
 
-الفرع المرجعي هو `w02-global-closure-execution`. آخر سلسلة معالم تشمل `3a67616` لدمج Member/KPI المثبت، `2a31c9e` لتحديث الحوكمة، وقرارات Users/provider/Queue/Storage في `8da32a2` و`f981d0a` و`0506d96` و`93b2c10`.
+الفرع المرجعي هو `w02-global-closure-execution`. آخر سلسلة معالم تشمل `3a67616` لدمج Member/KPI المثبت، `2a31c9e` لتحديث الحوكمة، وقرارات Users/provider/Queue/Storage في `8da32a2` و`f981d0a` و`0506d96` و`93b2c10`، ثم الدمج controlled لمسار Users/Memberships في `0c2ed7c` مع إعادة تحقق UM scoped على canonical.
 
 ## النطاقات ذات الدليل المحلي
 
@@ -38,4 +38,4 @@
 
 ## الخطوة التالية الدقيقة
 
-يُراجع ويُدمج مسار Users/Memberships المثبت إلى canonical، ثم يبنى Queue envelope/worker adapter مع Redis disposable proof، ثم private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure؛ ولا يعاد فتح global identity onboarding قبل عقد product/control-plane صريح.
+يبنى Queue envelope/worker adapter مع Redis disposable proof، ثم private storage/document metadata adapter مع provider-safe proof. بالتوازي يوفر deployment owner مدخلات عقد target وتشغل DT01–DT06 خارج الإنتاج. بعد إغلاقها فقط يعاد تقييم Financial RLS وW02 global closure؛ ولا يعاد فتح global identity onboarding قبل عقد product/control-plane صريح.
