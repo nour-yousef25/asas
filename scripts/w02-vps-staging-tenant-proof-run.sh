@@ -29,17 +29,26 @@ password_a=$(openssl rand -hex 32); password_b=$(openssl rand -hex 32)
 redis_password_a=$(openssl rand -hex 32); redis_password_b=$(openssl rand -hex 32)
 cleanup_ok=true
 
+run_redis_fixture() {
+  local mode="$1"
+  sudo -u asasplus env \
+    REDIS_URL="$REDIS_URL" \
+    ASAS_PROOF_REDIS_MODE="$mode" \
+    ASAS_PROOF_REDIS_USER_A="$redis_user_a" \
+    ASAS_PROOF_REDIS_USER_B="$redis_user_b" \
+    ASAS_PROOF_REDIS_PASSWORD_A="$redis_password_a" \
+    ASAS_PROOF_REDIS_PASSWORD_B="$redis_password_b" \
+    ASAS_PROOF_ORG_A="$org_a" \
+    ASAS_PROOF_ORG_B="$org_b" \
+    node "$release/scripts/w02-vps-staging-redis-acl-fixture.mjs"
+}
+
 cleanup() {
   local status=$?
   set +e
   systemctl stop asasplus-worker-staging.service >/dev/null 2>&1
   if [[ -n "${REDIS_URL:-}" ]]; then
-    redis-cli -u "$REDIS_URL" --no-auth-warning ACL DELUSER "$redis_user_a" "$redis_user_b" >/dev/null 2>&1 || cleanup_ok=false
-    for pattern in "bull:asas_tenant_${org_a}_*" "bull:asas_tenant_${org_b}_*" "asas:tenant:${org_a}:*" "asas:tenant:${org_b}:*"; do
-      redis-cli -u "$REDIS_URL" --no-auth-warning --scan --pattern "$pattern" 2>/dev/null | while IFS= read -r key; do
-        redis-cli -u "$REDIS_URL" --no-auth-warning UNLINK "$key" >/dev/null 2>&1 || exit 1
-      done || cleanup_ok=false
-    done
+    run_redis_fixture cleanup >/dev/null 2>&1 || cleanup_ok=false
   else
     cleanup_ok=false
   fi
@@ -85,8 +94,7 @@ chown root:root "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/op
 setfacl -m u:asasplus:r-- "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
 setfacl -m u:asasplus:r-- "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
 
-redis-cli -u "$REDIS_URL" --no-auth-warning ACL SETUSER "$redis_user_a" on ">$redis_password_a" +@all "~bull:asas_tenant_${org_a}_*" "~asas:tenant:${org_a}:*" >/dev/null
-redis-cli -u "$REDIS_URL" --no-auth-warning ACL SETUSER "$redis_user_b" on ">$redis_password_b" +@all "~bull:asas_tenant_${org_b}_*" "~asas:tenant:${org_b}:*" >/dev/null
+run_redis_fixture provision >/dev/null
 
 sudo -u postgres psql -d asasplus_staging -X -v ON_ERROR_STOP=1 >/dev/null <<SQL
 CREATE ROLE $principal_a LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD '$password_a';
