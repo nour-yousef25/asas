@@ -25,11 +25,11 @@
 | Mixed dashboard root-page runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | D01–D10 root snapshot and MK01–MK10 Member/KPI data-plane cutover pass; provider and remaining W02 families remain separate |
 | Financial migration and portability rehearsal | COMPLETE LOCAL ISOLATED | provider activation remains prohibited | MGR-F01–F10 and PORT-R01–R06 exact validators; Git permission metadata must be materialized locally |
 | Provider DR/HA/scale readiness | OPEN — EXTERNAL | global W02 closure | deployment-owned provider, recovery, role-scale and pool capacity evidence required |
-| WP6 vault/secret records | NOT IMPLEMENTED | WP7/WP8/WP9 and W02 closure | KMS capability verification and Security/Operations owner contract required; ADR-W02-005 is design only |
-| WP7 privacy/retention/export/audit-v2 | NOT IMPLEMENTED | W02 closure | data classification/purpose policy, country-specific retention and legal-hold rules require Privacy/Data Owner approval; ADR-W02-006 is design only |
-| WP8 certificate verification/activation | NOT IMPLEMENTED | W02 closure | certificate issuer/control-plane and Commercial/Licensing owner inputs required; ADR-W02-007 is design only |
-| WP9 IdP provider framework | NOT IMPLEMENTED | W02 closure | tenant provider sandbox/production contract and credentials/UAT remain owner/provider controlled |
-| Reports/export delivery | DEFERRED BY PRIOR SCOPE | WP7 privacy/export closure | report generation is tenant-bound; export/download/storage governance was explicitly deferred |
+| WP6 vault/secret records | COMPLETE INTERNAL CONTRACT | external KMS operation only | opaque references/resolver/revoke/redacted audit/RLS; INT01–INT14 and MGR-I01–I08 |
+| WP7 privacy/retention/export/audit-v2 | COMPLETE INTERNAL ARCHITECTURE | owner-approved legal policy values only | classification/purpose/hold/request default-deny contract; export remains fail-closed until approved policy |
+| WP8 certificate verification/activation | COMPLETE INTERNAL CONTRACT | external issuer/control-plane only | Ed25519 public-key verification, hash/replay/expiry/revoke state and RLS proof |
+| WP9 IdP provider framework | COMPLETE INTERNAL CONTRACT | provider enrollment/sandbox/UAT/credentials only | tenant config/subject/callback/membership/revocation contracts; no provider enabled |
+| Reports/export delivery | COMPLETE FAIL-CLOSED INTERNAL BOUNDARY | approved policy/provider delivery only | report read path tenant-bound; download/export/share rejects until WP7 policy/owner inputs |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
 | Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | global identity onboarding remains distinct; W02 closure is still blocked by Queue/Storage/provider | ADR-W02-013; UM01–UM10 exact PostgreSQL proof, validator, quarantine of `/api/users` |
 | Queue/Redis/Cache | COMPLETE LIMITED AUDIT RUNTIME | production worker/provider activation and SMS/Notification reactivation remain separately blocked | Q01–Q10 exact Redis/PostgreSQL disposable proof; legacy surfaces fail-closed |

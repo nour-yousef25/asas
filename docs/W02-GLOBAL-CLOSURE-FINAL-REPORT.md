@@ -2,7 +2,7 @@
 
 ## الملخص التنفيذي
 
-**القرار النهائي: `W02 NOT COMPLETE — INTERNAL SCOPE GATES + EXTERNAL DEPLOYMENT PREREQUISITES`.** أُغلقت البوابات المحلية المنفذة على PostgreSQL audit disposable، بما فيها موجتا Financial RLS وclean/upgrade/forward-safe recovery rehearsal وportability rehearsal. لكن مراجعة canonical مقابل `W02-IMPLEMENTATION-PLAN` تثبت أن WP6–WP9 وreport export delivery لم تنفذ runtime أو evidence؛ كما لم يقدم target-like provider دليل topology/identity/pool/failover/backup/restore/capacity. لا يجوز اختزال ذلك إلى DT01–DT06 أو إعلان `W02 COMPLETE`.
+**حالة هذا التقرير التاريخية مُستبدلة بتفويض الإغلاق الداخلي النهائي.** راجع [`W02-INTERNAL-GLOBAL-CLOSURE-FINAL.md`](./W02-INTERNAL-GLOBAL-CLOSURE-FINAL.md): WP6–WP9 وfail-closed export boundary نُفذت داخلياً مع evidence؛ يبقى فقط POST-W02 External Deployment Readiness ولا يمنع `W02 COMPLETE — INTERNAL / CODE & ARCHITECTURE`.
 
 ## مصفوفة النطاق النهائي
 
