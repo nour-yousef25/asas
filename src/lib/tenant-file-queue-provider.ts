@@ -37,7 +37,7 @@ export class FileTenantQueueConnectionProvider implements TenantQueueConnectionP
   constructor(
     directory: string,
     private readonly referenceForOrganization: (organizationId: string) => Promise<string>,
-    private readonly redisFactory: RedisFactory = (url) => new Redis(url, { lazyConnect: true }),
+    private readonly redisFactory: RedisFactory = (url) => new Redis(url, { lazyConnect: true, maxRetriesPerRequest: null }),
     private readonly options: CredentialFileOptions = {},
   ) {
     this.directoryPromise = realpath(directory).catch(() => denied("QUEUE_CREDENTIAL_DIRECTORY_UNAVAILABLE"));
