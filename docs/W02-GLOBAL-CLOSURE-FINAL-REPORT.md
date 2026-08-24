@@ -35,7 +35,7 @@ Regression النهائي مر باستخدام Prisma URL placeholder محلي 
 | Migration rehearsal | `docs/evidence/W02-FINANCIAL-MIGRATION-REHEARSAL-EVIDENCE.json` |
 | Portability rehearsal | `docs/evidence/W02-PORTABILITY-REHEARSAL-EVIDENCE.json` |
 
-كل evidence أعلاه بصلاحية `0600` ولا تحتوي credentials أو URLs أو names للأدوار. راجع كذلك [عقد portability](./W02-DEPLOYMENT-PORTABILITY-CONTRACT.md) و[مصفوفة البوابات](./W02-FINAL-CLOSURE-REMAINING-GATES.md).
+كانت كل evidence أعلاه بصلاحية `0600` وقت التحقق المحلي ولا تحتوي credentials أو URLs أو names للأدوار. **Git يحفظ محتوى الملفات لا mode `0600`**؛ لذلك يجب على أي checkout جديد تنفيذ `chmod 600 docs/evidence/W02-*.json` قبل تشغيل validators ذات mode check. لا ينشئ ذلك secret-management claim لأن artifacts نفسها خالية من الأسرار. راجع كذلك [عقد portability](./W02-DEPLOYMENT-PORTABILITY-CONTRACT.md) و[مصفوفة البوابات](./W02-FINAL-CLOSURE-REMAINING-GATES.md).
 
 ## المتطلبات الخارجية الدنيا
 

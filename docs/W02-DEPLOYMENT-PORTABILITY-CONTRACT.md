@@ -17,4 +17,4 @@
 
 ## Rehearsal Boundary
 
-`scripts/w02-portability-rehearsal.mjs` يأخذ snapshot للعمل المحلي إلى مجلد مؤقت، يستبعد `.git` و`node_modules` ومخرجات البناء والأسرار، ثم يعيد تثبيت lockfile ويشغل Prisma/build وFinancial RLS harness. نجاحه لا يثبت provider، KMS، workload identity حقيقي، pooling deployment-owned، HA، DR، failover، RPO/RTO أو scale.
+`scripts/w02-portability-rehearsal.mjs` يأخذ snapshot للعمل المحلي إلى مجلد مؤقت، يستبعد `.git` و`node_modules` ومخرجات البناء والأسرار، ثم يعيد تثبيت lockfile ويشغل Prisma/build وFinancial RLS harness. نجاحه لا يثبت provider، KMS، workload identity حقيقي، pooling deployment-owned، HA، DR، failover، RPO/RTO أو scale. ولأن Git لا يتتبع permission mode `0600` للملفات العادية، يطبق checkout جديد `chmod 600 docs/evidence/W02-*.json` قبل validators التي تفرض ذلك؛ لا تحتوي هذه artifacts على secrets.
