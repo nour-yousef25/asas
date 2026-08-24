@@ -2,6 +2,8 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [x] مصالحة apparent divergence: كان `origin/*` المحلي stale عند `9631b7` فقط، بينما GitHub API يطابق local canonical `be21034`; لا force أو reset أو merge مطلوب.
+
 - [ ] تنفيذ TenantQueueConnectionProvider وworker supervisor fail-closed؛ خدمة legacy worker على staging متوقفة لأنها تعلن `QUEUE_LEGACY_WORKER_QUARANTINED` ولا يجوز تجاوز الحجر.
 - [ ] إثبات queue worker لكل tenant principal بعد provisioning حقيقي، أو توثيق BLOCKED لكل dispatch external غير مهيأ.
 
