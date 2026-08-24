@@ -6,7 +6,7 @@
 
 ## الأساس المرجعي
 
-الفرع المرجعي هو `w02-global-closure-execution`. آخر سلسلة معالم تشمل `3a67616` لدمج Member/KPI المثبت، `2a31c9e` لتحديث الحوكمة، وقرارات Users/provider/Queue/Storage في `8da32a2` و`f981d0a` و`0506d96` و`93b2c10`، ثم الدمج controlled لمسار Users/Memberships في `0c2ed7c` وQueue/Redis في `019d13f` مع إعادة تحقق scoped لكلا النطاقين على canonical.
+الفرع المرجعي هو `w02-global-closure-execution`. آخر سلسلة معالم تشمل `3a67616` لدمج Member/KPI المثبت، `2a31c9e` لتحديث الحوكمة، وقرارات Users/provider/Queue/Storage في `8da32a2` و`f981d0a` و`0506d96` و`93b2c10`، ثم الدمج controlled لمسارات Users/Memberships في `0c2ed7c` وQueue/Redis في `019d13f` وStorage/Root Documents في `29cb845` مع إعادة تحقق scoped على canonical.
 
 ## النطاقات ذات الدليل المحلي
 

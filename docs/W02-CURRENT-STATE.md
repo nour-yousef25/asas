@@ -5,7 +5,7 @@
 | W02 | BLOCKED — EXTERNAL DEPLOYMENT PREREQUISITE |
 | Current scope | local audit runtime evidence مكتمل للعائلات المسجلة، ومنها Member/KPI MK01–MK10 وUsers/Memberships UM01–UM10 وQueue/Redis Q01–Q10 وStorage/Documents S01–S10؛ لا تمنح هذه الأدلة W02 closure |
 | Branch | `w02-global-closure-execution` |
-| Baseline for fix | `019d13f` canonical Queue/Redis controlled integration |
+| Baseline for fix | `29cb845` canonical Storage/Root Documents controlled integration |
 | Last safe Hybrid Identity proof | `d86cca9` |
 | Current security gate | RESOLVED FOR AUDIT RUNTIME: Beneficiary data-plane requires Broker-bound tenant Prisma; production provider activation remains OPEN |
 | Next authorized action | انتظار deployment owner لتقديم target-like provider وتشغيل DT01–DT06 خارج الإنتاج؛ يبقى Financial RLS محظوراً حتى ذلك |
