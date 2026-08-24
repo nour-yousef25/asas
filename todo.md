@@ -2,6 +2,9 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [ ] تنفيذ وتدقيق production-safe `TenantConnectionProvider`/opaque credential resolver؛ لا يوجد implementation runtime حالي خارج harnesses، ولا يجوز استعمال global data-plane credential كبديل.
+- [ ] إنشاء tenant login principals وcredential references عبر authority الجديدة، وإثبات checkout/discard/RLS على staging قبل تشغيل request-data-plane.
+
 - [ ] إنشاء Git preservation bundle/mirror ونسخة ASAS-only وreports قبل أي release أو database change على VPS.
 - [ ] إنشاء app/deploy isolation وrelease/shared/backup paths وsecret structure المحمية على VPS، من دون تأثير على المواقع القائمة.
 - [ ] إنشاء dedicated ASAS PostgreSQL/Redis isolation المتوافق مع W02 ووقف scope المطلوب فقط إذا غاب secret أو connection authority حقيقي.
