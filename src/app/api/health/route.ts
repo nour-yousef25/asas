@@ -7,6 +7,7 @@ import { verifyBackupManifest } from "@/lib/lifecycle/backup";
 import { healthHttpStatus } from "@/lib/platform/contracts";
 import { withCorrelationId } from "@/lib/observability/correlation";
 import { logger } from "@/lib/logger";
+import { TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY } from "@/lib/tenant-worker-heartbeat";
 
 export const runtime = "nodejs";
 
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
         workerHeartbeat: async () => {
           if (!process.env.REDIS_URL) return false;
           const { getRedis } = await import("@/lib/redis");
-          return Boolean(await getRedis().get("asas:health:worker:communications"));
+          return Boolean(await getRedis().get(TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY));
         },
       }),
     );

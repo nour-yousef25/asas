@@ -12,6 +12,8 @@ evidence="$proof_dir/evidence-$suffix.json"
 final_evidence="$backup/vps-staging-tenant-runtime-evidence.json"
 cleanup_report="$backup/vps-staging-tenant-runtime-cleanup.json"
 provision_log="$backup/vps-staging-tenant-runtime-provision.log"
+harness_log="$backup/vps-staging-tenant-runtime-harness.log"
+runner_log="$backup/vps-staging-tenant-runtime-runner.log"
 
 org_a=$(cat /proc/sys/kernel/random/uuid); org_b=$(cat /proc/sys/kernel/random/uuid)
 user_a=$(cat /proc/sys/kernel/random/uuid); user_b=$(cat /proc/sys/kernel/random/uuid)
@@ -29,6 +31,13 @@ queue_ref_a="vpsqueuea_$suffix"; queue_ref_b="vpsqueueb_$suffix"
 password_a=$(openssl rand -hex 32); password_b=$(openssl rand -hex 32)
 redis_password_a=$(openssl rand -hex 32); redis_password_b=$(openssl rand -hex 32)
 cleanup_ok=true
+asasplus_gid=$(getent group asasplus | awk -F: '{print $3}')
+[[ "$asasplus_gid" =~ ^[0-9]+$ ]]
+
+mark_stage() {
+  printf '%s %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$1" >> "$runner_log"
+  chmod 0600 "$runner_log"
+}
 
 run_redis_fixture() {
   local mode="$1"
@@ -46,6 +55,7 @@ run_redis_fixture() {
 
 cleanup() {
   local status=$?
+  mark_stage "cleanup_started"
   set +e
   systemctl stop asasplus-worker-staging.service >/dev/null 2>&1
   if [[ -n "${REDIS_URL:-}" ]]; then
@@ -73,6 +83,7 @@ SQL
   rm -f "$evidence"
   systemctl restart asasplus-worker-staging.service >/dev/null 2>&1 || cleanup_ok=false
   systemctl is-active --quiet asasplus-worker-staging.service || cleanup_ok=false
+  mark_stage "cleanup_finished"
   printf '{"cleanup":"%s","fixtureResidueExpected":false,"credentialsPersisted":false,"productionResourcesTouched":false}\n' "$cleanup_ok" > "$cleanup_report"
   chmod 0600 "$cleanup_report"
   if [[ "$status" -ne 0 || "$cleanup_ok" != true ]]; then
@@ -82,6 +93,7 @@ SQL
 trap cleanup EXIT
 
 install -d -o root -g asasplus -m 2750 "$proof_dir" "$backup"
+mark_stage "initialized"
 set -a; . /opt/asasplus/shared/runtime-secrets.conf; set +a
 test -n "${REDIS_URL:-}"
 permission=$(sudo -u postgres psql -d asasplus_staging -X -At -v ON_ERROR_STOP=1 -c "SELECT id FROM \"permissions\" WHERE name = 'communications.publication.schedule' LIMIT 1")
@@ -96,8 +108,10 @@ chmod 0640 "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus
 chmod 0640 "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
 chown root:asasplus "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
 chown root:asasplus "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
+mark_stage "credential_files_ready"
 
 run_redis_fixture provision >/dev/null
+mark_stage "redis_acl_ready"
 
 if ! sudo -u postgres psql -d asasplus_staging -X -v ON_ERROR_STOP=1 >/dev/null 2>"$provision_log" <<SQL
 CREATE ROLE $principal_a LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD '$password_a';
@@ -124,17 +138,31 @@ then
   exit 2
 fi
 chmod 0600 "$provision_log"
+mark_stage "postgres_fixture_ready"
 
-printf '{"organizationA":"%s","organizationB":"%s","userA":"%s","userB":"%s","membershipA":"%s","membershipB":"%s","principalA":"%s","principalB":"%s","planA":"%s","planB":"%s"}\n' "$org_a" "$org_b" "$user_a" "$user_b" "$member_a" "$member_b" "$principal_a" "$principal_b" "$plan_a" "$plan_b" > "$fixture"
+printf '{"organizationA":"%s","organizationB":"%s","userA":"%s","userB":"%s","membershipA":"%s","membershipB":"%s","principalA":"%s","principalB":"%s","credentialReferenceA":"file://%s","planA":"%s","planB":"%s"}\n' "$org_a" "$org_b" "$user_a" "$user_b" "$member_a" "$member_b" "$principal_a" "$principal_b" "$ref_a" "$plan_a" "$plan_b" > "$fixture"
 chmod 0640 "$fixture"; chown root:asasplus "$fixture"
 touch "$evidence"; chmod 0660 "$evidence"; chown root:asasplus "$evidence"
+mark_stage "harness_files_ready"
 
+mark_stage "worker_restart_requested"
 systemctl restart asasplus-worker-staging.service
-sleep 3
+for _ in $(seq 1 40); do
+  systemctl is-active --quiet asasplus-worker-staging.service || exit 2
+  sleep 0.25
+done
 systemctl is-active --quiet asasplus-worker-staging.service
-journalctl -u asasplus-worker-staging.service --since "90 seconds ago" --no-pager | grep -q "active for 2 provisioned tenant"
+mark_stage "worker_ready"
 
-sudo -u asasplus bash -lc "set -euo pipefail; set -a; . /opt/asasplus/shared/runtime-secrets.conf; set +a; export ASAS_VPS_STAGING_PROOF_FIXTURE_FILE='$fixture'; export ASAS_VPS_STAGING_PROOF_EVIDENCE_FILE='$evidence'; cd '$release'; pnpm exec tsx scripts/w02-vps-staging-tenant-runtime-proof.ts"
+if ! sudo -u asasplus bash -lc "set -euo pipefail; set -a; . /opt/asasplus/shared/runtime-secrets.conf; set +a; export TENANT_CREDENTIAL_ALLOWED_GROUP_ID='$asasplus_gid'; export TENANT_QUEUE_CREDENTIAL_ALLOWED_GROUP_ID='$asasplus_gid'; export ASAS_VPS_STAGING_PROOF_FIXTURE_FILE='$fixture'; export ASAS_VPS_STAGING_PROOF_EVIDENCE_FILE='$evidence'; cd '$release'; pnpm exec tsx scripts/w02-vps-staging-tenant-runtime-proof.ts" >"$harness_log" 2>&1
+then
+  chmod 0600 "$harness_log"
+  printf 'VPS_STAGING_PROOF_HARNESS_FAILED log=%s\n' "$harness_log" >&2
+  exit 2
+fi
+chmod 0600 "$harness_log"
+mark_stage "harness_passed"
 cd "$release"
 node scripts/w02-vps-staging-tenant-runtime-proof-validate.mjs "$evidence"
+mark_stage "validator_passed"
 printf 'VPS_TENANT_AB_PROOF=PASS evidence=%s cleanup_report=%s\n' "$final_evidence" "$cleanup_report"

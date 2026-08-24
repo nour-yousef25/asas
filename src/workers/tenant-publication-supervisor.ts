@@ -5,6 +5,8 @@ import { installTenantQueueConnectionProvider, createTenantPublicationWorker } f
 import { bootstrapTenantRuntime } from "@/lib/tenant-runtime-bootstrap";
 import { requireTenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 import { publishPlanById } from "@/lib/communications/publisher";
+import { getRedis } from "@/lib/redis";
+import { TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_INTERVAL_MS, TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY, TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_TTL_SECONDS } from "@/lib/tenant-worker-heartbeat";
 
 function credentialReadGroupId(variable: string) {
   const value = process.env[variable];
@@ -27,8 +29,22 @@ async function main() {
   installTenantQueueConnectionProvider(provider);
   const principals = await prisma.tenantDatabasePrincipal.findMany({ where: { status: "ACTIVE", queueCredentialReference: { not: null } }, select: { organizationId: true } });
   const workers = await Promise.all(principals.map(({ organizationId }) => createTenantPublicationWorker({ organizationId, executor: requireTenantBoundPrismaExecutor(), handler: ({ context, publicationPlanId }) => publishPlanById({ context, publicationPlanId }), provider })));
+  const heartbeat = async () => {
+    try {
+      await getRedis().set(TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY, "active", "EX", TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_TTL_SECONDS);
+    } catch {
+      console.error("Tenant publication supervisor heartbeat failed.");
+    }
+  };
+  await heartbeat();
+  const heartbeatTimer = setInterval(() => { void heartbeat(); }, TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_INTERVAL_MS);
   console.log(`Tenant publication supervisor active for ${workers.length} provisioned tenant(s).`);
-  const close = async () => { await Promise.all(workers.map((worker) => worker.close())); await prisma.$disconnect(); };
+  const close = async () => {
+    clearInterval(heartbeatTimer);
+    await getRedis().del(TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY).catch(() => undefined);
+    await Promise.all(workers.map((worker) => worker.close()));
+    await prisma.$disconnect();
+  };
   process.once("SIGTERM", () => { void close().then(() => process.exit(0)); });
   process.once("SIGINT", () => { void close().then(() => process.exit(0)); });
   // Keep the supervisor observable while provisioning is empty; it owns no global queue.
