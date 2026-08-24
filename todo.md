@@ -2,11 +2,11 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
-- [ ] إنشاء OpenLiteSpeed staging access path أو host-header معزول لـASAS فقط، مع snapshot/rollback وعدم تغيير DNS أو production traffic.
-- [ ] provision tenant A/B staging principals وopaque database/queue credentials وإثبات Broker/`session_user`/RLS/A-B/revocation/replay/pool isolation.
-- [ ] إثبات worker processing وqueue isolation على staging tenants؛ لا legacy global worker أو global queue credential.
-- [ ] استكمال health heartbeat/scheduler/backup-manifest حيث يمكن محلياً، وتسجيل storage/Auth/IdP/Mail/Integrations كـBLOCKED — NOT PROVEN إن غابت provider secrets.
-- [ ] تشغيل regression وsmoke من staging access path ثم rollback rehearsal بعد تغييرات vhost/release وإصدار `DEPLOYMENT-STAGING-FINAL-REPORT.md`.
+- [x] إنشاء OpenLiteSpeed staging access path أو host-header معزول لـASAS فقط، مع snapshot/rollback وعدم تغيير DNS أو production traffic.
+- [x] provision tenant A/B staging principals وopaque database/queue credentials وإثبات Broker/`session_user`/RLS/A-B/revocation/replay/pool isolation.
+- [x] إثبات worker processing وqueue isolation على staging tenants؛ لا legacy global worker أو global queue credential.
+- [x] استكمال health heartbeat/backup-manifest حيث يمكن محلياً، وتسجيل storage/Auth/IdP/Mail/Integrations كـBLOCKED — NOT PROVEN لغياب provider secrets؛ scheduler بقي NOT_CONFIGURED بلا اختراع adapter.
+- [x] تشغيل regression وsmoke من staging access path ثم rollback rehearsal بعد تغييرات vhost/release وإصدار `DEPLOYMENT-STAGING-FINAL-REPORT.md`.
 
 - [x] مصالحة apparent divergence: كان `origin/*` المحلي stale عند `9631b7` فقط، بينما GitHub API يطابق local canonical `be21034`; لا force أو reset أو merge مطلوب.
 
