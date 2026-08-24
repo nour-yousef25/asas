@@ -5,13 +5,12 @@ import type Redis from "ioredis";
 import type { TenantContext } from "@/lib/tenant-context";
 import type { TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 import { evaluatePermission } from "@/lib/policy";
+import { TenantQueueBoundaryError } from "@/lib/tenant-queue-boundary";
+
+export { TenantQueueBoundaryError } from "@/lib/tenant-queue-boundary";
 
 export const PUBLICATION_DISPATCH_PERMISSION = "communications.publication.schedule";
 const envelopeVersion = 1 as const;
-
-export class TenantQueueBoundaryError extends Error {
-  constructor(public readonly code: string) { super(code); this.name = "TenantQueueBoundaryError"; }
-}
 
 export type TenantQueueConnectionRequest = Readonly<{ organizationId: string; correlationId: string; workload: "publication" }>;
 export type TenantQueueCheckout = Readonly<{ principalName: string; redis: Redis; discard: () => Promise<void> }>;

@@ -2,6 +2,9 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [ ] تنفيذ TenantQueueConnectionProvider وworker supervisor fail-closed؛ خدمة legacy worker على staging متوقفة لأنها تعلن `QUEUE_LEGACY_WORKER_QUARANTINED` ولا يجوز تجاوز الحجر.
+- [ ] إثبات queue worker لكل tenant principal بعد provisioning حقيقي، أو توثيق BLOCKED لكل dispatch external غير مهيأ.
+
 - [ ] تنفيذ وتدقيق production-safe `TenantConnectionProvider`/opaque credential resolver؛ لا يوجد implementation runtime حالي خارج harnesses، ولا يجوز استعمال global data-plane credential كبديل.
 - [ ] إنشاء tenant login principals وcredential references عبر authority الجديدة، وإثبات checkout/discard/RLS على staging قبل تشغيل request-data-plane.
 

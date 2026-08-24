@@ -369,6 +369,7 @@ model TenantDatabasePrincipal {
   organizationId      String
   principalName       String                        @unique
   credentialReference String                        @unique
+  queueCredentialReference String?                 @unique
   generation          Int                           @default(1)
   status              TenantDatabasePrincipalStatus @default(ACTIVE)
   activatedAt         DateTime                      @default(now())
