@@ -14,8 +14,8 @@
 | Beneficiary ownership/cutover | COMPLETE PREREQUISITE | Beneficiary RLS Wave 1 only | O01–O06 proof; Documents delivery excluded |
 | tenant-bound runtime connection authority | RESOLVED FOR AUDIT RUNTIME | opens Beneficiary RLS Wave 1 only | A01–A15 PostgreSQL proof; production provider/workload identity remains OPEN |
 | Beneficiary RLS Wave 1 | COMPLETE AUDIT RUNTIME | later family waves retain independent gates | R01–R15 PostgreSQL proof; production provider/DR/scale remain OPEN |
-| Financial Donor/Donation runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | F01–F10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root backfill |
-| Financial Budget/Expense runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | BE01–BE10 tenant LOGIN/session_user/Broker/Prisma proof; no production provider, RLS policy or nullable-root hardening |
+| Financial Donor/Donation RLS Wave2 | COMPLETE LOCAL ISOLATED RLS | provider activation remains prohibited | FR01–FR15; FORCE RLS, role-OID/session_user, A/B/children/rotation/cleanup proof |
+| Financial Budget/Expense RLS Wave3 | COMPLETE LOCAL ISOLATED RLS | provider activation remains prohibited | BE-R01–BE-R12; FORCE RLS, parent checks, A/B/rotation/parallel/cleanup proof |
 | Mixed dashboard ownership aggregation | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | ADR-W02-011/012 وNR/UR وD01–D10 وMK01–MK10 تثبت ownership/admission/root runtime وMember/KPI cutover محلياً؛ provider operations وبقية family gates مستقلة |
 | Control-plane audit ledger boundary | COMPLETE LIMITED AUDIT RUNTIME | does not authorize tenant migration or production | ADR-W02-010 CP01–CP12 exact proof passes; operational retention/DR/HA remains open |
 | Nullable-root ownership/backfill | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | ADR-W02-011/012 وNR01–NR15 وUR01–UR10 تثبت explicit mapping/admission وclean/upgrade rehearsal؛ production operations remain separate |
@@ -23,8 +23,13 @@
 | Dashboard nullable-root clean rehearsal | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | ADR-W02-012 NR01–NR15 clean migration/admission proof passes; production provider operation remains required |
 | Dashboard nullable-root upgrade rehearsal | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | UR01–UR10 proves pre-successor upgrade, legacy preservation and tenant-bound admission |
 | Mixed dashboard root-page runtime | COMPLETE LIMITED AUDIT RUNTIME | Financial RLS remains prohibited | D01–D10 root snapshot and MK01–MK10 Member/KPI data-plane cutover pass; provider and remaining W02 families remain separate |
-| Provider DR/HA/scale readiness | OPEN | Financial RLS is prohibited | deployment-owned provider, recovery, role-scale and pool capacity evidence required |
-| remaining family ownership/cutover | PARTIAL | later RLS waves | each WP5 family closure |
+| Financial migration and portability rehearsal | COMPLETE LOCAL ISOLATED | provider activation remains prohibited | MGR-F01–F10 and PORT-R01–R06 exact validators; Git permission metadata must be materialized locally |
+| Provider DR/HA/scale readiness | OPEN — EXTERNAL | global W02 closure | deployment-owned provider, recovery, role-scale and pool capacity evidence required |
+| WP6 vault/secret records | NOT IMPLEMENTED | WP7/WP8/WP9 and W02 closure | KMS capability verification and Security/Operations owner contract required; ADR-W02-005 is design only |
+| WP7 privacy/retention/export/audit-v2 | NOT IMPLEMENTED | W02 closure | data classification/purpose policy, country-specific retention and legal-hold rules require Privacy/Data Owner approval; ADR-W02-006 is design only |
+| WP8 certificate verification/activation | NOT IMPLEMENTED | W02 closure | certificate issuer/control-plane and Commercial/Licensing owner inputs required; ADR-W02-007 is design only |
+| WP9 IdP provider framework | NOT IMPLEMENTED | W02 closure | tenant provider sandbox/production contract and credentials/UAT remain owner/provider controlled |
+| Reports/export delivery | DEFERRED BY PRIOR SCOPE | WP7 privacy/export closure | report generation is tenant-bound; export/download/storage governance was explicitly deferred |
 | legacy manifest/backfill | CLOSED foundation, family-specific | nullable/unmapped roots | Data owner + WP4 contract |
 | Users/Memberships tenant authority | COMPLETE LIMITED AUDIT RUNTIME | global identity onboarding remains distinct; W02 closure is still blocked by Queue/Storage/provider | ADR-W02-013; UM01–UM10 exact PostgreSQL proof, validator, quarantine of `/api/users` |
 | Queue/Redis/Cache | COMPLETE LIMITED AUDIT RUNTIME | production worker/provider activation and SMS/Notification reactivation remain separately blocked | Q01–Q10 exact Redis/PostgreSQL disposable proof; legacy surfaces fail-closed |

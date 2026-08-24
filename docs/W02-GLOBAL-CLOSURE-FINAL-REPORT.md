@@ -2,7 +2,7 @@
 
 ## الملخص التنفيذي
 
-**القرار النهائي: `W02 BLOCKED — EXTERNAL DEPLOYMENT PREREQUISITE`.** أُغلقت كل البوابات التي يمكن إثباتها محلياً على PostgreSQL audit disposable، بما فيها موجتا Financial RLS وclean/upgrade/forward-safe recovery rehearsal وportability rehearsal. لا يعني ذلك `W02 COMPLETE` ولا production readiness، لأن دليل provider topology وworkload identity وpool/failover وbackup/restore وcapacity لم يُقدَّم في target-like environment مملوك للنشر.
+**القرار النهائي: `W02 NOT COMPLETE — INTERNAL SCOPE GATES + EXTERNAL DEPLOYMENT PREREQUISITES`.** أُغلقت البوابات المحلية المنفذة على PostgreSQL audit disposable، بما فيها موجتا Financial RLS وclean/upgrade/forward-safe recovery rehearsal وportability rehearsal. لكن مراجعة canonical مقابل `W02-IMPLEMENTATION-PLAN` تثبت أن WP6–WP9 وreport export delivery لم تنفذ runtime أو evidence؛ كما لم يقدم target-like provider دليل topology/identity/pool/failover/backup/restore/capacity. لا يجوز اختزال ذلك إلى DT01–DT06 أو إعلان `W02 COMPLETE`.
 
 ## مصفوفة النطاق النهائي
 
@@ -14,6 +14,7 @@
 | Financial migration/recovery | `PASS LOCAL ISOLATED` | MGR-F01–MGR-F10: pristine، pre-Wave2 upgrade، A/B، recovery عبر disposal/rebuild الرسمي |
 | Portability | `PASS LOCAL ISOLATED` | PORT-R01–PORT-R06: snapshot، frozen install بلا dependency lifecycle، Prisma/typecheck/RLS smoke/build |
 | Dashboard المختلط | `QUARANTINED SEPARATE SCOPE` | لا يدخل في claim موجتي Financial RLS |
+| WP6–WP9 وreport export | `OPEN INTERNAL / OWNER CONTRACTS` | ADRs design-only؛ لا Vault/Privacy/Activation/IdP/export runtime evidence |
 | DT01–DT06 provider/HA/DR/scale | `BLOCKED EXTERNAL` | لا توجد target-like topology أو owner evidence |
 
 ## المعمارية الأمنية وFinancial Ownership
@@ -37,10 +38,12 @@ Regression النهائي مر باستخدام Prisma URL placeholder محلي 
 
 كانت كل evidence أعلاه بصلاحية `0600` وقت التحقق المحلي ولا تحتوي credentials أو URLs أو names للأدوار. **Git يحفظ محتوى الملفات لا mode `0600`**؛ لذلك يجب على أي checkout جديد تنفيذ `chmod 600 docs/evidence/W02-*.json` قبل تشغيل validators ذات mode check. لا ينشئ ذلك secret-management claim لأن artifacts نفسها خالية من الأسرار. راجع كذلك [عقد portability](./W02-DEPLOYMENT-PORTABILITY-CONTRACT.md) و[مصفوفة البوابات](./W02-FINAL-CLOSURE-REMAINING-GATES.md).
 
-## المتطلبات الخارجية الدنيا
+## المتطلبات الداخلية والخارجية الدنيا
+
+قبل أن يصبح DT01–DT06 العائق الوحيد، يلزم إغلاق scopes W02 الداخلية أو إعادة اعتماد حدودها رسمياً: Vault/secret runtime مع KMS capability، privacy/retention/legal-hold/export policy من Data Owner، activation issuer/control-plane contract، وIdP provider framework/sandbox/UAT contract. لا يحق للتنفيذ اختلاق هذه السياسات أو credentials أو issuer.
 
 يلزم deployment owner توفير **target-like non-production** مملوك له يحوي PostgreSQL tenant-role provisioning وprotected mapping، workload identity/opaque credential resolver، pool settings وhealth/failover، backup/restore exercise، capacity/scale limits وrunbooks. عندها فقط تُنفذ DT01–DT06؛ لا يحق لهذا التقرير أن يحوّل audit host المحلي إلى دليل provider أو HA/DR أو RPO/RTO.
 
 ## قرار المتابعة
 
-لا يُعلَن `W02 COMPLETE — READY FOR W03` قبل مرور DT01–DT06 على البيئة المذكورة. المتطلب التالي الوحيد هو تقديم تلك البيئة ومدخلاتها، لا فتح production ولا مشاركة أسرار عبر المحادثة.
+لا يُعلَن `W02 COMPLETE — READY FOR W03` قبل إغلاق scopes WP6–WP9/report export وفق عقود المالكين، ثم مرور DT01–DT06 على البيئة المذكورة. لا يلزم فتح production أو مشاركة أسرار عبر المحادثة.

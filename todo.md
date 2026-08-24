@@ -2,6 +2,15 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [x] تنفيذ Git/evidence/state audit وفق `pasted_content_49` وإصدار `docs/W02-FINAL-AUTONOMOUS-CLOSURE-STATE.md` مع preservation branch للشجرة المتسخة السابقة.
+- [x] إعادة بناء dependency graph والتحقق من validators Users/Queue/Storage/Financial/Migration/Portability بعد canonical checkout.
+- [x] فحص Docker وIaC وCI/GitHub environments/connectors وPostgreSQL/Redis topology؛ توثيق عدم وجود target-like DT01–DT06 في `W02-DT01-DT06-ENVIRONMENT-AUDIT.md`.
+- [ ] إغلاق WP6 Vault/secret lifecycle بعد KMS capability وSecurity/Operations owner contract؛ لا provider أو secret مخترع.
+- [ ] إغلاق WP7 Privacy/retention/legal-hold/export بعد اعتماد Privacy/Data Owner للسياسات اللازمة.
+- [ ] إغلاق WP8 certificate/activation بعد contract issuer/control-plane من Commercial/Licensing owner.
+- [ ] إغلاق WP9 provider-neutral IdP framework بعد sandbox/prod contract وUAT/owner inputs.
+- [ ] تنفيذ DT01–DT06 فقط على target-like non-production environment مملوك للنشر.
+
 - [ ] مصالحة source of truth وGit/evidence/ADRs وتحديث dependency graph الحي قبل كل scope جديد.
 - [ ] تنفيذ MembershipRepository ومسارات users/memberships tenant-bound مع PostgreSQL audit harness ومدقق exact.
 - [ ] تحويل IAM/Policy membership data-plane إلى tenant-bound authority وإثبات role/override/SoD negatives ضمن harness Users/Memberships.
