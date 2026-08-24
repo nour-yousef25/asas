@@ -41,6 +41,15 @@ if (!fixturePath || !evidencePath || !tenantCredentialDirectory || !queueCredent
 const fixture = JSON.parse(readFileSync(fixturePath, "utf8")) as Fixture;
 const evidence: Evidence[] = [];
 
+function credentialReadGroupId(variable: string) {
+  const value = process.env[variable];
+  if (!value) return undefined;
+  if (!/^(0|[1-9][0-9]{0,9})$/.test(value)) throw new Error(`${variable}_INVALID`);
+  const id = Number(value);
+  if (!Number.isSafeInteger(id)) throw new Error(`${variable}_INVALID`);
+  return id;
+}
+
 function context(input: Pick<TenantContext, "organizationId" | "userId" | "membershipId" | "correlationId"> & Partial<Pick<TenantContext, "sessionVersion" | "policySnapshotVersion">>): TenantContext {
   return Object.freeze({
     ...input,
@@ -87,7 +96,7 @@ async function main() {
   const startedAt = new Date().toISOString();
   const contextA = context({ organizationId: fixture.organizationA, userId: fixture.userA, membershipId: fixture.membershipA, correlationId: "vps-proof-a" });
   const contextB = context({ organizationId: fixture.organizationB, userId: fixture.userB, membershipId: fixture.membershipB, correlationId: "vps-proof-b" });
-  const provider = new FileTenantConnectionProvider(tenantCredentialDirectory!);
+  const provider = new FileTenantConnectionProvider(tenantCredentialDirectory!, undefined, { allowedReadGroupId: credentialReadGroupId("TENANT_CREDENTIAL_ALLOWED_GROUP_ID") });
   const broker = new TenantAccessBroker(prisma, new TenantBoundPrismaCredentialAuthority(provider), 5_000);
   const executor = new TenantBoundPrismaExecutor(broker);
   const queueProvider = new FileTenantQueueConnectionProvider(queueCredentialDirectory!, async (organizationId) => {
@@ -97,7 +106,7 @@ async function main() {
     });
     if (!principal?.queueCredentialReference) throw new Error("VPS_STAGING_QUEUE_REFERENCE_ABSENT");
     return principal.queueCredentialReference;
-  });
+  }, undefined, { allowedReadGroupId: credentialReadGroupId("TENANT_QUEUE_CREDENTIAL_ALLOWED_GROUP_ID") });
   const closers: Array<() => Promise<void>> = [];
 
   try {
