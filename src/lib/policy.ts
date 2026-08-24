@@ -1,5 +1,5 @@
-import { PermissionEffect, PlatformSupportAccessStatus } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { PermissionEffect, PlatformSupportAccessStatus, type PrismaClient } from "@prisma/client";
+import { requireTenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 import type { TenantContext } from "@/lib/tenant-context";
 
 export type PolicyDecision = Readonly<{
@@ -28,8 +28,8 @@ export function assertSeparationOfDuties(permissionNames: readonly string[]) {
   }
 }
 
-export async function evaluatePermission(context: TenantContext, permissionName: string): Promise<PolicyDecision> {
-  const membership = await prisma.organizationMembership.findFirst({
+async function evaluatePermissionWithPrisma(db: PrismaClient, context: TenantContext, permissionName: string): Promise<PolicyDecision> {
+  const membership = await db.organizationMembership.findFirst({
     where: {
       id: context.membershipId,
       organizationId: context.organizationId,
@@ -58,6 +58,10 @@ export async function evaluatePermission(context: TenantContext, permissionName:
   return { allowed: false, reason: "DEFAULT_DENY" };
 }
 
+export async function evaluatePermission(context: TenantContext, permissionName: string): Promise<PolicyDecision> {
+  return requireTenantBoundPrismaExecutor().execute(context, (db) => evaluatePermissionWithPrisma(db, context, permissionName));
+}
+
 export async function requirePermission(context: TenantContext, permissionName: string) {
   const decision = await evaluatePermission(context, permissionName);
   if (!decision.allowed) throw new PolicyAuthorizationError(decision);
@@ -65,20 +69,20 @@ export async function requirePermission(context: TenantContext, permissionName: 
 }
 
 export async function hasApprovedSupportReadAccess(input: {
-  organizationId: string;
+  context: TenantContext;
   requesterId: string;
   classification: "PUBLIC" | "INTERNAL" | "CONFIDENTIAL" | "RESTRICTED";
 }) {
   if (input.classification === "RESTRICTED") return false;
-  const access = await prisma.platformSupportAccess.findFirst({
+  const access = await requireTenantBoundPrismaExecutor().execute(input.context, (db) => db.platformSupportAccess.findFirst({
     where: {
-      organizationId: input.organizationId,
+      organizationId: input.context.organizationId,
       requesterId: input.requesterId,
       status: PlatformSupportAccessStatus.APPROVED,
       readOnly: true,
       expiresAt: { gt: new Date() },
       revokedAt: null,
     },
-  });
+  }));
   return Boolean(access);
 }
