@@ -6,6 +6,7 @@ import { TenantQueueBoundaryError } from "@/lib/tenant-queue-boundary";
 import type { TenantQueueCheckout, TenantQueueConnectionProvider, TenantQueueConnectionRequest } from "@/lib/tenant-queue";
 
 type RedisFactory = (url: string) => Pick<Redis, "connect" | "quit">;
+type CredentialFileOptions = Readonly<{ allowedReadGroupId?: number }>;
 const referencePattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 
 function denied(code: string): never { throw new TenantQueueBoundaryError(code); }
@@ -24,10 +25,21 @@ function validateUrl(raw: string) {
   return url.toString();
 }
 
+function hasAcceptedCredentialPermissions(file: Awaited<ReturnType<typeof stat>>, allowedReadGroupId?: number) {
+  const mode = Number(file.mode) & 0o777;
+  if (mode === 0o600) return true;
+  return allowedReadGroupId !== undefined && mode === 0o640 && Number(file.uid) === 0 && Number(file.gid) === allowedReadGroupId;
+}
+
 export class FileTenantQueueConnectionProvider implements TenantQueueConnectionProvider {
   private readonly directoryPromise: Promise<string>;
 
-  constructor(directory: string, private readonly referenceForOrganization: (organizationId: string) => Promise<string>, private readonly redisFactory: RedisFactory = (url) => new Redis(url, { lazyConnect: true })) {
+  constructor(
+    directory: string,
+    private readonly referenceForOrganization: (organizationId: string) => Promise<string>,
+    private readonly redisFactory: RedisFactory = (url) => new Redis(url, { lazyConnect: true }),
+    private readonly options: CredentialFileOptions = {},
+  ) {
     this.directoryPromise = realpath(directory).catch(() => denied("QUEUE_CREDENTIAL_DIRECTORY_UNAVAILABLE"));
   }
 
@@ -39,7 +51,7 @@ export class FileTenantQueueConnectionProvider implements TenantQueueConnectionP
     let metadata: Awaited<ReturnType<typeof stat>>;
     let raw: string;
     try { [metadata, raw] = await Promise.all([stat(filePath), readFile(filePath, "utf8")]); } catch { denied("QUEUE_CREDENTIAL_UNAVAILABLE"); }
-    if (!metadata.isFile() || (metadata.mode & 0o077) !== 0) denied("QUEUE_CREDENTIAL_FILE_PERMISSIONS_INVALID");
+    if (!metadata.isFile() || !hasAcceptedCredentialPermissions(metadata, this.options.allowedReadGroupId)) denied("QUEUE_CREDENTIAL_FILE_PERMISSIONS_INVALID");
     const redis = this.redisFactory(validateUrl(raw.trim()));
     try { await redis.connect(); } catch { denied("QUEUE_CONNECTION_AUTHORITY_UNAVAILABLE"); }
     let discarded = false;

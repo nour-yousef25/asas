@@ -6,11 +6,20 @@ import { installTenantBoundPrismaExecutor, TenantBoundPrismaCredentialAuthority,
 
 let bootstrapped = false;
 
+function credentialReadGroupId(variable: string) {
+  const value = process.env[variable];
+  if (!value) return undefined;
+  if (!/^(0|[1-9][0-9]{0,9})$/.test(value)) throw new Error(`${variable}_INVALID`);
+  const id = Number(value);
+  if (!Number.isSafeInteger(id)) throw new Error(`${variable}_INVALID`);
+  return id;
+}
+
 export function bootstrapTenantRuntime() {
   if (bootstrapped) return;
   const directory = process.env.TENANT_CREDENTIAL_DIRECTORY;
   if (!directory) throw new Error("TENANT_CONNECTION_AUTHORITY_UNCONFIGURED");
-  const authority = new TenantBoundPrismaCredentialAuthority(new FileTenantConnectionProvider(directory));
+  const authority = new TenantBoundPrismaCredentialAuthority(new FileTenantConnectionProvider(directory, undefined, { allowedReadGroupId: credentialReadGroupId("TENANT_CREDENTIAL_ALLOWED_GROUP_ID") }));
   const broker = new TenantAccessBroker(prisma, authority);
   installTenantBoundPrismaExecutor(new TenantBoundPrismaExecutor(broker));
   bootstrapped = true;

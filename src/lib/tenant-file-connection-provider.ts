@@ -6,6 +6,7 @@ import { BrokerDeniedError } from "@/lib/tenant-access-broker";
 import type { TenantConnectionCheckout, TenantConnectionProvider, TenantConnectionRequest } from "@/lib/tenant-bound-prisma-authority";
 
 type PrismaFactory = (url: string) => Pick<PrismaClient, "$connect" | "$disconnect">;
+type CredentialFileOptions = Readonly<{ allowedReadGroupId?: number }>;
 
 const referencePattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/;
 
@@ -33,6 +34,12 @@ function validateTenantUrl(url: string, principalName: string) {
   return parsed.toString();
 }
 
+function hasAcceptedCredentialPermissions(file: Awaited<ReturnType<typeof stat>>, allowedReadGroupId?: number) {
+  const mode = Number(file.mode) & 0o777;
+  if (mode === 0o600) return true;
+  return allowedReadGroupId !== undefined && mode === 0o640 && Number(file.uid) === 0 && Number(file.gid) === allowedReadGroupId;
+}
+
 /**
  * Reads one root-provisioned credential file per exact opaque reference. The
  * application only receives a scoped Prisma checkout for one tenant operation.
@@ -40,7 +47,11 @@ function validateTenantUrl(url: string, principalName: string) {
 export class FileTenantConnectionProvider implements TenantConnectionProvider {
   private readonly directoryPromise: Promise<string>;
 
-  constructor(directory: string, private readonly prismaFactory: PrismaFactory = (url) => new PrismaClient({ datasources: { db: { url } } })) {
+  constructor(
+    directory: string,
+    private readonly prismaFactory: PrismaFactory = (url) => new PrismaClient({ datasources: { db: { url } } }),
+    private readonly options: CredentialFileOptions = {},
+  ) {
     this.directoryPromise = realpath(directory).catch(() => denied("TENANT_CREDENTIAL_DIRECTORY_UNAVAILABLE"));
   }
 
@@ -57,7 +68,7 @@ export class FileTenantConnectionProvider implements TenantConnectionProvider {
     } catch {
       denied("TENANT_CREDENTIAL_UNAVAILABLE");
     }
-    if (!file.isFile() || (file.mode & 0o077) !== 0) denied("TENANT_CREDENTIAL_FILE_PERMISSIONS_INVALID");
+    if (!file.isFile() || !hasAcceptedCredentialPermissions(file, this.options.allowedReadGroupId)) denied("TENANT_CREDENTIAL_FILE_PERMISSIONS_INVALID");
 
     const prisma = this.prismaFactory(validateTenantUrl(raw.trim(), request.principalName));
     try {

@@ -11,11 +11,12 @@ fixture="$proof_dir/fixture-$suffix.json"
 evidence="$proof_dir/evidence-$suffix.json"
 final_evidence="$backup/vps-staging-tenant-runtime-evidence.json"
 cleanup_report="$backup/vps-staging-tenant-runtime-cleanup.json"
+provision_log="$backup/vps-staging-tenant-runtime-provision.log"
 
 org_a=$(cat /proc/sys/kernel/random/uuid); org_b=$(cat /proc/sys/kernel/random/uuid)
 user_a=$(cat /proc/sys/kernel/random/uuid); user_b=$(cat /proc/sys/kernel/random/uuid)
 member_a=$(cat /proc/sys/kernel/random/uuid); member_b=$(cat /proc/sys/kernel/random/uuid)
-permission=$(cat /proc/sys/kernel/random/uuid); role_a=$(cat /proc/sys/kernel/random/uuid); role_b=$(cat /proc/sys/kernel/random/uuid)
+role_a=$(cat /proc/sys/kernel/random/uuid); role_b=$(cat /proc/sys/kernel/random/uuid)
 principal_row_a=$(cat /proc/sys/kernel/random/uuid); principal_row_b=$(cat /proc/sys/kernel/random/uuid)
 channel_a=$(cat /proc/sys/kernel/random/uuid); channel_b=$(cat /proc/sys/kernel/random/uuid)
 content_a=$(cat /proc/sys/kernel/random/uuid); content_b=$(cat /proc/sys/kernel/random/uuid)
@@ -57,6 +58,8 @@ DELETE FROM "tenant_broker_audit_events" WHERE "organizationId" IN ('$org_a','$o
 DELETE FROM "tenant_access_leases" WHERE "organizationId" IN ('$org_a','$org_b');
 DELETE FROM security.role_to_organization WHERE organization_id IN ('$org_a','$org_b');
 DELETE FROM "organizations" WHERE id IN ('$org_a','$org_b');
+DROP OWNED BY $principal_a;
+DROP OWNED BY $principal_b;
 DROP ROLE IF EXISTS $principal_a;
 DROP ROLE IF EXISTS $principal_b;
 SQL
@@ -81,22 +84,22 @@ trap cleanup EXIT
 install -d -o root -g asasplus -m 2750 "$proof_dir" "$backup"
 set -a; . /opt/asasplus/shared/runtime-secrets.conf; set +a
 test -n "${REDIS_URL:-}"
+permission=$(sudo -u postgres psql -d asasplus_staging -X -At -v ON_ERROR_STOP=1 -c "SELECT id FROM \"permissions\" WHERE name = 'communications.publication.schedule' LIMIT 1")
+test -n "$permission"
 
-# Root-owned mode 0600 files are shared with only the ASAS service account by named ACL.
+# The provider accepts only root:asasplus mode 0640 when the service GID is explicitly configured.
 printf 'postgresql://%s:%s@127.0.0.1:5432/asasplus_staging?schema=public\n' "$principal_a" "$password_a" > "/opt/asasplus/shared/tenant-credentials/${ref_a}.url"
 printf 'postgresql://%s:%s@127.0.0.1:5432/asasplus_staging?schema=public\n' "$principal_b" "$password_b" > "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
 printf 'redis://%s:%s@127.0.0.1:6385/0\n' "$redis_user_a" "$redis_password_a" > "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url"
 printf 'redis://%s:%s@127.0.0.1:6385/0\n' "$redis_user_b" "$redis_password_b" > "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
-chmod 0600 "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
-chmod 0600 "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
-chown root:root "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
-chown root:root "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
-setfacl -m u:asasplus:r-- "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
-setfacl -m u:asasplus:r-- "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
+chmod 0640 "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
+chmod 0640 "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
+chown root:asasplus "/opt/asasplus/shared/tenant-credentials/${ref_a}.url" "/opt/asasplus/shared/tenant-credentials/${ref_b}.url"
+chown root:asasplus "/opt/asasplus/shared/queue-credentials/${queue_ref_a}.url" "/opt/asasplus/shared/queue-credentials/${queue_ref_b}.url"
 
 run_redis_fixture provision >/dev/null
 
-sudo -u postgres psql -d asasplus_staging -X -v ON_ERROR_STOP=1 >/dev/null <<SQL
+if ! sudo -u postgres psql -d asasplus_staging -X -v ON_ERROR_STOP=1 >/dev/null 2>"$provision_log" <<SQL
 CREATE ROLE $principal_a LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD '$password_a';
 CREATE ROLE $principal_b LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD '$password_b';
 GRANT CONNECT ON DATABASE asasplus_staging TO $principal_a,$principal_b;
@@ -105,7 +108,6 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON TABLE "beneficiaries","organization_members
 INSERT INTO "organizations" ("id","name","createdAt","updatedAt") VALUES ('$org_a','VPS Staging Proof A',now(),now()),('$org_b','VPS Staging Proof B',now(),now());
 INSERT INTO "users" ("id","name","email","role","isActive","authVersion","activeOrganizationId","createdAt","updatedAt") VALUES ('$user_a','VPS Proof A','a-$suffix@staging.invalid','MEMBER',true,1,'$org_a',now(),now()),('$user_b','VPS Proof B','b-$suffix@staging.invalid','MEMBER',true,1,'$org_b',now(),now());
 INSERT INTO "organization_memberships" ("id","organizationId","userId","role","isActive","policyVersion","createdAt","updatedAt") VALUES ('$member_a','$org_a','$user_a','MEMBER',true,1,now(),now()),('$member_b','$org_b','$user_b','MEMBER',true,1,now(),now());
-INSERT INTO "permissions" ("id","name","module","action") VALUES ('$permission','communications.publication.schedule','communications','publication.schedule');
 INSERT INTO "organization_roles" ("id","organizationId","name","isSystem","createdAt","updatedAt") VALUES ('$role_a','$org_a','VPS_QUEUE_ADMIN_A',true,now(),now()),('$role_b','$org_b','VPS_QUEUE_ADMIN_B',true,now(),now());
 INSERT INTO "organization_role_permissions" ("organizationRoleId","permissionId","effect") VALUES ('$role_a','$permission','ALLOW'),('$role_b','$permission','ALLOW');
 INSERT INTO "membership_roles" ("membershipId","organizationRoleId","assignedAt") VALUES ('$member_a','$role_a',now()),('$member_b','$role_b',now());
@@ -116,10 +118,16 @@ INSERT INTO "communication_content_items" ("id","organizationId","type","title",
 INSERT INTO "channel_variants" ("id","contentItemId","connectedChannelId","platform","copy","status","assetUrls","createdAt","updatedAt") VALUES ('$variant_a','$content_a','$channel_a','X','A','APPROVED',ARRAY[]::text[],now(),now()),('$variant_b','$content_b','$channel_b','X','B','APPROVED',ARRAY[]::text[],now(),now());
 INSERT INTO "publication_plans" ("id","organizationId","channelVariantId","status","createdAt","updatedAt") VALUES ('$plan_a','$org_a','$variant_a','PUBLISHED',now(),now()),('$plan_b','$org_b','$variant_b','PUBLISHED',now(),now());
 SQL
+then
+  chmod 0600 "$provision_log"
+  printf 'VPS_STAGING_PROOF_PROVISION_FAILED log=%s\n' "$provision_log" >&2
+  exit 2
+fi
+chmod 0600 "$provision_log"
 
 printf '{"organizationA":"%s","organizationB":"%s","userA":"%s","userB":"%s","membershipA":"%s","membershipB":"%s","principalA":"%s","principalB":"%s","planA":"%s","planB":"%s"}\n' "$org_a" "$org_b" "$user_a" "$user_b" "$member_a" "$member_b" "$principal_a" "$principal_b" "$plan_a" "$plan_b" > "$fixture"
-chmod 0600 "$fixture"; chown root:root "$fixture"; setfacl -m u:asasplus:r-- "$fixture"
-touch "$evidence"; chmod 0600 "$evidence"; chown root:root "$evidence"; setfacl -m u:asasplus:rw- "$evidence"
+chmod 0640 "$fixture"; chown root:asasplus "$fixture"
+touch "$evidence"; chmod 0660 "$evidence"; chown root:asasplus "$evidence"
 
 systemctl restart asasplus-worker-staging.service
 sleep 3
