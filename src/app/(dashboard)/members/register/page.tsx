@@ -27,40 +27,12 @@ export default function RegisterMemberPage() {
       return;
     }
 
-    try {
-      // إنشاء المستخدم ثم العضوية
-      const userRes = await fetch("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: formData.get("name"),
-          email: formData.get("email"),
-          phone,
-          role: "MEMBER",
-        }),
-      });
-      const user = await userRes.json();
-
-      await fetch("/api/members", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: user.id,
-          membershipType: formData.get("membershipType"),
-          membershipFee: parseFloat(formData.get("membershipFee") as string) || 0,
-          paidAmount: parseFloat(formData.get("paidAmount") as string) || 0,
-          status: "ACTIVE",
-          paymentStatus: parseFloat(formData.get("paidAmount") as string) >= parseFloat(formData.get("membershipFee") as string) ? "PAID" : "PENDING",
-        }),
-      });
-      addToast({ type: "success", title: "تم التسجيل", description: "تم تسجيل العضو بنجاح" });
-      router.push("/members");
-      router.refresh();
-    } catch {
-      addToast({ type: "error", title: "خطأ", description: "تعذر تسجيل العضو" });
-    } finally {
-      setLoading(false);
-    }
+    addToast({
+      type: "error",
+      title: "إجراء محمي",
+      description: "إنشاء هوية عالمية وربطها بعضوية متوقف حتى اعتماد عقد onboarding/control-plane منفصل.",
+    });
+    setLoading(false);
   };
 
   return (
@@ -85,7 +57,7 @@ export default function RegisterMemberPage() {
           </div>
           <div className="flex items-center justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => router.back()}>إلغاء</Button>
-            <Button type="submit" disabled={loading}>{loading ? "جارٍ التسجيل..." : "تسجيل العضو"}</Button>
+            <Button type="submit" disabled={loading}>{loading ? "جارٍ التحقق..." : "يتطلب عقد هوية معتمداً"}</Button>
           </div>
         </form>
       </Card>

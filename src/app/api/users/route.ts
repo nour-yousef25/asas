@@ -1,35 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { userSchema } from "@/lib/validations";
-import { auth } from "@/lib/auth";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-  const { searchParams } = new URL(req.url);
-  const role = searchParams.get("role");
-  const where: any = {};
-  if (role) where.role = role;
-  const users = await prisma.user.findMany({
-    where,
-    select: { id: true, name: true, email: true, phone: true, role: true, isActive: true },
-    orderBy: { createdAt: "desc" },
-  });
-  return NextResponse.json(users);
+/**
+ * W02 authority boundary: User is a global identity and this former auth-only
+ * endpoint had neither a product-approved control-plane entitlement nor a
+ * tenant-bound authority chain. It is deliberately quarantined rather than
+ * tenant-filtered, because neither an active organization nor a first
+ * membership may grant authority over global identities.
+ */
+const QUARANTINED_USERS_SURFACE = "سطح الهويات العالمي معزول حتى اعتماد عقد control-plane صريح.";
+
+function quarantinedResponse() {
+  return NextResponse.json(
+    { success: false, error: QUARANTINED_USERS_SURFACE, code: "GLOBAL_IDENTITY_SURFACE_QUARANTINED" },
+    { status: 410 },
+  );
 }
 
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-  const body = await req.json();
-  // للمستخدمين المسجلين بدون كلمة مرور (تسجيل داخلي فقط)
-  const user = await prisma.user.create({
-    data: {
-      name: body.name,
-      email: body.email || null,
-      phone: body.phone || null,
-      role: body.role || "MEMBER",
-    },
-  });
-  return NextResponse.json(user, { status: 201 });
+export async function GET() {
+  return quarantinedResponse();
+}
+
+export async function POST() {
+  return quarantinedResponse();
 }
