@@ -2,6 +2,8 @@
 
 **حالة القرار:** `NOT READY FOR PRODUCTION SWITCH — EXTERNAL INPUT REQUIRED`
 
+**Release الداخلي النشط بعد التحقق:** `20260824T215700Z-ef28e17`، المبني من commit `ef28e172c06f6b890b7b441c6153a8a81531b0c1`، ويظل loopback-only حتى بوابة التحويل.
+
 هذا التقرير يبدأ من baseline المثبتة: `STAGING VERIFIED — READY FOR PRODUCTION READINESS REVIEW`. جرى إنشاء foundation إنتاجية مستقلة ومقيدة على VPS، لكن **لم يُنشر** `asasplus.shop` ولم يتغير DNS أو OpenLiteSpeed public vhost أو traffic. تعني هذه النتيجة أن core platform الداخلي جاهز للتحويل فقط بعد إغلاق المدخلات الخارجية المحددة أدناه؛ ولا يجوز تحويل موقع عام أو وصفه بالإنتاج قبل ذلك.
 
 > لا تعتبر حالة `NOT_CONFIGURED` نجاحاً. ما يحتاج credential أو provider أو عقداً تشغيلياً خارجياً ولم يُقدَّم سجل هنا كـ`BLOCKED — EXTERNAL INPUT REQUIRED`.
@@ -48,7 +50,7 @@
 
 ## الدليل التشغيلي الداخلي
 
-تم تشغيل services production على release `20260824T202100Z-b527499`، ثم أُجري rollback/roll-forward إلى release سابق وانتهى symlink على release المتوقع. لم تنشئ A/B proof tenants أي بيانات تشغيلية دائمة: أزيلت principals والـroles والـRedis ACLs وcredential files والـfixtures، ومر validator المستقل بنتيجة `PASS_VPS_TENANT_RUNTIME_EVIDENCE` لكل البنود الاثني عشر.
+تم تشغيل services production أولاً على release `20260824T202100Z-b527499`، ثم أُجري rollback/roll-forward إلى release سابق وانتهى symlink على release المتوقع. بعد ذلك بُني release canonical `ef28e17` بصورة مستقلة، وتم تبديل `production-current` إليه مع backup symlink وhealth smoke ناجح. لم تنشئ A/B proof tenants أي بيانات تشغيلية دائمة: أزيلت principals والـroles والـRedis ACLs وcredential files والـfixtures، ومر validator المستقل بنتيجة `PASS_VPS_TENANT_RUNTIME_EVIDENCE` لكل البنود الاثني عشر.
 
 لم يُشغّل `prisma db seed` في production، لأن مصدره يحذف بيانات وينشئ demo users وcredentials معروفة. بدلاً منه أُنشئ فقط W02 permission catalog المرجعي: 52 permission، بلا demo users أو organizations.
 
