@@ -1,0 +1,131 @@
+{
+  "status": "PASS_QUEUE_REDIS_RUNTIME",
+  "startedAt": "2026-08-24T06:46:19.782Z",
+  "finishedAt": "2026-08-24T06:46:25.826Z",
+  "databaseAlias": "asas_queue_audit_1787553979781_135606",
+  "environment": "disposable-redis-postgresql-audit",
+  "mandatoryIds": [
+    "Q01",
+    "Q02",
+    "Q03",
+    "Q04",
+    "Q05",
+    "Q06",
+    "Q07",
+    "Q08",
+    "Q09",
+    "Q10"
+  ],
+  "evidence": [
+    {
+      "id": "Q01",
+      "expected": "Trusted A envelope uses A Redis ACL principal and Broker-bound worker validation",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:22.713Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q02",
+      "expected": "A/B queues, keys and parallel jobs remain namespace-separated",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:23.224Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q03",
+      "expected": "Forged dispatch/job mismatch and foreign plan cannot reach handler",
+      "actual": true,
+      "detail": {
+        "forgedState": "failed",
+        "foreignState": "failed",
+        "deadLetterCount": 2,
+        "foreignHandled": false
+      },
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:23.593Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q04",
+      "expected": "Default-deny membership cannot enqueue a trusted publication job",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:23.694Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q05",
+      "expected": "Stale and revoked membership contexts deny before Redis queue write",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:23.703Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q06",
+      "expected": "Broker lease replay is denied and duplicate dispatch id is idempotent",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:23.929Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q07",
+      "expected": "Retry is bounded and failed jobs land in tenant dead-letter namespace",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:24.721Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q08",
+      "expected": "Tenant Redis ACLs prevent cache/key collision and cross-tenant reads",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:24.725Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q09",
+      "expected": "Queue provider outage, A1→A2 rotation and parallel A/B provider clients fail closed and stay distinct",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:25.340Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "Q10",
+      "expected": "Queue sources, PostgreSQL roles, Redis ACL principals, correlation audit, cleanup and hygiene are safe",
+      "actual": true,
+      "result": "PASS",
+      "timestamp": "2026-08-24T06:46:25.409Z",
+      "environment": "disposable-redis-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS_AUDIT_ARTIFACT_HYGIENE_SCAN"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}
