@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
+import { financialRepository } from "@/lib/financial-repository";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,11 +21,10 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 };
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const context = await requireTenantContext();
+  await requirePermission(context, "project.read");
   const { id } = await params;
-  const project = await prisma.project.findUnique({
-    where: { id },
-    include: { donations: true, creator: { select: { name: true } } },
-  });
+  const project = await financialRepository.getProjectDetail(context, id);
   if (!project) return notFound();
 
   const s = statusMap[project.status] || { label: project.status, variant: "outline" };

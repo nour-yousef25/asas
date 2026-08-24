@@ -1,39 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { projectSchema } from "@/lib/validations";
-import { auth } from "@/lib/auth";
+import { requireTenantContext, TenantAuthorizationError } from "@/lib/tenant-context";
+import { requirePermission, PolicyAuthorizationError } from "@/lib/policy";
+import { financialRepository } from "@/lib/financial-repository";
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+    const context = await requireTenantContext();
+    await requirePermission(context, "project.read");
     const { id } = await params;
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: {
-        donations: { where: { status: "COMPLETED" }, select: { id: true, amount: true, createdAt: true, donorId: true }, take: 50 },
-        creator: { select: { name: true } },
-      },
-    });
+    const project = await financialRepository.getProjectDetail(context, id);
     if (!project) return NextResponse.json({ error: "المشروع غير موجود" }, { status: 404 });
     return NextResponse.json(project);
-  } catch {
+  } catch (error) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
     return NextResponse.json({ error: "خطأ في جلب المشروع" }, { status: 500 });
   }
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-
+    const context = await requireTenantContext();
+    await requirePermission(context, "project.update");
     const { id } = await params;
     const body = await req.json();
     const validated = projectSchema.partial().parse(body);
-
-    const project = await prisma.project.update({ where: { id }, data: validated });
+    const project = await financialRepository.updateProject(context, id, validated);
+    if (!project) return NextResponse.json({ error: "المشروع غير موجود" }, { status: 404 });
     return NextResponse.json(project);
   } catch (error: any) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
     if (error.name === "ZodError") return NextResponse.json({ error: error.issues }, { status: 400 });
     return NextResponse.json({ error: "خطأ في تحديث المشروع" }, { status: 500 });
   }
@@ -41,12 +37,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+    const context = await requireTenantContext();
+    await requirePermission(context, "project.delete");
     const { id } = await params;
-    await prisma.project.delete({ where: { id } });
+    const deleted = await financialRepository.deleteProject(context, id);
+    if (!deleted) return NextResponse.json({ error: "المشروع غير موجود" }, { status: 404 });
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
     return NextResponse.json({ error: "خطأ في حذف المشروع" }, { status: 500 });
   }
 }

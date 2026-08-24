@@ -1,16 +1,17 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
+import { financialRepository } from "@/lib/financial-repository";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatCurrency } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
+  const context = await requireTenantContext();
+  await requirePermission(context, "donation.read");
   const { id } = await params;
-  const donation = await prisma.donation.findUnique({
-    where: { id },
-    include: { invoice: true, donor: true, project: true, campaign: true },
-  });
+  const donation = await financialRepository.getDonationById(context, id);
   if (!donation || !donation.invoice) return notFound();
   const inv = donation.invoice;
 

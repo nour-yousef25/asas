@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePermission } from "@/lib/policy";
+import { financialRepository } from "@/lib/financial-repository";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -10,14 +12,10 @@ export const dynamic = "force-dynamic";
 const typeMap: Record<string, string> = { INDIVIDUAL: "فردي", CORPORATE: "مؤسسي", GOVERNMENT: "حكومي" };
 
 export default async function DonorDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const context = await requireTenantContext();
+  await requirePermission(context, "donor.read");
   const { id } = await params;
-  const donor = await prisma.donor.findUnique({
-    where: { id },
-    include: {
-      donations: { orderBy: { createdAt: "desc" }, include: { project: { select: { title: true } }, campaign: { select: { title: true } } } },
-      communications: { orderBy: { createdAt: "desc" } },
-    },
-  });
+  const donor = await financialRepository.getDonorById(context, id);
   if (!donor) return notFound();
 
   return (

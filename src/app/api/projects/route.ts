@@ -1,41 +1,32 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { projectSchema } from "@/lib/validations";
-import { auth } from "@/lib/auth";
+import { requireTenantContext, TenantAuthorizationError } from "@/lib/tenant-context";
+import { requirePermission, PolicyAuthorizationError } from "@/lib/policy";
+import { financialRepository } from "@/lib/financial-repository";
 
 export async function GET(req: NextRequest) {
   try {
-    const { searchParams } = new URL(req.url);
-    const status = searchParams.get("status");
-    const where: any = {};
-    if (status) where.status = status;
-
-    const projects = await prisma.project.findMany({
-      where,
-      orderBy: { createdAt: "desc" },
-    });
+    const context = await requireTenantContext();
+    await requirePermission(context, "project.read");
+    const status = new URL(req.url).searchParams.get("status");
+    const projects = await financialRepository.listProjects(context, status);
     return NextResponse.json(projects);
   } catch (error) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
     return NextResponse.json({ error: "خطأ في جلب المشاريع" }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-
+    const context = await requireTenantContext();
+    await requirePermission(context, "project.create");
     const body = await req.json();
     const validated = projectSchema.parse(body);
-
-    const project = await prisma.project.create({
-      data: {
-        ...validated,
-        creatorId: session.user.id,
-      },
-    });
+    const project = await financialRepository.createProject(context, validated);
     return NextResponse.json(project, { status: 201 });
   } catch (error: any) {
+    if (error instanceof TenantAuthorizationError || error instanceof PolicyAuthorizationError) return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
     if (error.name === "ZodError") {
       return NextResponse.json({ error: error.errors }, { status: 400 });
     }

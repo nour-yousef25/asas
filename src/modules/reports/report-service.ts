@@ -1,7 +1,7 @@
-import { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { Prisma, type PrismaClient } from "@prisma/client";
 import { requirePermission, PolicyAuthorizationError } from "@/lib/policy";
 import type { TenantContext } from "@/lib/tenant-context";
+import { requireTenantBoundPrismaExecutor, type TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 
 export type ReportName = "financial" | "donations";
 type SortDirection = "asc" | "desc";
@@ -106,6 +106,12 @@ function hasFilter(input: ReportGenerationInput) {
 }
 
 export class ReportGenerationService {
+  constructor(private readonly executor?: TenantBoundPrismaExecutor) {}
+
+  private execute<T>(context: TenantContext, operation: (db: PrismaClient) => Promise<T>) {
+    return (this.executor ?? requireTenantBoundPrismaExecutor()).execute(context, operation);
+  }
+
   private async audit(
     context: TenantContext,
     action: "REPORT_GENERATION_ALLOWED" | "REPORT_GENERATION_DENIED",
@@ -113,7 +119,7 @@ export class ReportGenerationService {
     input: ReportGenerationInput,
     reasonCode: string,
   ) {
-    await prisma.auditLog.create({
+    await this.execute(context, (db) => db.auditLog.create({
       data: {
         organizationId: context.organizationId,
         userId: context.userId,
@@ -132,19 +138,19 @@ export class ReportGenerationService {
           filterPresence: hasFilter(input),
         },
       },
-    });
+    }));
   }
 
   private async assertScopedResource(context: TenantContext, entity: "Budget" | "Donation" | "Donor" | "DonationCampaign" | "Project", id: string) {
-    const exists = await {
-      Budget: () => prisma.budget.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
-      Donation: () => prisma.donation.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
-      Donor: () => prisma.donor.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
-      DonationCampaign: () => prisma.donationCampaign.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
-      Project: () => prisma.project.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
-    }[entity]();
+    const exists = await this.execute(context, (db) => ({
+      Budget: () => db.budget.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
+      Donation: () => db.donation.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
+      Donor: () => db.donor.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
+      DonationCampaign: () => db.donationCampaign.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
+      Project: () => db.project.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }),
+    }[entity]()));
     if (exists) return;
-    await prisma.auditLog.create({
+    await this.execute(context, (db) => db.auditLog.create({
       data: {
         organizationId: context.organizationId,
         userId: context.userId,
@@ -159,7 +165,7 @@ export class ReportGenerationService {
           source: "report-generation-service",
         },
       },
-    });
+    }));
     throw new ReportScopeError(entity, id);
   }
 
@@ -201,8 +207,8 @@ export class ReportGenerationService {
         ? { totalAmount: input.direction }
         : { createdAt: input.direction };
 
-    const [budgets, totalBudgets, budgetAggregate, expenseAggregate] = await prisma.$transaction([
-      prisma.budget.findMany({
+    const [budgets, totalBudgets, budgetAggregate, expenseAggregate] = await this.execute(context, (db) => db.$transaction([
+      db.budget.findMany({
         where: budgetWhere,
         orderBy,
         skip: (input.page - 1) * input.pageSize,
@@ -226,16 +232,16 @@ export class ReportGenerationService {
           },
         },
       }),
-      prisma.budget.count({ where: budgetWhere }),
-      prisma.budget.aggregate({ where: budgetWhere, _sum: { totalAmount: true } }),
-      prisma.expense.aggregate({
+      db.budget.count({ where: budgetWhere }),
+      db.budget.aggregate({ where: budgetWhere, _sum: { totalAmount: true } }),
+      db.expense.aggregate({
         where: {
           ...expenseWhere,
           budgetItem: { is: { organizationId: context.organizationId, budget: { is: budgetWhere } } },
         },
         _sum: { amount: true },
       }),
-    ]);
+    ]));
 
     const totalBudgetAmount = budgetAggregate._sum.totalAmount ?? 0;
     const totalExpenses = expenseAggregate._sum.amount ?? 0;
@@ -277,24 +283,24 @@ export class ReportGenerationService {
       } : {}),
     };
     const orderBy: Prisma.DonationOrderByWithRelationInput = input.sort === "amount" ? { amount: input.direction } : { createdAt: input.direction };
-    const [donations, aggregate] = await prisma.$transaction([
-      prisma.donation.findMany({
+    const [donations, aggregate] = await this.execute(context, (db) => db.$transaction([
+      db.donation.findMany({
         where: donationWhere,
         orderBy,
         skip: (input.page - 1) * input.pageSize,
         take: input.pageSize,
         select: { id: true, donorId: true, campaignId: true, projectId: true, amount: true, currency: true, status: true, isAnonymous: true, isGuest: true, guestName: true, paymentMethod: true, createdAt: true },
       }),
-      prisma.donation.aggregate({ where: donationWhere, _sum: { amount: true }, _count: { _all: true } }),
-    ]);
+      db.donation.aggregate({ where: donationWhere, _sum: { amount: true }, _count: { _all: true } }),
+    ]));
     const donorIds = [...new Set(donations.flatMap((donation) => donation.donorId ? [donation.donorId] : []))];
     const campaignIds = [...new Set(donations.flatMap((donation) => donation.campaignId ? [donation.campaignId] : []))];
     const projectIds = [...new Set(donations.flatMap((donation) => donation.projectId ? [donation.projectId] : []))];
-    const [donors, campaigns, projects] = await prisma.$transaction([
-      prisma.donor.findMany({ where: { organizationId: context.organizationId, id: { in: donorIds } }, select: { id: true, name: true } }),
-      prisma.donationCampaign.findMany({ where: { organizationId: context.organizationId, id: { in: campaignIds } }, select: { id: true, title: true } }),
-      prisma.project.findMany({ where: { organizationId: context.organizationId, id: { in: projectIds } }, select: { id: true, title: true } }),
-    ]);
+    const [donors, campaigns, projects] = await this.execute(context, (db) => db.$transaction([
+      db.donor.findMany({ where: { organizationId: context.organizationId, id: { in: donorIds } }, select: { id: true, name: true } }),
+      db.donationCampaign.findMany({ where: { organizationId: context.organizationId, id: { in: campaignIds } }, select: { id: true, title: true } }),
+      db.project.findMany({ where: { organizationId: context.organizationId, id: { in: projectIds } }, select: { id: true, title: true } }),
+    ]));
     const donorById = new Map(donors.map((donor) => [donor.id, donor.name]));
     const campaignById = new Map(campaigns.map((campaign) => [campaign.id, campaign.title]));
     const projectById = new Map(projects.map((project) => [project.id, project.title]));

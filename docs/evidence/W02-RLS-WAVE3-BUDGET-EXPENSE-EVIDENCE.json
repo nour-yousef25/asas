@@ -1,0 +1,133 @@
+{
+  "status": "PASS_RLS_WAVE3_BUDGET_EXPENSE_RUNTIME",
+  "startedAt": "2026-08-24T07:54:17.708Z",
+  "finishedAt": "2026-08-24T07:54:22.756Z",
+  "environment": "disposable-postgresql-audit",
+  "databaseAlias": "asas_rls_budget_audit_1787558057707_144516",
+  "mandatoryIds": [
+    "BE-R01",
+    "BE-R02",
+    "BE-R03",
+    "BE-R04",
+    "BE-R05",
+    "BE-R06",
+    "BE-R07",
+    "BE-R08",
+    "BE-R09",
+    "BE-R10",
+    "BE-R11",
+    "BE-R12"
+  ],
+  "evidence": [
+    {
+      "id": "BE-R01",
+      "expected": "official migration enables FORCE RLS and three budget family policies with no bypass tenant role",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R02",
+      "expected": "A/B direct root reads and writes remain isolated",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R03",
+      "expected": "unmapped login and nullable roots fail closed",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R04",
+      "expected": "foreign parent budget item and expense writes are denied by RLS",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R05",
+      "expected": "Broker executor verifies session_user and RLS rows A/B",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R06",
+      "expected": "BudgetExpenseRepository rejects foreign parent and retains scoped read",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R07",
+      "expected": "repository context stamps ownership for new budget/item/expense",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R08",
+      "expected": "SET ROLE cannot switch A session_user to B",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R09",
+      "expected": "lease replay, inactive membership and stale session fail before data access",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R10",
+      "expected": "provider outage and principal rotation fail closed then move only to A2",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R11",
+      "expected": "parallel operations and source guard show no global Prisma or raw identity fallback",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "BE-R12",
+      "expected": "mandatory IDs are unique and all prior gates recorded",
+      "actual": true,
+      "result": "PASS",
+      "environment": "disposable-postgresql-audit",
+      "cleanupStatus": "PASS"
+    }
+  ],
+  "hardFailures": [],
+  "cleanup": {
+    "ok": true,
+    "errors": [],
+    "residueCount": 0
+  },
+  "hygiene": {
+    "status": "PASS"
+  },
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "rawGucIdentityUsed": false,
+  "globalPrismaFallback": false,
+  "ownerOrBypassUsedForTenantEvidence": false
+}

@@ -132,7 +132,7 @@ async function main() {
     prisma.organizationRole.create({ data: { organizationId: organization.id, name: "CONTENT_EDITOR", isSystem: true } }),
   ]);
   const rolePermissions = {
-    ORG_ADMIN: ["identity.membership.read", "identity.membership.manage", "identity.role.manage", "audit.read", "settings.read", "settings.manage", "support.access.approve", "support.access.revoke", "report.generate", "report.export", "communications.publication.schedule", "document.private.read", "document.private.upload", "document.private.manage"],
+    ORG_ADMIN: ["identity.membership.read", "identity.membership.manage", "identity.role.manage", "audit.read", "settings.read", "settings.manage", "support.access.approve", "support.access.revoke", "report.generate", "report.export", "communications.publication.schedule", "document.private.read", "document.private.upload", "document.private.manage", "project.read", "project.create", "project.update", "project.delete"],
     CONTENT_EDITOR: ["settings.read", "report.generate"],
   } as const;
   const seededPermissions = await prisma.permission.findMany({ where: { name: { in: [...rolePermissions.ORG_ADMIN, ...rolePermissions.CONTENT_EDITOR] } } });

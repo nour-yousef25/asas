@@ -1,9 +1,10 @@
-import type { CampaignStatus, DonorStatus, DonorType, PrismaClient } from "@prisma/client";
+import type { CampaignStatus, DonorStatus, DonorType, PrismaClient, ProjectStatus } from "@prisma/client";
 import type { TenantContext } from "@/lib/tenant-context";
 import { requireTenantBoundPrismaExecutor, type TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 
 type DonorInput = { name: string; phone?: string; email?: string; address?: string; donorType?: DonorType; status?: DonorStatus };
 type CampaignInput = { title: string; description?: string; imageUrl?: string; targetAmount: number; startDate: Date; endDate?: Date | null; status?: CampaignStatus };
+type ProjectInput = { title: string; description?: string; imageUrl?: string; targetAmount: number; startDate: Date; endDate?: Date; status?: ProjectStatus; category?: string; location?: string };
 
 export class FinancialScopeError extends Error {
   constructor(public readonly code: "NOT_FOUND" | "FORBIDDEN_RELATION", message: string) { super(message); this.name = "FinancialScopeError"; }
@@ -57,9 +58,41 @@ export class FinancialRepository {
     return this.execute(context, (db) => db.project.findFirst({ where: { id, organizationId: context.organizationId } }));
   }
 
+  listProjects(context: TenantContext, status?: string | null) {
+    return this.execute(context, (db) => db.project.findMany({ where: { organizationId: context.organizationId, ...(status ? { status: status as ProjectStatus } : {}) }, orderBy: { createdAt: "desc" } }));
+  }
+
+  async getProjectDetail(context: TenantContext, id: string) {
+    const project = await this.execute(context, (db) => db.project.findFirst({ where: { id, organizationId: context.organizationId }, include: { donations: { where: { status: "COMPLETED" }, select: { id: true, amount: true, createdAt: true, donorId: true, isGuest: true, guestName: true, paymentMethod: true, status: true }, take: 50 }, creator: { select: { name: true } } } }));
+    if (!project) await this.auditDenied(context, "TENANT_PROJECT_READ_DENIED", "Project", id);
+    return project;
+  }
+
+  createProject(context: TenantContext, input: ProjectInput) {
+    return this.execute(context, (db) => db.project.create({ data: { ...input, creatorId: context.userId, organizationId: context.organizationId } }));
+  }
+
+  async updateProject(context: TenantContext, id: string, input: Partial<ProjectInput>) {
+    const project = await this.execute(context, (db) => db.project.findFirst({ where: { id, organizationId: context.organizationId }, select: { id: true } }));
+    if (!project) { await this.auditDenied(context, "TENANT_PROJECT_UPDATE_DENIED", "Project", id); return null; }
+    return this.execute(context, (db) => db.project.update({ where: { id: project.id }, data: input }));
+  }
+
+  async deleteProject(context: TenantContext, id: string) {
+    const result = await this.execute(context, (db) => db.project.deleteMany({ where: { id, organizationId: context.organizationId } }));
+    if (result.count !== 1) await this.auditDenied(context, "TENANT_PROJECT_DELETE_DENIED", "Project", id);
+    return result.count === 1;
+  }
+
   async listDonations(context: TenantContext, input: { skip: number; take: number; search?: string; status?: string | null }) {
     const where = { organizationId: context.organizationId, ...(input.status ? { status: input.status as never } : {}), ...(input.search ? { OR: ["guestName", "guestPhone", "guestEmail", "paymentMethod"].map((field) => ({ [field]: { contains: input.search, mode: "insensitive" as const } })) } : {}) };
     return this.execute(context, (db) => db.$transaction([db.donation.findMany({ where, skip: input.skip, take: input.take, orderBy: { createdAt: "desc" }, include: { donor: { select: { id: true, name: true, phone: true } }, project: { select: { title: true } }, campaign: { select: { title: true } }, invoice: true } }), db.donation.count({ where })]).then(([data, total]) => ({ data, total })));
+  }
+
+  async getDonationById(context: TenantContext, id: string) {
+    const donation = await this.execute(context, (db) => db.donation.findFirst({ where: { id, organizationId: context.organizationId }, include: { invoice: true, donor: true, project: true, campaign: true } }));
+    if (!donation) await this.auditDenied(context, "TENANT_DONATION_READ_DENIED", "Donation", id);
+    return donation;
   }
 
   async createDonation(context: TenantContext, input: { amount: number; paymentMethod: string; paymentRef: string; isAnonymous?: boolean; isGuest?: boolean; guestName?: string; guestPhone?: string; guestEmail?: string; donorId?: string; campaignId?: string; projectId?: string; invoiceNo: string; taxNumber: string }) {

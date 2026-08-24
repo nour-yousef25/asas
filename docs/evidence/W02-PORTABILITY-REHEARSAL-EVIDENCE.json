@@ -1,0 +1,80 @@
+{
+  "status": "PASS_W02_PORTABILITY_REHEARSAL",
+  "startedAt": "2026-08-24T08:06:42.530Z",
+  "finishedAt": "2026-08-24T08:08:49.476Z",
+  "mandatoryIds": [
+    "PORT-R01",
+    "PORT-R02",
+    "PORT-R03",
+    "PORT-R04",
+    "PORT-R05",
+    "PORT-R06"
+  ],
+  "evidence": [
+    {
+      "id": "PORT-R01",
+      "expected": "isolated snapshot excludes repository metadata, local dependencies, build output and dotenv files",
+      "result": "PASS",
+      "environment": "local-source-snapshot",
+      "cleanupStatus": "PASS"
+    },
+    {
+      "id": "PORT-R02",
+      "expected": "frozen dependency installation with dependency lifecycle scripts disabled succeeds in the isolated source snapshot",
+      "result": "PASS",
+      "environment": "local-source-snapshot",
+      "cleanupStatus": "PASS",
+      "exitCode": 0,
+      "installerPolicy": "dependency-lifecycle-scripts-disabled",
+      "failureSignature": "NONE"
+    },
+    {
+      "id": "PORT-R03",
+      "expected": "Prisma validation and generation succeed from isolated source snapshot",
+      "result": "PASS",
+      "environment": "local-source-snapshot",
+      "cleanupStatus": "PASS",
+      "exitCodes": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "PORT-R04",
+      "expected": "TypeScript compilation succeeds from isolated source snapshot",
+      "result": "PASS",
+      "environment": "local-source-snapshot",
+      "cleanupStatus": "PASS",
+      "exitCode": 0
+    },
+    {
+      "id": "PORT-R05",
+      "expected": "financial A/B RLS smoke succeeds using only disposable local PostgreSQL resources",
+      "result": "PASS",
+      "environment": "local-source-snapshot",
+      "cleanupStatus": "PASS",
+      "exitCode": 0
+    },
+    {
+      "id": "PORT-R06",
+      "expected": "production build succeeds from isolated source snapshot",
+      "result": "PASS",
+      "environment": "local-source-snapshot",
+      "cleanupStatus": "PASS",
+      "exitCode": 0
+    }
+  ],
+  "copyInspection": {
+    "workspaceIsSnapshot": true,
+    "packageJsonPresent": true,
+    "workspaceBaseName": "w02-portability-roMCLf"
+  },
+  "cleanup": {
+    "ok": true,
+    "residueCount": 0
+  },
+  "sourceMode": "isolated working-tree snapshot; not a Git clone because final-closure changes are uncommitted",
+  "credentialsPersisted": false,
+  "productionResourcesTouched": false,
+  "providerHaDrScaleProven": false
+}
