@@ -7,6 +7,8 @@ const root = process.env.ASAS_LOCAL_STORAGE_ROOT;
 const secret = process.env.ASAS_LOCAL_STORAGE_DELIVERY_SECRET;
 const evidenceFile = process.env.ASAS_LOCAL_STORAGE_PROOF_EVIDENCE_PATH;
 if (!root || !secret || !evidenceFile) throw new Error("LOCAL_STORAGE_PROOF_CONFIGURATION_REQUIRED");
+const environment = process.env.ASAS_PROOF_ENVIRONMENT ?? "staging";
+if (environment !== "staging" && environment !== "production") throw new Error("LOCAL_STORAGE_PROOF_ENVIRONMENT_INVALID");
 
 const suffix = randomBytes(8).toString("hex");
 const organizationA = `prooforga${suffix}`;
@@ -16,6 +18,7 @@ const artifactB = `proofartfb${suffix}`;
 const keyA = `private/${organizationA}/artifact/${artifactA}/v1`;
 const keyB = `private/${organizationB}/artifact/${artifactB}/v1`;
 const provider = new LocalTenantArtifactProvider(root, secret);
+let payload: Record<string, unknown> | undefined;
 
 async function denied(action: () => Promise<unknown>) { try { await action(); return false; } catch { return true; } }
 
@@ -36,15 +39,22 @@ async function main() {
     evidence.push({ id: "LS03", result: crossKeyDenied ? "PASS" : "FAIL", detail: "caller cannot use another tenant object key" });
     evidence.push({ id: "LS04", result: rootDetails.uid === 0 && (rootDetails.mode & 0o007) === 0 && (rootDetails.mode & 0o002) === 0 ? "PASS" : "FAIL", detail: "root is root-owned and not world-accessible/writable" });
     const passed = evidence.every((entry) => entry.result === "PASS");
-    await writeFile(evidenceFile, `${JSON.stringify({ status: passed ? "PASS_LOCAL_VPS_STORAGE_RUNTIME" : "FAIL_LOCAL_VPS_STORAGE_RUNTIME", evidence, credentialsPersisted: false, filesystemPathsDisclosed: false, providerCalls: false, productionResourcesTouched: false }, null, 2)}\n`, { mode: 0o600 });
-    await chmod(evidenceFile, 0o600);
+    payload = { status: passed ? "PASS_LOCAL_VPS_STORAGE_RUNTIME" : "FAIL_LOCAL_VPS_STORAGE_RUNTIME", environment, evidence, credentialsPersisted: false, filesystemPathsDisclosed: false, providerCalls: false, productionResourcesTouched: environment === "production" };
     process.stdout.write(JSON.stringify({ status: passed ? "PASS_LOCAL_VPS_STORAGE_RUNTIME" : "FAIL_LOCAL_VPS_STORAGE_RUNTIME", evidenceCount: evidence.length }) + "\n");
     process.exitCode = passed ? 0 : 2;
   } finally {
-    await provider.delete({ organizationId: organizationA, artifactId: artifactA, objectKey: keyA }).catch(() => undefined);
-    await provider.delete({ organizationId: organizationB, artifactId: artifactB, objectKey: keyB }).catch(() => undefined);
-    await rm(join(root, "private", organizationA), { recursive: true, force: true }).catch(() => undefined);
-    await rm(join(root, "private", organizationB), { recursive: true, force: true }).catch(() => undefined);
+    const cleanup = await Promise.allSettled([
+      provider.delete({ organizationId: organizationA, artifactId: artifactA, objectKey: keyA }),
+      provider.delete({ organizationId: organizationB, artifactId: artifactB, objectKey: keyB }),
+      rm(join(root, "private", organizationA), { recursive: true, force: true }),
+      rm(join(root, "private", organizationB), { recursive: true, force: true }),
+    ]);
+    if (payload) {
+      payload.cleanupOk = cleanup.every((entry) => entry.status === "fulfilled");
+      await writeFile(evidenceFile, `${JSON.stringify(payload, null, 2)}\n`, { mode: 0o600 });
+      await chmod(evidenceFile, 0o600);
+      if (payload.cleanupOk !== true) process.exitCode = 2;
+    }
   }
 }
 

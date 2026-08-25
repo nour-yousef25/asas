@@ -4,6 +4,8 @@ import { chmodSync, writeFileSync } from "node:fs";
 
 const database = process.env.ASAS_RLS_PROOF_DATABASE ?? "asasplus_staging";
 if (!/^[a-z0-9_]+$/i.test(database)) throw new Error("SAAS_RLS_PROOF_DATABASE_INVALID");
+const environment = process.env.ASAS_RLS_PROOF_ENVIRONMENT ?? "staging";
+if (environment !== "staging" && environment !== "production") throw new Error("SAAS_RLS_PROOF_ENVIRONMENT_INVALID");
 const suffix = randomBytes(7).toString("hex");
 const roleA = `r54a_${suffix}`, roleB = `r54b_${suffix}`;
 const passwordA = randomBytes(24).toString("base64url"), passwordB = randomBytes(24).toString("base64url");
@@ -45,12 +47,12 @@ function main() {
     evidence.push({ id: "SP04", result: foreignEntitlementDenied ? "PASS" : "FAIL", detail: "tenant A cannot bind tenant B subscription" });
     const passed = evidence.every((entry) => entry.result === "PASS");
     cleanup(); cleanupOk = true;
-    writeFileSync(evidenceFile, `${JSON.stringify({ status: passed && cleanupOk ? "PASS_SAAS_PAYMENT_RLS_RUNTIME" : "FAIL_SAAS_PAYMENT_RLS_RUNTIME", evidence, cleanupOk, credentialsPersisted: false, providerCalls: false, charges: false, productionResourcesTouched: false, rawGucIdentityUsed: false, ownerOrBypassUsedForTenantEvidence: false }, null, 2)}\n`, { mode: 0o600 }); chmodSync(evidenceFile, 0o600);
+    writeFileSync(evidenceFile, `${JSON.stringify({ status: passed && cleanupOk ? "PASS_SAAS_PAYMENT_RLS_RUNTIME" : "FAIL_SAAS_PAYMENT_RLS_RUNTIME", environment, evidence, cleanupOk, credentialsPersisted: false, providerCalls: false, charges: false, productionResourcesTouched: environment === "production", rawGucIdentityUsed: false, ownerOrBypassUsedForTenantEvidence: false }, null, 2)}\n`, { mode: 0o600 }); chmodSync(evidenceFile, 0o600);
     process.stdout.write(JSON.stringify({ status: passed && cleanupOk ? "PASS_SAAS_PAYMENT_RLS_RUNTIME" : "FAIL_SAAS_PAYMENT_RLS_RUNTIME", evidenceCount: evidence.length }) + "\n");
     process.exitCode = passed && cleanupOk ? 0 : 2;
   } catch {
     cleanup();
-    writeFileSync(evidenceFile, `${JSON.stringify({ status: "FAIL_SAAS_PAYMENT_RLS_RUNTIME", evidence, cleanupOk: false, credentialsPersisted: false, providerCalls: false, charges: false, productionResourcesTouched: false, rawGucIdentityUsed: false, ownerOrBypassUsedForTenantEvidence: false }, null, 2)}\n`, { mode: 0o600 }); chmodSync(evidenceFile, 0o600);
+    writeFileSync(evidenceFile, `${JSON.stringify({ status: "FAIL_SAAS_PAYMENT_RLS_RUNTIME", environment, evidence, cleanupOk: false, credentialsPersisted: false, providerCalls: false, charges: false, productionResourcesTouched: environment === "production", rawGucIdentityUsed: false, ownerOrBypassUsedForTenantEvidence: false }, null, 2)}\n`, { mode: 0o600 }); chmodSync(evidenceFile, 0o600);
     process.stderr.write("SaaS/payment RLS proof failed; redacted evidence written.\n"); process.exitCode = 2;
   }
 }

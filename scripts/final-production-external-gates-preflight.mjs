@@ -16,6 +16,18 @@ async function rootOnlyJsonRequest(name, requiredKeys) {
     return { ready: true, reason: "Root-only non-secret request schema is valid." };
   } catch { return { ready: false, reason: `${name} cannot be validated without exposing its contents.` }; }
 }
+async function rootOnlyEvidence(name, expectedStatus) {
+  const file = process.env[name];
+  if (!file) return { ready: false, reason: `${name} is not configured.` };
+  try {
+    const details = await stat(file);
+    if (!details.isFile() || details.uid !== 0 || (details.mode & 0o077) !== 0) return { ready: false, reason: `${name} must reference root-owned 0600 evidence.` };
+    const value = JSON.parse(await readFile(file, "utf8"));
+    return value.status === expectedStatus && value.environment === "production" && value.credentialsPersisted === false && value.cleanupOk !== false
+      ? { ready: true, reason: "Root-only production evidence is valid." }
+      : { ready: false, reason: `${name} does not prove ${expectedStatus} with production environment and cleanup evidence.` };
+  } catch { return { ready: false, reason: `${name} cannot be validated without exposing its contents.` }; }
+}
 function externalOrClosed(input) { return input.ready ? { status: status.closed, requiredInputs: [], summary: input.closedSummary } : { status: status.external, requiredInputs: input.requiredInputs, summary: input.reason }; }
 
 const bootstrap = await rootOnlyJsonRequest("ASAS_BOOTSTRAP_CONTROL_REQUEST_FILE", ["requestId", "kind", "approvedBy", "approvalReference", "passwordFile"]);
@@ -23,12 +35,15 @@ const mail = await rootOnlyJsonRequest("ASAS_MAIL_PRODUCTION_REQUEST_FILE", ["pr
 const payment = await rootOnlyJsonRequest("ASAS_PAYMENT_PRODUCTION_REQUEST_FILE", ["providerKey", "webhookUrl", "approvalReference"]);
 const scheduler = await rootOnlyJsonRequest("ASAS_DOMAIN_SCHEDULER_APPROVAL_FILE", ["owner", "approvalReference", "catalogueVersion"]);
 const goNoGo = await rootOnlyJsonRequest("ASAS_GO_NO_GO_APPROVAL_FILE", ["owner", "maintenanceWindowUtc", "approvalReference"]);
+const localStorageEvidence = await rootOnlyEvidence("ASAS_LOCAL_STORAGE_PROOF_EVIDENCE_FILE", "PASS_LOCAL_VPS_STORAGE_RUNTIME");
+const saasEvidence = await rootOnlyEvidence("ASAS_SAAS_RLS_PROOF_EVIDENCE_FILE", "PASS_SAAS_PAYMENT_RLS_RUNTIME");
 
 const checks = [
   (() => {
     if (process.env.ASAS_STORAGE_PROVIDER !== "LOCAL_VPS") return { gate: "storage_local_vps", status: status.implementable, internalImplementation: status.closed, requiredInputs: ["ASAS_STORAGE_PROVIDER=LOCAL_VPS", "ASAS_LOCAL_STORAGE_ROOT", "ASAS_LOCAL_STORAGE_DELIVERY_SECRET"], summary: "Local VPS provider is implemented but is not selected/configured on the runtime yet." };
     if (!present("ASAS_LOCAL_STORAGE_ROOT") || !present("ASAS_LOCAL_STORAGE_DELIVERY_SECRET")) return { gate: "storage_local_vps", status: status.implementable, internalImplementation: status.closed, requiredInputs: ["ASAS_LOCAL_STORAGE_ROOT", "ASAS_LOCAL_STORAGE_DELIVERY_SECRET"], summary: "Local VPS adapter is selected but root-owned storage path or server-only delivery secret is absent; neither is an external S3 provider input." };
-    return { gate: "storage_local_vps", status: status.closed, internalImplementation: status.closed, requiredInputs: [], summary: "Local VPS tenant-private storage provider is selected; provider probe is local and does not require S3." };
+    if (!localStorageEvidence.ready) return { gate: "storage_local_vps", status: status.implementable, internalImplementation: status.closed, requiredInputs: ["ASAS_LOCAL_STORAGE_PROOF_EVIDENCE_FILE"], summary: localStorageEvidence.reason };
+    return { gate: "storage_local_vps", status: status.closed, internalImplementation: status.closed, requiredInputs: [], summary: "Local VPS tenant-private storage configuration and cleaned runtime A/B proof are present; no S3 provider is used." };
   })(),
   {
     gate: "bootstrap_authentication",
@@ -61,7 +76,9 @@ const checks = [
       closedSummary: "Required payment provider/ledger request is present; this preflight does not charge or contact a gateway.",
     }),
   },
-  { gate: "saas_entitlements", status: status.implementable, internalImplementation: status.closed, requiredInputs: [], summary: "SaaS Plan/Subscription/Entitlement lifecycle is implemented; certificate activation is not a SaaS launch gate and deployment migration/proof remain internal work." },
+  (() => saasEvidence.ready
+    ? { gate: "saas_entitlements", status: status.closed, internalImplementation: status.closed, requiredInputs: [], summary: "SaaS Plan/Subscription/Entitlement migration and cleaned tenant RLS runtime proof are present; certificate activation is not a SaaS launch gate." }
+    : { gate: "saas_entitlements", status: status.implementable, internalImplementation: status.closed, requiredInputs: ["ASAS_SAAS_RLS_PROOF_EVIDENCE_FILE"], summary: saasEvidence.reason })(),
   {
     gate: "domain_scheduler",
     internalImplementation: status.closed,
