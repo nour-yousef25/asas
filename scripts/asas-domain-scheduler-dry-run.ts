@@ -14,9 +14,9 @@ async function main() {
   const catalogue = parseSchedulerCatalogue(await readRootOwnedManifest(path));
   const organizationId = process.env.ASAS_SCHEDULER_DRY_RUN_ORGANIZATION_ID;
   const scheduler = new DomainScheduler(catalogue, new MemorySchedulerRunStore());
-  const scheduledFor = new Date();
   const outcomes = await Promise.all(catalogue.jobs.map(async (job) => {
     if (job.tenantMode === "TENANT" && !organizationId) return { jobKey: job.key, outcome: "TENANT_CONTEXT_REQUIRED" };
+    const scheduledFor = new Date(Math.floor(Date.now() / (job.intervalSeconds * 1_000)) * job.intervalSeconds * 1_000);
     return scheduler.run({ jobKey: job.key, organizationId: job.tenantMode === "TENANT" ? organizationId : undefined, scheduledFor, dryRun: true });
   }));
   console.log(JSON.stringify({ status: "SCHEDULER_DRY_RUN_COMPLETE", catalogueVersion: catalogue.jobs.map((job) => job.version).join(","), outcomes }));

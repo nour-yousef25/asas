@@ -30,6 +30,13 @@
 - [x] PAY07: تعريف contract webhook مقيد بـprovider/merchant/transaction/amount/currency/idempotency، مع إبقاء endpoint معطلاً حتى provider verifier معتمد.
 - [x] PAY08: ربط `PLATFORM_BILLING` الملتقط فقط بتفعيل الاشتراك والـentitlements الخاصة بالمنظمة، مع منع donation من تعديل أي entitlement.
 
+## DOMAIN SCHEDULER READINESS GATE
+
+- [ ] SCH01: تدقيق read-only لعقد scheduler والـworker/catalogue/triggers/timezone/tenant scope/locks/retry/heartbeat/lag/audit/egress/production enablement.
+- [ ] SCH02: إنشاء أو تدقيق catalogue مصرح بكل الوظائف وتصنيفها INTERNAL / EXTERNAL_INPUT_REQUIRED / BLOCKED / NOT_APPLICABLE.
+- [ ] SCH03: تنفيذ hardening وdry-run staging loopback لإثبات parsing/scoping/idempotency/concurrency/retry/timeout/heartbeat/lag/audit/cleanup بلا side effect خارجي.
+- [ ] SCH04: تحديث وثائق Scheduler وGo/No-Go وpreflight ثم regression/secret hygiene/commit/push non-force.
+
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
 - [x] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
