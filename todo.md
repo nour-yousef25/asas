@@ -2,11 +2,11 @@
 
 ## BOOTSTRAP AUTHENTICATION GATE — AUTH01–AUTH10
 
-- [ ] فحص Git ووجود bootstrap identity read-only؛ لا كشف request أو password أو session data.
-- [ ] إنشاء مساحة request/password root-only خارج Git وإدخال كلمة المرور عبر قناة سرية محلية فقط.
-- [ ] تنفيذ provision idempotent لـSuper Admin المعتمد في control plane من دون Organization membership أو demo data.
-- [ ] إثبات login/session/logout وcontrol-plane authority والعزل tenant-bound، ثم استهلاك request وحذف password artifact.
-- [ ] تنفيذ regression وsecret hygiene، وتحديث preflight/Gate Matrix/Go-No-Go لإغلاق Authentication فقط ثم commit/push آمنين.
+- [x] AUTH01–02: فحص Git ووجود bootstrap identity read-only، ثم إنشاء مساحة request/password root-only خارج Git عبر قناة سرية محلية فقط بلا كشف secrets.
+- [x] AUTH03–04: provision idempotent لأول `SUPER_ADMIN` في control plane فقط، بلا Organization membership أو demo/tenant data.
+- [x] AUTH05–08: إثبات login/session/logout وcontrol-plane authority وtenant-context denial، ثم استهلاك request وحذف password artifacts.
+- [x] AUTH09: إزالة temporary bootstrap membership/privileges/role وإثبات أن runtime لا يحمل INSERT/UPDATE غير مقصودين.
+- [x] AUTH10: regression وsecret hygiene وpreflight/Gate Matrix/Go-No-Go ثم commit/push non-force؛ Authentication مغلقة فقط.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
