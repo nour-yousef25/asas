@@ -1,5 +1,13 @@
 # متابعة تنفيذ W01 — ASAS Plus
 
+## BOOTSTRAP AUTHENTICATION GATE — AUTH01–AUTH10
+
+- [ ] فحص Git ووجود bootstrap identity read-only؛ لا كشف request أو password أو session data.
+- [ ] إنشاء مساحة request/password root-only خارج Git وإدخال كلمة المرور عبر قناة سرية محلية فقط.
+- [ ] تنفيذ provision idempotent لـSuper Admin المعتمد في control plane من دون Organization membership أو demo data.
+- [ ] إثبات login/session/logout وcontrol-plane authority والعزل tenant-bound، ثم استهلاك request وحذف password artifact.
+- [ ] تنفيذ regression وsecret hygiene، وتحديث preflight/Gate Matrix/Go-No-Go لإغلاق Authentication فقط ثم commit/push آمنين.
+
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
 - [ ] تثبيت baseline `1ffe7ab` وحالة Git وحفظ أي work قائم قبل تنفيذ FINAL PRODUCTION IMPLEMENTATION CLOSURE.
