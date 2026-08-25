@@ -8,6 +8,13 @@
 - [x] AUTH09: إزالة temporary bootstrap membership/privileges/role وإثبات أن runtime لا يحمل INSERT/UPDATE غير مقصودين.
 - [x] AUTH10: regression وsecret hygiene وpreflight/Gate Matrix/Go-No-Go ثم commit/push non-force؛ Authentication مغلقة فقط.
 
+## SMTP PRODUCTION READINESS GATE
+
+- [ ] SMTP01: جرد read-only لعقد transport وsender/reply-to/auth/TLS/timeout/retry/redaction/audit/template/sandbox في المصدر وVPS، بلا إرسال أو كشف secrets.
+- [ ] SMTP02: تصنيف مزود SMTP الفعلي أو المدخل الخارجي المطلوب بدقة، مع منع افتراض أن SnappyMail هو provider للتطبيق.
+- [ ] SMTP03: عند توافر sender/config/approval معتمدة، تنفيذ staging-only connectivity/TLS/auth/delivery/failure/timeout/retry/redaction/audit؛ وإلا توثيق blocker فقط.
+- [ ] SMTP04: إنشاء adapter/configuration schema fail-closed لـSMTP الحقيقي واختبارات sandbox/template/retry/redaction من دون credentials أو egress.
+
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
 - [x] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.

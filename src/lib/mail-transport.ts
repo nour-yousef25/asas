@@ -21,6 +21,7 @@ export type MailAuditEvent = Readonly<{ organizationId: string; idempotencyKey: 
 
 let installedTransport: MailTransport | undefined;
 export function installMailTransport(transport: MailTransport) { if (installedTransport) throw new MailTransportError("UNCONFIGURED"); installedTransport = transport; }
+export function mailTransportInstalled() { return installedTransport !== undefined; }
 export function requireMailTransport() { if (!installedTransport) throw new MailTransportError("UNCONFIGURED"); return installedTransport; }
 function fingerprint(value: string) { return createHash("sha256").update(`asas-mail:${value.toLowerCase()}`).digest("base64url"); }
 
