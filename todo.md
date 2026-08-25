@@ -4,10 +4,10 @@
 
 - [ ] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
 - [x] مراجعة العقود/المخطط/المسارات ذات الصلة لتحديد فجوات LocalStorage وBootstrap وSMTP وPlatform Billing/Organization Donations وSaaS License من دون إعادة فتح W02؛ النتيجة في `PRODUCTION-READINESS-RECONCILIATION-54.md`.
-- [ ] تنفيذ واختبار Local VPS tenant-private artifact adapter وBootstrap control-plane provision flow وSaaS subscription/entitlement abstraction fail-closed؛ لا users production أو credentials مخترعة.
-- [ ] تنفيذ طبقة مدفوعات tenant-aware للـplatform billing وorganization donations: configuration، ledger، reconciliation، idempotency، audit، refund/void contracts بلا card data أو provider call.
+- [x] تنفيذ واختبار Local VPS tenant-private artifact adapter وBootstrap control-plane provision flow وSaaS subscription/entitlement abstraction fail-closed؛ لا users production أو credentials مخترعة. يبقى release/migration/RLS runtime proof الداخلي قبل Go.
+- [x] تنفيذ طبقة مدفوعات tenant-aware للـplatform billing وorganization donations: configuration، ledger، reconciliation، idempotency، audit، refund/void contracts بلا card data أو provider call. يبقى gateway/UAT الخارجي وRLS runtime proof الداخلي.
 - [x] جرد scheduler catalogue الحقيقي وتصنيف كل job؛ النتيجة في `SCHEDULER-CATALOGUE-54.md`. تم تقوية dry-run/retry/concurrency contract محلياً وdry-run staging معزول مع cleanup؛ لا job حي أو service/timer أو provider call.
-- [ ] تحديث preflight وGate Matrix وDecision Register وGo/No-Go بتصنيف CLOSED/IMPLEMENTABLE NOW/EXTERNAL INPUT REQUIRED/PRODUCTION CUTOVER ONLY، ثم regression وcommit/push آمنين.
+- [x] تحديث preflight وGate Matrix وDecision Register وGo/No-Go بتصنيف CLOSED/IMPLEMENTABLE NOW/EXTERNAL INPUT REQUIRED/PRODUCTION CUTOVER ONLY؛ regression النهائي ناجح، ويبقى commit/push لهذا scope.
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 

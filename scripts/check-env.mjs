@@ -1,6 +1,5 @@
 const production = process.env.NODE_ENV === "production";
 const required = ["DATABASE_URL", "AUTH_SECRET", "INTEGRATIONS_ENCRYPTION_KEY"];
-const tenantStorage = ["TENANT_STORAGE_REFERENCE_DIRECTORY", "TENANT_STORAGE_CREDENTIAL_DIRECTORY"];
 const missing = [];
 
 for (const name of required) {
@@ -8,8 +7,20 @@ for (const name of required) {
 }
 
 if (production) {
-  for (const name of tenantStorage) {
-    if (!process.env[name]) missing.push(name);
+  const provider = process.env.ASAS_STORAGE_PROVIDER;
+  if (!provider) {
+    missing.push("ASAS_STORAGE_PROVIDER");
+  } else if (provider === "LOCAL_VPS") {
+    for (const name of ["ASAS_LOCAL_STORAGE_ROOT", "ASAS_LOCAL_STORAGE_DELIVERY_SECRET"]) {
+      if (!process.env[name]) missing.push(name);
+    }
+  } else if (provider === "S3") {
+    for (const name of ["TENANT_STORAGE_REFERENCE_DIRECTORY", "TENANT_STORAGE_CREDENTIAL_DIRECTORY"]) {
+      if (!process.env[name]) missing.push(name);
+    }
+  } else {
+    console.error("✗ ASAS_STORAGE_PROVIDER يجب أن يكون LOCAL_VPS أو S3.");
+    process.exitCode = 1;
   }
 }
 

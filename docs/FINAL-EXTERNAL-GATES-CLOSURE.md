@@ -1,40 +1,30 @@
-# الإغلاق النهائي للبوابات الخارجية — ASAS Plus
+# الإغلاق النهائي للبوابات الخارجية — Reconciliation 54
 
-**Baseline القانوني:** `6743382`. **إغلاق التنفيذ الداخلي:** `95d7a66`، مع مواءمة preflight/installer/harness في هذه الجولة. لم يتغير DNS أو OpenLiteSpeed public vhost أو أي traffic، ويظل production loopback-only كما هو موثق في تقرير الجاهزية.
+**Baseline:** production readiness عند `6743382`. أضيفت قرارات المنتج في `d0bb3f1`، وعقود Local VPS/Bootstrap/SaaS/payment في `3fbe8c2`، وscheduler catalogue/dry-run في `20bc19d` و`8953137`. لا DNS أو public vhost أو traffic في أي commit.
 
-> أُغلقت **فجوات التنفيذ الداخلي** فقط. لا تتحول هذه النتيجة إلى نجاح مزود خارجي، ولا ينشئ أي harness مستخدم إنتاج أو يرسل بريداً أو يجري payment أو يشغّل job حياً.
+## ما أُغلق داخلياً
 
-## التنفيذ الداخلي المثبت
-
-| البوابة | الحالة الداخلية | الدليل العملي |
+| البوابة | الحالة | الدليل |
 |---|---|---|
-| Storage | `CLOSED_INTERNAL_IMPLEMENTATION` | `TenantS3ArtifactProvider` يفرض object key tenant/artifact، توقيع SigV4، references opaque، HTTPS، وعمر delivery أقصاه 300 ثانية. |
-| Bootstrap/Auth | `CLOSED_INTERNAL_IMPLEMENTATION` | provisioner يقتصر على `DRY_RUN` أو `AUDIT_FIXTURE`، يمنع demo وproduction mode، ويطبق idempotency/revocation وaudit fingerprint. |
-| OIDC/SAML | `CLOSED_INTERNAL_IMPLEMENTATION` | contract يفرض issuer/HTTPS/redirect allow-list/state/nonce/audience/expiry ونتيجة verifier ذات `signatureVerified: true`. |
-| Mail | `CLOSED_INTERNAL_IMPLEMENTATION` | transport محايد، sender/sandbox guards، explicit delivery switch، timeout/retry bounded، وaudit لا يحفظ عناوين المستلمين. |
-| Payments | `CLOSED_INTERNAL_IMPLEMENTATION` | placeholder محجور؛ gateway/webhook contracts تحتاج verifier وledger tenant-bound idempotent، وroute تفشل بـ`503` إن لم يركبا. |
-| License | `CLOSED_INTERNAL_IMPLEMENTATION` | loader يتحقق من Ed25519 certificate/keyring/revocation/instance/edition/expiry، ولا يقبل private signing key على VPS. |
-| Domain scheduler | `CLOSED_INTERNAL_IMPLEMENTATION` | catalogue approved/versioned، dry-run محلي، pause/idempotency/timeout boundary وheartbeat/lag probe. |
-| Preflight | `CLOSED_INTERNAL_IMPLEMENTATION` | `pnpm run preflight:external-gates` لا يتصل بمزود ولا يطبع secrets؛ يخرج `2` و`FINAL_PRODUCTION_GO_NO_GO_REVIEW` عند نقص أي بوابة launch-required. |
+| Local VPS artifacts | `CLOSED` | `LocalTenantArtifactProvider` يفرض key tenant/artifact، root غير world-writable، atomic write، token HMAC قصير العمر، وdelivery endpoint يحتاج tenant context ولا يعيد filesystem path. |
+| Bootstrap control plane | `CLOSED` | request/password root-only منفصلان، demo مرفوض، approval/expiry/idempotency/audit fingerprint وexecution disabled افتراضياً. |
+| Mail abstraction | `CLOSED` | sender/sandbox guard، bounded retry/timeout، redacted audit، delivery switch صريح. |
+| Payments/SaaS contracts | `CLOSED` | Plan/Subscription/Entitlement وtenant payment transaction/attempt/webhook/reconciliation/adjustment models؛ capture فقط يكمّل donation، بلا PAN/CVV/raw payload. |
+| SaaS entitlement lifecycle | `CLOSED` | ACTIVE/SUSPENDED/EXPIRED مستقل عن certificate ومدفوعات provider. |
+| Scheduler | `CLOSED` | catalogue owner/version/category/concurrency/retry/failure/audit/safeAtLaunch؛ dry-run staging معزول نجح ثم cleanup. |
+| Preflight | `CLOSED` | JSON redacted وexit 2 عند أي gate ناقص؛ لا provider call أو secret output. |
 
-## التصنيف الحالي للبوابات
+## التصنيف الحالي
 
-| Gate | Status | Internal / External | المدخل المتبقي الدقيق |
-|---|---|---|---|
-| Storage | `EXTERNAL_INPUT_REQUIRED` | internal closed / external pending | directories per-tenant + `ASAS_STORAGE_AUDIT_PROBE_REQUEST_FILE`. |
-| Authentication | `EXTERNAL_INPUT_REQUIRED` | internal closed / owner decision pending | `ASAS_AUTH_LAUNCH_MODE=BOOTSTRAP` أو `IDP`، ثم مدخلات المسار المختار. |
-| Mail | `EXTERNAL_INPUT_REQUIRED` | internal closed / external pending | approval/config/switch للـtransport، من دون إرسال الآن. |
-| Payments | `EXTERNAL_INPUT_REQUIRED` | internal closed / launch-scope pending | approval صريح للاستبعاد، أو provider/ledger approvals إذا كان الدفع مطلوباً. |
-| License | `EXTERNAL_INPUT_REQUIRED` | internal closed / external pending | certificate/keyring/revocation/instance files المعتمدة. |
-| Scheduler | `EXTERNAL_INPUT_REQUIRED` | internal closed / owner operational inputs pending | approval + catalogue + heartbeat/lag files. |
-| Owner/window | `EXTERNAL_INPUT_REQUIRED` | external decision | `ASAS_GO_NO_GO_APPROVAL_FILE`. |
-
-## حدود لا تنطبق في هذه الجولة
-
-| البند | الحالة | السبب |
+| Gate | Status | السبب |
 |---|---|---|
-| DNS أو public vhost أو traffic | `NOT_APPLICABLE` | محظور حتى Go جديد ثم العبارة الصريحة للنشر. |
-| `prisma db seed` أو demo users | `NOT_APPLICABLE` | محظور على production. |
-| real email/payment/job | `NOT_APPLICABLE` | لا يدخل ضمن proof المحلي؛ يتطلب approval/provider منفصلين. |
+| Local VPS storage | `IMPLEMENTABLE_NOW` | يحتاج release/config/probe محليين، لا S3 أو credential مزود خارجي. |
+| Bootstrap | `EXTERNAL_INPUT_REQUIRED` | يلزم owner-approved real identity/password material. |
+| Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | يلزم SMTP provider configuration المعتمد. |
+| Payments | `EXTERNAL_INPUT_REQUIRED` | payments مطلوبة؛ يلزم gateway Mada-compatible وmerchant/webhook/UAT. |
+| SaaS entitlements | `IMPLEMENTABLE_NOW` | يحتاج migration/RLS/runtime proof داخليين. |
+| Scheduler | `EXTERNAL_INPUT_REQUIRED` | يلزم owner-approved live catalogue/heartbeat؛ dry-run فقط مثبت. |
+| IdP/certificate activation | `NOT_APPLICABLE` | ليسا dependencies للإطلاق SaaS Bootstrap. |
+| DNS/public traffic | `PRODUCTION_CUTOVER_ONLY` | محظور قبل Go وعبارة النشر الصريحة. |
 
-تفاصيل كل مدخل خارجي، ومساره وصلاحيته واختباره وتدويره، موجودة حصراً في [FINAL-EXTERNAL-INPUTS-REQUIRED.md](./FINAL-EXTERNAL-INPUTS-REQUIRED.md).
+تفاصيل المدخلات التي لا يمكن إنجازها داخلياً موجودة في [FINAL-EXTERNAL-INPUTS-REQUIRED.md](./FINAL-EXTERNAL-INPUTS-REQUIRED.md).
