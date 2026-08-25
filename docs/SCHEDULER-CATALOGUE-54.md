@@ -27,6 +27,6 @@
 
 ## دليل staging المنفذ
 
-في **25 أغسطس 2026** شُغّل harness من source audit معزول خارج `staging-current`، مع catalogue root-owned مؤقت يحوي `publish.tenant` فقط وبـ`dryRun=true`. أعاد المخرج `SCHEDULER_DRY_RUN_COMPLETE` و`outcome=DRY_RUN`. لم يبدأ worker أو timer، ولم تتغير services staging، ولم تُنفذ عملية domain أو egress أو provider call. أزيل source audit وcatalogue المؤقتان بعد النجاح (`STAGING_SCHEDULER_AUDIT_CLEANED`).
+في **25 أغسطس 2026** شُغّل harness من release staging `1858f8b` مع catalogue root-owned مؤقت يحوي `scheduler.audit.tenant` فقط وبـ`dryRun=true`. أعاد المخرج `SCHEDULER_DRY_RUN_COMPLETE` و`outcome=DRY_RUN`. لم يبدأ worker أو timer، ولم تتغير services staging، ولم تُنفذ عملية domain أو egress أو provider call. أزيل manifest وdirectory المؤقتان بعد النجاح، وتأكد غياب أي `asasplus-domain-scheduler.service` أو timer أو environment enablement.
 
 هذا الدليل يثبت parser/catalogue/tenant-identifier guard فقط؛ **لا يثبت tenant authority checkout أو تنفيذ publication حقيقي**، لأن dry-run لا يملك side effect. يظل ذلك محصوراً في worker النشر القائم وأدلته W02 المغلقة.

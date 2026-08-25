@@ -23,7 +23,7 @@
 | Temporary SMTP | `CLOSED — SANDBOX VALIDATED` | مسار `schoolscreen.sa` المحلي اجتاز TLS/SASL/sender ورسالة sandbox مقيدة وfailure/timeout/retry/redaction/audit؛ لا live delivery أو product flow مفعّل. |
 | Payments | `EXTERNAL_INPUT_REQUIRED` | ledger/RLS/idempotency/reconciliation وفصل merchant المنصة عن الجمعية وربط invoice/entitlement نُفذت على staging fail-closed؛ يلزم provider Mada متعاقد وmerchant mapping/UAT/webhook حقيقي. |
 | SaaS entitlements | `CLOSED` | migrations 18/19 وRLS/runtime A/B proof مع cleanup مثبتة على staging وproduction loopback. |
-| Scheduler | `EXTERNAL_INPUT_REQUIRED` | يلزم owner-approved live catalogue/heartbeat؛ dry-run فقط مثبت. |
+| Scheduler | `EXTERNAL_INPUT_REQUIRED` | hardening catalogue/timezone/idempotency/concurrency/retry/timeout وdry-run/cleanup staging مثبتة؛ يلزم owner-approved live catalogue/heartbeat/lag ثم دليل side-effect لكل job. |
 | IdP/certificate activation | `NOT_APPLICABLE` | ليسا dependencies للإطلاق SaaS Bootstrap. |
 | DNS/public traffic | `PRODUCTION_CUTOVER_ONLY` | محظور قبل Go وعبارة النشر الصريحة. |
 

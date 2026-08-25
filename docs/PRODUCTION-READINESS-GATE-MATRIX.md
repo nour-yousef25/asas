@@ -7,6 +7,6 @@
 | Mail | Temporary SMTP | `CLOSED — SANDBOX VALIDATED` | `127.0.0.1:587`/`STARTTLS` مع TLS hostname وSASL وsender/sandbox message وفشل credential وtimeout/retry/audit redacted مثبتة. يبقى runtime الإنتاجي fail-closed وproduct flows غير موصولة. |
 | Payments | Required: Platform Billing + Org Donations | `EXTERNAL_INPUT_REQUIRED` | RLS/ledger/idempotency/reconciliation وmerchant boundary وinvoice/entitlement capture-proof مهيأة على staging fail-closed؛ يلزم Mada provider/merchant mapping/UAT/webhook contract حقيقي. |
 | License | SaaS Plan/Subscription/Entitlement | `CLOSED` | migrations 18/19 وtenant A/B entitlement/payment-configuration RLS proof مع cleanup على staging وproduction loopback. |
-| Scheduler | Catalogue before activation | `EXTERNAL_INPUT_REQUIRED` | owner catalogue/heartbeat plus per-job execution proof. |
+| Scheduler | Catalogue before activation | `EXTERNAL_INPUT_REQUIRED` | contract/dry-run staging وtimeout/idempotency/concurrency/heartbeat-lag checks مثبتة؛ يلزم owner catalogue/window وheartbeat config ثم per-job execution proof. |
 | IdP | Extension | `NOT_APPLICABLE` | none at launch. |
 | DNS/Public traffic | cutover last | `PRODUCTION_CUTOVER_ONLY` | new Go + explicit publication command. |

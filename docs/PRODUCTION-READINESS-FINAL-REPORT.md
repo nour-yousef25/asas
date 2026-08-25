@@ -38,7 +38,7 @@
 | Public vhost readiness | `PASS` | candidate proxy offline إلى `127.0.0.1:3106` محفوظ خارج config الحي؛ لم يُفعل. |
 | HTTPS/TLS readiness | `PASS` | شهادة `asasplus.shop` صالحة وقت الفحص حتى **21 نوفمبر 2026**، وآلية ACME cron موجودة. يلزم فحص تجديد ناجح في بوابة cutover نفسها. |
 | Scheduler (retention) | `PASS` | timer retention خاص بـASAS production مفعّل ومتحقق. |
-| Scheduler (domain jobs) | `IMPLEMENTABLE NOW` | قرار المنتج يطلب inventory/classification وstaging dry-run تحت tenant-bound authority؛ لا job حي أو global credential. |
+| Scheduler (domain jobs) | `BLOCKED — EXTERNAL INPUT REQUIRED` | catalogue contract وstaging dry-run/cleanup وحدود tenant/retry/timeout/heartbeat-lag مثبتة؛ لا job/service/timer حي. يلزم owner catalogue/window وheartbeat config ثم proof مستقل لكل side effect. |
 | Storage provider | `IMPLEMENTABLE NOW` | Local VPS tenant-private storage هو قرار الإطلاق؛ S3 لم يعد external launch gate. |
 | Auth/IdP | `IMPLEMENTABLE NOW` | Bootstrap Admin هو قرار الإطلاق؛ IdP ليس dependency للإطلاق الأول. لا seed أو user حقيقي بلا approval. |
 | Mail | `PASS — SANDBOX VALIDATED` | submission `schoolscreen.sa` المحلي اجتاز TLS/SASL/sender ورسالة sandbox واحدة واختبارات wrong-credential/recipient denial/timeout/retry/redaction/audit؛ runtime الإنتاجي أعيد fail-closed ولا product mail flow حي. |
@@ -65,7 +65,7 @@
 | Mail provider وsender/domain contract | `CLOSED — SANDBOX VALIDATED` |
 | Platform billing/organization donations ومزود Mada-compatible | `EXTERNAL INPUT REQUIRED` — البناء الداخلي مثبت على staging fail-closed، لكن provider/merchant/UAT/webhook غير متوفرين |
 | SaaS entitlements/activation | `IMPLEMENTABLE NOW` |
-| Scheduler domain jobs owner/catalogue | `IMPLEMENTABLE NOW` |
+| Scheduler domain jobs owner/catalogue | `EXTERNAL INPUT REQUIRED` — framework/dry-run staging مثبتان، لكن catalogue/window/heartbeat/job proofs غير معتمدة |
 | Go/No-Go owner ونافذة cutover | `EXTERNAL INPUT REQUIRED` |
 
 ## الخلاصة

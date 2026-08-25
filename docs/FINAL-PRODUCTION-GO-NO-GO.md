@@ -12,7 +12,7 @@
 | Platform Billing + Organization Donations | `EXTERNAL_INPUT_REQUIRED` | ledger/RLS/idempotency/reconciliation وplatform-vs-organization merchant boundaries مثبتة على staging loopback؛ runtime fail-closed ولا provider adapter أو webhook حي. | مزود Mada متعاقد، merchant/settlement mapping منفصل للمنصة ولكل جمعية، sandbox/UAT credential، webhook verifier/HTTPS allow-list، وسياسة capture/refund/void/reconciliation. |
 | SaaS Plans/Subscriptions/Entitlements | `CLOSED` | migrations 18/19 وruntime A/B proof مثبتة | certificate activation ليس شرط SaaS launch. |
 | Certificate Activation | `NOT_APPLICABLE` | self-hosted/license extension | ليس شرط SaaS launch. |
-| Domain Scheduler | `EXTERNAL_INPUT_REQUIRED` | catalogue/dry-run/guard/heartbeat contract مغلق | owner-approved catalogue، heartbeat path/max lag، ثم proof مستقل لكل job حي. |
+| Domain Scheduler | `EXTERNAL_INPUT_REQUIRED` | catalogue/timezone/idempotency/concurrency/retry/timeout/heartbeat-lag contract وdry-run staging/cleanup مغلقة داخلياً؛ لا scheduler service/timer حي. | owner-approved production catalogue، approval/window، heartbeat path/max lag، ثم proof مستقل لكل job حي وside effect. |
 | Owner/window | `EXTERNAL_INPUT_REQUIRED` | قرار خارجي | `ASAS_GO_NO_GO_APPROVAL_FILE`. |
 | DNS/public vhost/traffic | `PRODUCTION_CUTOVER_ONLY` | محظور في هذه الجولة | العبارة الصريحة `انشر على asasplus.shop الآن` بعد Go جديد فقط. |
 

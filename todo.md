@@ -32,10 +32,10 @@
 
 ## DOMAIN SCHEDULER READINESS GATE
 
-- [ ] SCH01: تدقيق read-only لعقد scheduler والـworker/catalogue/triggers/timezone/tenant scope/locks/retry/heartbeat/lag/audit/egress/production enablement.
-- [ ] SCH02: إنشاء أو تدقيق catalogue مصرح بكل الوظائف وتصنيفها INTERNAL / EXTERNAL_INPUT_REQUIRED / BLOCKED / NOT_APPLICABLE.
-- [ ] SCH03: تنفيذ hardening وdry-run staging loopback لإثبات parsing/scoping/idempotency/concurrency/retry/timeout/heartbeat/lag/audit/cleanup بلا side effect خارجي.
-- [ ] SCH04: تحديث وثائق Scheduler وGo/No-Go وpreflight ثم regression/secret hygiene/commit/push non-force.
+- [x] SCH01: تدقيق read-only لعقد scheduler والـworker/catalogue/triggers/timezone/tenant scope/locks/retry/heartbeat/lag/audit/egress/production enablement.
+- [x] SCH02: تدقيق catalogue مصرح وتصنيف الوظائف INTERNAL / EXTERNAL_INPUT_REQUIRED / BLOCKED / NOT_APPLICABLE.
+- [x] SCH03: hardening وdry-run staging loopback: parsing/scoping/idempotency/concurrency/retry/timeout/heartbeat/lag/audit/cleanup مثبتة بلا side effect خارجي؛ لا service/timer حي.
+- [x] SCH04: تحديث وثائق Scheduler وGo/No-Go وpreflight ثم regression/secret hygiene/commit/push non-force؛ self-test hygiene تاريخي منفصل فشل بلا تجاوز ويوثق كـblocker جودة غير متعلق بالـscheduler.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
