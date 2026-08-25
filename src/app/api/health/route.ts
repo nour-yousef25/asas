@@ -38,6 +38,11 @@ export async function GET(request: NextRequest) {
           await getRedis().ping();
         },
         storage: async () => {
+          if (process.env.ASAS_STORAGE_PROVIDER === "LOCAL_VPS") {
+            const { requireLocalTenantArtifactProvider } = await import("@/lib/local-tenant-artifact-provider");
+            await requireLocalTenantArtifactProvider().assertReady();
+            return;
+          }
           const probeUrl = process.env.ASAS_PREFLIGHT_STORAGE_PROBE_URL;
           if (!probeUrl) throw new Error("Storage probe URL is not configured.");
           const response = await fetch(probeUrl, { method: "GET", signal: AbortSignal.timeout(5_000) });

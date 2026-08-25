@@ -32,6 +32,8 @@ export class LocalTenantArtifactProvider implements TenantArtifactProvider {
     return this.rootDirectory;
   }
 
+  async assertReady() { await this.root(); }
+
   private async location(organizationId: string, artifactId: string, objectKey: string) {
     const key = canonicalObjectKey(organizationId, artifactId, objectKey);
     const root = await this.root();
