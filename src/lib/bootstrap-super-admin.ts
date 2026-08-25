@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 export class BootstrapSuperAdminError extends Error {
-  constructor(public readonly code: "REQUEST_INVALID" | "REQUEST_EXPIRED" | "EXECUTION_NOT_CONFIRMED" | "PASSWORD_INVALID" | "EXISTING_USER_INVALID" | "MEMBERSHIP_DENIED") {
+  constructor(public readonly code: "REQUEST_INVALID" | "REQUEST_EXPIRED" | "EXECUTION_NOT_CONFIRMED" | "PASSWORD_INVALID" | "EXISTING_USER_INVALID" | "MEMBERSHIP_DENIED" | "TEMPORARY_ROLE_INVALID") {
     super(`BOOTSTRAP_SUPER_ADMIN_${code}`);
   }
 }
