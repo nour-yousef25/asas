@@ -14,4 +14,12 @@ describe("Tenant payment ledger structural guards", () => {
     expect(source).toContain('status: "COMPLETED"');
     expect(source).toContain("paymentWebhookEvent");
   });
+  it("separates the platform merchant from organization payment configuration and checks captured values", () => {
+    expect(source).toContain("platformMerchantAttemptReference");
+    expect(source).toContain("merchantScope: \"PLATFORM\"");
+    expect(source).toContain("paymentConfigurationId: configuration.id");
+    expect(source).toContain("Number(transaction.amount) !== event.amount");
+    expect(source).toContain("transaction.currency !== event.currency");
+    expect(source).toContain("transaction.configuration?.providerKey !== event.providerKey");
+  });
 });

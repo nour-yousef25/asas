@@ -5,9 +5,9 @@ export class PaymentGatewayError extends Error {
   constructor(public readonly code: "UNCONFIGURED" | "INPUT_DENIED" | "SIGNATURE_DENIED" | "TENANT_DENIED" | "RECONCILIATION_DENIED" | "PROVIDER_REJECTED") { super(`PAYMENT_${code}`); }
 }
 
-export const paymentIntentSchema = z.object({ organizationId: z.string().regex(/^[A-Za-z0-9_-]{12,160}$/), amount: z.number().positive().finite(), currency: z.literal("SAR"), method: z.enum(["mada", "visa", "mastercard", "applepay", "stcpay", "bank_transfer"]), idempotencyKey: z.string().regex(/^[A-Za-z0-9._:-]{16,180}$/), callbackUrl: z.string().url().refine((value) => new URL(value).protocol === "https:") });
+export const paymentIntentSchema = z.object({ organizationId: z.string().regex(/^[A-Za-z0-9_-]{12,160}$/), amount: z.number().positive().finite().multipleOf(0.01), currency: z.literal("SAR"), method: z.enum(["mada", "visa", "mastercard", "applepay", "stcpay", "bank_transfer"]), idempotencyKey: z.string().regex(/^[A-Za-z0-9._:-]{16,180}$/), callbackUrl: z.string().url().refine((value) => new URL(value).protocol === "https:") });
 export type PaymentIntent = z.infer<typeof paymentIntentSchema>;
-export type VerifiedPaymentEvent = Readonly<{ organizationId: string; providerKey: string; providerEventId: string; providerPaymentId: string; status: "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED"; amount: number; currency: "SAR"; occurredAt: Date; payloadDigest: string }>;
+export type VerifiedPaymentEvent = Readonly<{ organizationId: string; providerKey: string; providerEventId: string; providerPaymentId: string; merchantAccountReference?: string; status: "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED"; amount: number; currency: "SAR"; occurredAt: Date; payloadDigest: string }>;
 export type PaymentProvider = Readonly<{ createIntent(input: PaymentIntent): Promise<Readonly<{ providerPaymentId: string; checkoutUrl: string }>>; verifyWebhook(input: Readonly<{ rawBody: string; headers: Headers }>): Promise<VerifiedPaymentEvent>; reconcile(input: Readonly<{ organizationId: string; providerPaymentId: string }>): Promise<VerifiedPaymentEvent> }>;
 export type PaymentLedger = Readonly<{ record(event: VerifiedPaymentEvent): Promise<Readonly<{ recorded: boolean; reconciliationRequired: boolean }>> }>;
 

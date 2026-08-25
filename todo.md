@@ -19,6 +19,16 @@
 - [x] SMTP04: إنشاء adapter/configuration schema fail-closed لـSMTP الحقيقي واختبارات sandbox/retry/redaction من دون credentials أو egress؛ template/product flows ما زالت غير موصولة.
 - [x] SMTP05: تصميم وتحقق مسار systemd credentials يتيح للخدمة قراءة SMTP secret بشكل مقيد من source root-owned، بلا secrets في environment/Git/logs.
 
+## PAYMENTS / MADA PRODUCTION READINESS GATE
+
+- [ ] PAY01: تدقيق read-only لعقود platform subscription وorganization donation والـledger وRLS/webhooks/refunds/idempotency/audit والـruntime wiring.
+- [ ] PAY02: تحديد adapter Mada الحقيقي أو فجوة provider، ومتطلبات merchant onboarding وcredentials/webhook/callback/UAT/reconciliation من دون افتراض مزود.
+- [ ] PAY03: تنفيذ واختبار أي hardening داخلي قابل للإثبات على staging/loopback فقط، بلا charge أو transaction حقيقية أو mock PASS.
+- [ ] PAY04: تحديث قرار Payments وGo/No-Go وpreflight بالنتائج الفعلية ثم regression وcommit/push non-force.
+- [ ] PAY05: فصل merchant settlement لمسار `PLATFORM_BILLING` عن merchant configuration العائدة للجمعية، ومنع ربطهما ضمن transaction واحدة.
+- [ ] PAY06: إزالة خطر مسار donation القديم الذي يمكنه وسم التبرع مكتملًا خارج tenant payment ledger، وتثبيت checkout fail-closed حتى adapter حقيقي.
+- [ ] PAY07: تعريف contract webhook حقيقي مقيد بـprovider/merchant/transaction/amount/currency/idempotency، مع إبقاء endpoint معطلاً حتى provider verifier معتمد.
+
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
 - [x] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.

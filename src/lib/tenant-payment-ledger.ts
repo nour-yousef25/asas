@@ -1,6 +1,8 @@
+import { createHash } from "node:crypto";
 import { PaymentPurpose, PaymentTransactionStatus, PaymentWebhookStatus, type PrismaClient } from "@prisma/client";
 import type { TenantContext } from "@/lib/tenant-context";
 import { requireTenantBoundPrismaExecutor, type TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
+import { opaqueSecretReference } from "@/lib/w02-security-contracts";
 
 export class TenantPaymentLedgerError extends Error {
   constructor(public readonly code: "CONFIG_DENIED" | "TRANSACTION_DENIED" | "EVENT_DENIED" | "ADJUSTMENT_DENIED") { super(`TENANT_PAYMENT_${code}`); }
@@ -8,7 +10,12 @@ export class TenantPaymentLedgerError extends Error {
 
 type DonationIntentInput = Readonly<{ amount: number; method: string; idempotencyKey: string; invoiceNo: string; taxNumber: string; donorId?: string; campaignId?: string; projectId?: string; isAnonymous?: boolean; isGuest?: boolean; guestName?: string; guestPhone?: string; guestEmail?: string }>;
 type PlatformBillingIntentInput = Readonly<{ subscriptionId: string; amount: number; method: string; idempotencyKey: string }>;
-type VerifiedEventInput = Readonly<{ transactionId: string; providerKey: string; providerEventId: string; payloadDigest: string; providerPaymentId: string; status: "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED"; occurredAt: Date }>;
+type PlatformMerchantConfiguration = Readonly<{ providerKey: string; merchantAccountReference: string; credentialReference: string }>;
+type VerifiedEventInput = Readonly<{ transactionId: string; providerKey: string; providerEventId: string; payloadDigest: string; providerPaymentId: string; merchantAccountReference?: string; amount: number; currency: "SAR"; status: "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED"; occurredAt: Date }>;
+
+function platformMerchantAttemptReference(merchant: PlatformMerchantConfiguration) {
+  return `platform:${merchant.providerKey}:${createHash("sha256").update(merchant.merchantAccountReference).digest("base64url")}`;
+}
 
 export class TenantPaymentLedgerRepository {
   constructor(private readonly executor?: TenantBoundPrismaExecutor) {}
@@ -39,25 +46,32 @@ export class TenantPaymentLedgerRepository {
     }));
   }
 
-  async createPlatformBillingIntent(context: TenantContext, input: PlatformBillingIntentInput) {
+  async createPlatformBillingIntent(context: TenantContext, input: PlatformBillingIntentInput, merchant: PlatformMerchantConfiguration) {
     if (!Number.isFinite(input.amount) || input.amount <= 0) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
-    const configuration = await this.configuration(context, input.method);
+    if (!/^[A-Za-z0-9._:-]{2,120}$/.test(merchant.providerKey) || !/^[A-Za-z0-9._:-]{2,180}$/.test(merchant.merchantAccountReference)) throw new TenantPaymentLedgerError("CONFIG_DENIED");
+    opaqueSecretReference(merchant.credentialReference);
     return this.execute(context, async (db) => db.$transaction(async (tx) => {
       const subscription = await tx.organizationSubscription.findFirst({ where: { id: input.subscriptionId, organizationId: context.organizationId }, select: { id: true } });
       if (!subscription) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
       const existing = await tx.paymentTransaction.findFirst({ where: { organizationId: context.organizationId, idempotencyKey: input.idempotencyKey } });
       if (existing) return { transaction: existing, idempotent: true };
-      const transaction = await tx.paymentTransaction.create({ data: { organizationId: context.organizationId, purpose: PaymentPurpose.PLATFORM_BILLING, paymentConfigurationId: configuration.id, subscriptionId: subscription.id, idempotencyKey: input.idempotencyKey, amount: input.amount, method: input.method, status: PaymentTransactionStatus.CREATED } });
-      await tx.paymentAttempt.create({ data: { transactionId: transaction.id, attemptNo: 1, status: "CREATED" } });
-      await tx.auditLog.create({ data: { organizationId: context.organizationId, userId: context.userId, action: "PAYMENT_PLATFORM_BILLING_INTENT_CREATED", entity: "PaymentTransaction", entityId: transaction.id, details: { purpose: "PLATFORM_BILLING", idempotencyKey: input.idempotencyKey, correlationId: context.correlationId } } });
+      const transaction = await tx.paymentTransaction.create({ data: { organizationId: context.organizationId, purpose: PaymentPurpose.PLATFORM_BILLING, subscriptionId: subscription.id, idempotencyKey: input.idempotencyKey, amount: input.amount, method: input.method, status: PaymentTransactionStatus.CREATED } });
+      await tx.paymentAttempt.create({ data: { transactionId: transaction.id, attemptNo: 1, providerRef: platformMerchantAttemptReference(merchant), status: "CREATED" } });
+      await tx.auditLog.create({ data: { organizationId: context.organizationId, userId: context.userId, action: "PAYMENT_PLATFORM_BILLING_INTENT_CREATED", entity: "PaymentTransaction", entityId: transaction.id, details: { purpose: "PLATFORM_BILLING", providerKey: merchant.providerKey, merchantScope: "PLATFORM", idempotencyKey: input.idempotencyKey, correlationId: context.correlationId } } });
       return { transaction, idempotent: false };
     }));
   }
 
   async recordVerifiedEvent(context: TenantContext, event: VerifiedEventInput) {
     return this.execute(context, async (db) => db.$transaction(async (tx) => {
-      const transaction = await tx.paymentTransaction.findFirst({ where: { id: event.transactionId, organizationId: context.organizationId }, include: { donation: { include: { invoice: true, project: true, campaign: true, donor: true } } } });
+      const transaction = await tx.paymentTransaction.findFirst({ where: { id: event.transactionId, organizationId: context.organizationId }, include: { configuration: { select: { providerKey: true } }, attempts: { select: { providerRef: true } }, donation: { include: { invoice: true, project: true, campaign: true, donor: true } } } });
       if (!transaction) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
+      if (Number(transaction.amount) !== event.amount || transaction.currency !== event.currency) throw new TenantPaymentLedgerError("EVENT_DENIED");
+      if (transaction.purpose === PaymentPurpose.ORGANIZATION_DONATION && transaction.configuration?.providerKey !== event.providerKey) throw new TenantPaymentLedgerError("EVENT_DENIED");
+      if (transaction.purpose === PaymentPurpose.PLATFORM_BILLING) {
+        const merchantAccountReference = event.merchantAccountReference;
+        if (!merchantAccountReference || !transaction.attempts.some((attempt) => attempt.providerRef === platformMerchantAttemptReference({ providerKey: event.providerKey, merchantAccountReference, credentialReference: "secretref:platform-payment-event-credential" }))) throw new TenantPaymentLedgerError("EVENT_DENIED");
+      }
       const prior = await tx.paymentWebhookEvent.findFirst({ where: { organizationId: context.organizationId, providerKey: event.providerKey, providerEventId: event.providerEventId } });
       if (prior) return { applied: false, idempotent: true };
       await tx.paymentWebhookEvent.create({ data: { organizationId: context.organizationId, transactionId: transaction.id, providerKey: event.providerKey, providerEventId: event.providerEventId, payloadDigest: event.payloadDigest, status: PaymentWebhookStatus.VERIFIED, occurredAt: event.occurredAt } });
