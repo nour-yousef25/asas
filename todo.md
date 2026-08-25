@@ -28,6 +28,7 @@
 - [ ] PAY05: فصل merchant settlement لمسار `PLATFORM_BILLING` عن merchant configuration العائدة للجمعية، ومنع ربطهما ضمن transaction واحدة.
 - [ ] PAY06: إزالة خطر مسار donation القديم الذي يمكنه وسم التبرع مكتملًا خارج tenant payment ledger، وتثبيت checkout fail-closed حتى adapter حقيقي.
 - [ ] PAY07: تعريف contract webhook حقيقي مقيد بـprovider/merchant/transaction/amount/currency/idempotency، مع إبقاء endpoint معطلاً حتى provider verifier معتمد.
+- [ ] PAY08: ربط `PLATFORM_BILLING` الملتقط فقط بتفعيل الاشتراك والـentitlements الخاصة بالمنظمة، مع منع donation من تعديل أي entitlement.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { PaymentPurpose, PaymentTransactionStatus, PaymentWebhookStatus, type PrismaClient } from "@prisma/client";
+import { EntitlementStatus, InvoiceStatus, PaymentPurpose, PaymentTransactionStatus, PaymentWebhookStatus, SubscriptionStatus, type PrismaClient } from "@prisma/client";
 import type { TenantContext } from "@/lib/tenant-context";
 import { requireTenantBoundPrismaExecutor, type TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 import { opaqueSecretReference } from "@/lib/w02-security-contracts";
@@ -9,7 +9,7 @@ export class TenantPaymentLedgerError extends Error {
 }
 
 type DonationIntentInput = Readonly<{ amount: number; method: string; idempotencyKey: string; invoiceNo: string; taxNumber: string; donorId?: string; campaignId?: string; projectId?: string; isAnonymous?: boolean; isGuest?: boolean; guestName?: string; guestPhone?: string; guestEmail?: string }>;
-type PlatformBillingIntentInput = Readonly<{ subscriptionId: string; amount: number; method: string; idempotencyKey: string }>;
+type PlatformBillingIntentInput = Readonly<{ subscriptionId: string; amount: number; taxAmount: number; method: string; idempotencyKey: string; invoiceNo: string }>;
 type PlatformMerchantConfiguration = Readonly<{ providerKey: string; merchantAccountReference: string; credentialReference: string }>;
 type VerifiedEventInput = Readonly<{ transactionId: string; providerKey: string; providerEventId: string; payloadDigest: string; providerPaymentId: string; merchantAccountReference?: string; amount: number; currency: "SAR"; status: "AUTHORIZED" | "CAPTURED" | "FAILED" | "REFUNDED"; occurredAt: Date }>;
 
@@ -47,7 +47,7 @@ export class TenantPaymentLedgerRepository {
   }
 
   async createPlatformBillingIntent(context: TenantContext, input: PlatformBillingIntentInput, merchant: PlatformMerchantConfiguration) {
-    if (!Number.isFinite(input.amount) || input.amount <= 0) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
+    if (!Number.isFinite(input.amount) || input.amount <= 0 || !Number.isFinite(input.taxAmount) || input.taxAmount < 0 || input.taxAmount > input.amount || !/^[A-Za-z0-9._-]{6,120}$/.test(input.invoiceNo)) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
     if (!/^[A-Za-z0-9._:-]{2,120}$/.test(merchant.providerKey) || !/^[A-Za-z0-9._:-]{2,180}$/.test(merchant.merchantAccountReference)) throw new TenantPaymentLedgerError("CONFIG_DENIED");
     opaqueSecretReference(merchant.credentialReference);
     return this.execute(context, async (db) => db.$transaction(async (tx) => {
@@ -55,7 +55,8 @@ export class TenantPaymentLedgerRepository {
       if (!subscription) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
       const existing = await tx.paymentTransaction.findFirst({ where: { organizationId: context.organizationId, idempotencyKey: input.idempotencyKey } });
       if (existing) return { transaction: existing, idempotent: true };
-      const transaction = await tx.paymentTransaction.create({ data: { organizationId: context.organizationId, purpose: PaymentPurpose.PLATFORM_BILLING, subscriptionId: subscription.id, idempotencyKey: input.idempotencyKey, amount: input.amount, method: input.method, status: PaymentTransactionStatus.CREATED } });
+      const invoice = await tx.platformInvoice.create({ data: { organizationId: context.organizationId, subscriptionId: subscription.id, invoiceNo: input.invoiceNo, amount: input.amount - input.taxAmount, taxAmount: input.taxAmount, totalAmount: input.amount, status: InvoiceStatus.ISSUED } });
+      const transaction = await tx.paymentTransaction.create({ data: { organizationId: context.organizationId, purpose: PaymentPurpose.PLATFORM_BILLING, subscriptionId: subscription.id, platformInvoiceId: invoice.id, idempotencyKey: input.idempotencyKey, amount: input.amount, method: input.method, status: PaymentTransactionStatus.CREATED } });
       await tx.paymentAttempt.create({ data: { transactionId: transaction.id, attemptNo: 1, providerRef: platformMerchantAttemptReference(merchant), status: "CREATED" } });
       await tx.auditLog.create({ data: { organizationId: context.organizationId, userId: context.userId, action: "PAYMENT_PLATFORM_BILLING_INTENT_CREATED", entity: "PaymentTransaction", entityId: transaction.id, details: { purpose: "PLATFORM_BILLING", providerKey: merchant.providerKey, merchantScope: "PLATFORM", idempotencyKey: input.idempotencyKey, correlationId: context.correlationId } } });
       return { transaction, idempotent: false };
@@ -64,7 +65,7 @@ export class TenantPaymentLedgerRepository {
 
   async recordVerifiedEvent(context: TenantContext, event: VerifiedEventInput) {
     return this.execute(context, async (db) => db.$transaction(async (tx) => {
-      const transaction = await tx.paymentTransaction.findFirst({ where: { id: event.transactionId, organizationId: context.organizationId }, include: { configuration: { select: { providerKey: true } }, attempts: { select: { providerRef: true } }, donation: { include: { invoice: true, project: true, campaign: true, donor: true } } } });
+      const transaction = await tx.paymentTransaction.findFirst({ where: { id: event.transactionId, organizationId: context.organizationId }, include: { configuration: { select: { providerKey: true } }, attempts: { select: { providerRef: true } }, platformInvoice: true, subscription: { include: { entitlements: true } }, donation: { include: { invoice: true, project: true, campaign: true, donor: true } } } });
       if (!transaction) throw new TenantPaymentLedgerError("TRANSACTION_DENIED");
       if (Number(transaction.amount) !== event.amount || transaction.currency !== event.currency) throw new TenantPaymentLedgerError("EVENT_DENIED");
       if (transaction.purpose === PaymentPurpose.ORGANIZATION_DONATION && transaction.configuration?.providerKey !== event.providerKey) throw new TenantPaymentLedgerError("EVENT_DENIED");
@@ -84,6 +85,18 @@ export class TenantPaymentLedgerRepository {
         if (transaction.donation.project) await tx.project.update({ where: { id: transaction.donation.project.id }, data: { collectedAmount: { increment: Number(transaction.amount) } } });
         if (transaction.donation.campaign) await tx.donationCampaign.update({ where: { id: transaction.donation.campaign.id }, data: { collectedAmount: { increment: Number(transaction.amount) } } });
         if (transaction.donation.donor) await tx.donor.update({ where: { id: transaction.donation.donor.id }, data: { totalDonations: { increment: Number(transaction.amount) }, lastDonationAt: event.occurredAt } });
+      }
+      if (transaction.purpose === PaymentPurpose.PLATFORM_BILLING && transaction.subscription && transaction.platformInvoice) {
+        if (status === PaymentTransactionStatus.CAPTURED) {
+          await tx.organizationSubscription.update({ where: { id: transaction.subscription.id }, data: { status: SubscriptionStatus.ACTIVE, activatedAt: event.occurredAt } });
+          await tx.organizationEntitlement.updateMany({ where: { organizationId: context.organizationId, subscriptionId: transaction.subscription.id, status: { not: EntitlementStatus.EXPIRED } }, data: { status: EntitlementStatus.ACTIVE } });
+          await tx.platformInvoice.update({ where: { id: transaction.platformInvoice.id }, data: { status: InvoiceStatus.PAID } });
+        }
+        if (status === PaymentTransactionStatus.REFUNDED) {
+          await tx.organizationSubscription.update({ where: { id: transaction.subscription.id }, data: { status: SubscriptionStatus.SUSPENDED, suspendedAt: event.occurredAt } });
+          await tx.organizationEntitlement.updateMany({ where: { organizationId: context.organizationId, subscriptionId: transaction.subscription.id }, data: { status: EntitlementStatus.SUSPENDED } });
+          await tx.platformInvoice.update({ where: { id: transaction.platformInvoice.id }, data: { status: InvoiceStatus.REFUNDED } });
+        }
       }
       await tx.paymentWebhookEvent.updateMany({ where: { organizationId: context.organizationId, providerKey: event.providerKey, providerEventId: event.providerEventId }, data: { status: PaymentWebhookStatus.APPLIED, appliedAt: new Date() } });
       await tx.paymentReconciliation.create({ data: { transactionId: transaction.id, outcome: status, providerRef: event.providerPaymentId } });

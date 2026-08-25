@@ -22,4 +22,13 @@ describe("Tenant payment ledger structural guards", () => {
     expect(source).toContain("transaction.currency !== event.currency");
     expect(source).toContain("transaction.configuration?.providerKey !== event.providerKey");
   });
+  it("links platform billing to its invoice and activates only the matching subscription on capture", () => {
+    expect(source).toContain("platformInvoiceId: invoice.id");
+    expect(source).toContain("purpose === PaymentPurpose.PLATFORM_BILLING");
+    expect(source).toContain("status: SubscriptionStatus.ACTIVE");
+    expect(source).toContain("status: EntitlementStatus.ACTIVE");
+    expect(source).toContain("status: InvoiceStatus.PAID");
+    expect(source).toContain("status: SubscriptionStatus.SUSPENDED");
+    expect(source).toContain("status: InvoiceStatus.REFUNDED");
+  });
 });

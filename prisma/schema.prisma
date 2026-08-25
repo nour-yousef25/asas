@@ -181,7 +181,7 @@ model Organization {
   financialAccounts       FinancialAccount[]
   settings                SiteSetting[]
   memberships             OrganizationMembership[]
-  activeUsers             User[]                     @relation("ActiveOrganization")
+  activeUsers             User[]                          @relation("ActiveOrganization")
   roles                   OrganizationRole[]
   supportAccessRequests   PlatformSupportAccess[]
   connectedChannels       ConnectedChannel[]
@@ -206,7 +206,7 @@ model Organization {
   budgets                 Budget[]
   budgetItems             BudgetItem[]
   expenses                Expense[]
-  memberRecords           Member[]                  @relation("MemberOrganization")
+  memberRecords           Member[]                        @relation("MemberOrganization")
   kpis                    KPI[]
   kpiRecords              KPIRecord[]
   databasePrincipals      TenantDatabasePrincipal[]
@@ -371,17 +371,17 @@ enum TenantAccessLeaseStatus {
 }
 
 model TenantDatabasePrincipal {
-  id                  String                        @id @default(cuid())
-  organizationId      String
-  principalName       String                        @unique
-  credentialReference String                        @unique
-  queueCredentialReference String?                 @unique
-  generation          Int                           @default(1)
-  status              TenantDatabasePrincipalStatus @default(ACTIVE)
-  activatedAt         DateTime                      @default(now())
-  revokedAt           DateTime?
-  createdAt           DateTime                      @default(now())
-  updatedAt           DateTime                      @updatedAt
+  id                       String                        @id @default(cuid())
+  organizationId           String
+  principalName            String                        @unique
+  credentialReference      String                        @unique
+  queueCredentialReference String?                       @unique
+  generation               Int                           @default(1)
+  status                   TenantDatabasePrincipalStatus @default(ACTIVE)
+  activatedAt              DateTime                      @default(now())
+  revokedAt                DateTime?
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
 
   organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   leases       TenantAccessLease[]
@@ -1091,11 +1091,11 @@ model Donation {
   guestPhone     String?
   guestEmail     String?
 
-  donor        Donor?            @relation(fields: [donorId], references: [id], onDelete: SetNull)
-  organization Organization?     @relation(fields: [organizationId], references: [id], onDelete: SetNull)
-  campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
-  project      Project?          @relation(fields: [projectId], references: [id])
-  invoice      Invoice?
+  donor              Donor?              @relation(fields: [donorId], references: [id], onDelete: SetNull)
+  organization       Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  campaign           DonationCampaign?   @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  project            Project?            @relation(fields: [projectId], references: [id])
+  invoice            Invoice?
   paymentTransaction PaymentTransaction?
 
   createdAt DateTime @default(now())
@@ -1283,8 +1283,8 @@ model OrganizationSubscription {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
 
-  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  plan         PlatformPlan             @relation(fields: [planId], references: [id], onDelete: Restrict)
+  organization Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         PlatformPlan              @relation(fields: [planId], references: [id], onDelete: Restrict)
   entitlements OrganizationEntitlement[]
   transactions PaymentTransaction[]
   invoices     PlatformInvoice[]
@@ -1340,6 +1340,7 @@ model PaymentTransaction {
   paymentConfigurationId String?
   subscriptionId         String?
   donationId             String?                  @unique
+  platformInvoiceId      String?                  @unique
   idempotencyKey         String
   amount                 Decimal                  @db.Decimal(12, 2)
   currency               String                   @default("SAR")
@@ -1350,10 +1351,11 @@ model PaymentTransaction {
   updatedAt              DateTime                 @updatedAt
   capturedAt             DateTime?
 
-  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  configuration   PaymentConfiguration?    @relation(fields: [paymentConfigurationId], references: [id], onDelete: SetNull)
+  organization    Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  configuration   PaymentConfiguration?     @relation(fields: [paymentConfigurationId], references: [id], onDelete: SetNull)
   subscription    OrganizationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
-  donation        Donation?                @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  donation        Donation?                 @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  platformInvoice PlatformInvoice?          @relation(fields: [platformInvoiceId], references: [id], onDelete: SetNull)
   attempts        PaymentAttempt[]
   webhookEvents   PaymentWebhookEvent[]
   reconciliations PaymentReconciliation[]
@@ -1443,6 +1445,7 @@ model PlatformInvoice {
 
   organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   subscription OrganizationSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  transaction  PaymentTransaction?
 
   @@index([organizationId, status])
   @@map("platform_invoices")
@@ -1843,17 +1846,17 @@ model SurveyAnswer {
 // ============================================
 
 model KPI {
-  id            String          @id @default(cuid())
+  id             String          @id @default(cuid())
   organizationId String?
-  title         String
-  description   String?
-  targetEntity  KPITargetEntity
-  targetId      String?
-  unit          String
-  targetValue   Float
-  strategicGoal String?
-  frequency     String          @default("monthly")
-  status        KPIStatus       @default(ACTIVE)
+  title          String
+  description    String?
+  targetEntity   KPITargetEntity
+  targetId       String?
+  unit           String
+  targetValue    Float
+  strategicGoal  String?
+  frequency      String          @default("monthly")
+  status         KPIStatus       @default(ACTIVE)
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   records      KPIRecord[]
@@ -1879,14 +1882,14 @@ enum KPIStatus {
 }
 
 model KPIRecord {
-  id          String  @id @default(cuid())
+  id             String  @id @default(cuid())
   organizationId String?
-  kpiId       String
-  period      String
-  actualValue Float
-  targetValue Float
-  percent     Float
-  notes       String?
+  kpiId          String
+  period         String
+  actualValue    Float
+  targetValue    Float
+  percent        Float
+  notes          String?
 
   organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   kpi          KPI           @relation(fields: [kpiId], references: [id], onDelete: Cascade)
@@ -2338,7 +2341,7 @@ model IdentityProviderConfig {
   createdAt         DateTime                    @default(now())
   updatedAt         DateTime                    @updatedAt
 
-  organization    Organization                     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   subjectBindings IdentitySubjectBinding[]
   callbackStates  IdentityProviderCallbackState[]
 
@@ -2348,17 +2351,17 @@ model IdentityProviderConfig {
 }
 
 model IdentitySubjectBinding {
-  id                       String   @id @default(cuid())
+  id                       String    @id @default(cuid())
   organizationId           String
   identityProviderConfigId String
   membershipId             String
   subjectHash              String
-  isActive                 Boolean  @default(true)
+  isActive                 Boolean   @default(true)
   revokedAt                DateTime?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
 
-  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   providerConfig IdentityProviderConfig @relation(fields: [identityProviderConfigId], references: [id], onDelete: Cascade)
 
   @@unique([identityProviderConfigId, subjectHash])
@@ -2368,16 +2371,16 @@ model IdentitySubjectBinding {
 }
 
 model IdentityProviderCallbackState {
-  id                       String   @id @default(cuid())
+  id                       String    @id @default(cuid())
   organizationId           String
   identityProviderConfigId String
   membershipId             String
-  stateHash                String   @unique
+  stateHash                String    @unique
   expiresAt                DateTime
   consumedAt               DateTime?
-  createdAt                DateTime @default(now())
+  createdAt                DateTime  @default(now())
 
-  organization   Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   providerConfig IdentityProviderConfig @relation(fields: [identityProviderConfigId], references: [id], onDelete: Cascade)
 
   @@index([organizationId, expiresAt])
@@ -2513,7 +2516,7 @@ model Document {
   relatedId      String?
   uploadedById   String?
 
-  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  organization    Organization?    @relation(fields: [organizationId], references: [id], onDelete: SetNull)
   privateArtifact PrivateArtifact?
 
   @@index([organizationId])

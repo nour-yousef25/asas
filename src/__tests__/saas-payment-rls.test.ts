@@ -9,4 +9,11 @@ describe("SaaS payment RLS hardening", () => {
     expect(migration).toContain("configuration.\"organizationId\" = security.current_session_organization_id()");
     expect(migration).not.toMatch(/current_setting|set_config|BYPASSRLS/);
   });
+  it("requires a linked platform invoice to belong to the same tenant and subscription", () => {
+    const migration = readFileSync(resolve(__dirname, "../../prisma/migrations/20260825200000_platform_payment_invoice_link/migration.sql"), "utf8");
+    expect(migration).toContain("platformInvoiceId");
+    expect(migration).toContain('invoice."organizationId" = security.current_session_organization_id()');
+    expect(migration).toContain('invoice."subscriptionId" = "subscriptionId"');
+    expect(migration).not.toMatch(/current_setting|set_config|BYPASSRLS/);
+  });
 });
