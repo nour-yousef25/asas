@@ -6,7 +6,7 @@
 |---|---|---|---|
 | Platform core، RLS، Broker، Redis، queue، worker، backup/restore/rollback | `CLOSED` | production baseline مغلق | لا شيء في هذه الجولة. |
 | Local VPS Storage | `CLOSED` | root-owned tenant-private provider، health، A/B proof وcleanup مثبتة | لا S3 input. |
-| Bootstrap Authentication | `EXTERNAL_INPUT_REQUIRED` | control-plane provisioner مغلق داخلياً | `ASAS_BOOTSTRAP_CONTROL_REQUEST_FILE` للهوية المعتمدة، password file root-only منفصل، ثم `AUTH_SECRET`. |
+| Bootstrap Authentication | `CLOSED` | أول `SUPER_ADMIN` control-plane أُنشئ واختُبر على loopback، بلا membership أو tenant authority؛ password/request والـtemporary role نُظفت. | لا شيء في هذه الجولة. |
 | IdP | `NOT_APPLICABLE` | extension محايد | لا شيء لإطلاق Bootstrap. |
 | Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | transport/redaction/retry مغلقة | SMTP `schoolscreen.sa`: host/port/TLS/sender/secret reference وsandbox approval. |
 | Platform Billing + Organization Donations | `EXTERNAL_INPUT_REQUIRED` | ledger، reconciliation، idempotency، refund/void وRLS مثبتة | gateway Mada-compatible، merchant credentials، webhook secret، callback allow-list وUAT approval. |

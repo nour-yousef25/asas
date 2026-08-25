@@ -19,6 +19,6 @@ pnpm run preflight:external-gates
 
 ## التسلسل الآمن
 
-أُنجز العمل الداخلي: release/migrations 18/19 وRLS/runtime proof للـSaaS/payment وLocal Storage على staging ثم production loopback. بعد ذلك توضع request/config files root-owned خارج Git، ويشغّل preflight، ثم ينفذ proof مزود غير مدمر معتمد. لا ينشئ preflight Bootstrap admin، ولا يرسل mail، ولا ينفذ charge، ولا يشغل scheduler job.
+أُنجز العمل الداخلي: release/migrations 18/19 وRLS/runtime proof للـSaaS/payment وLocal Storage على staging ثم production loopback. Bootstrap Authentication مغلق: أول `SUPER_ADMIN` control-plane اجتاز provision/login/session/logout loopback، مع غياب membership/tenant authority وإزالة artifacts والدور المؤقت. بعد ذلك توضع request/config files المطلوبة للبوابات المتبقية root-owned خارج Git، ويشغّل preflight، ثم ينفذ proof مزود غير مدمر معتمد. لا يرسل preflight mail، ولا ينفذ charge، ولا يشغل scheduler job.
 
 `pnpm run scheduler:dry-run` يقرأ catalogue root-owned ويعيد `SCHEDULER_DRY_RUN_COMPLETE` أو `SCHEDULER_DRY_RUN_BLOCKED`; لا يكتب heartbeat ولا يفعّل timer. دليل staging الحالي dry-run فقط ولا يثبت tenant checkout أو execution حي.

@@ -2,7 +2,7 @@
 
 | Gate | Decision | Status | Evidence / next proof |
 |---|---|---|---|
-| Authentication | Bootstrap first | `EXTERNAL_INPUT_REQUIRED` | control request + human provision/login evidence. |
+| Authentication | Bootstrap first | `CLOSED` | أول `SUPER_ADMIN` control-plane: provision/login/session/logout loopback، no membership/no tenant authority، cleanup/hygiene مثبتة. |
 | Storage | Local VPS | `CLOSED` | staging وproduction loopback: root-owned provider، health `HEALTHY` وtenant A/B delivery/denial/cleanup proof. |
 | Mail | Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | SMTP sandbox identity/send proof. |
 | Payments | Required: Platform Billing + Org Donations | `EXTERNAL_INPUT_REQUIRED` | provider sandbox and tenant ledger/reconciliation proof. |
