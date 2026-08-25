@@ -14,6 +14,7 @@
 - [ ] SMTP02: تصنيف مزود SMTP الفعلي أو المدخل الخارجي المطلوب بدقة، مع منع افتراض أن SnappyMail هو provider للتطبيق.
 - [ ] SMTP03: عند توافر sender/config/approval معتمدة، تنفيذ staging-only connectivity/TLS/auth/delivery/failure/timeout/retry/redaction/audit؛ وإلا توثيق blocker فقط.
 - [ ] SMTP04: إنشاء adapter/configuration schema fail-closed لـSMTP الحقيقي واختبارات sandbox/template/retry/redaction من دون credentials أو egress.
+- [ ] SMTP05: تصميم وتحقق مسار systemd credentials أو آلية مكافئة تتيح للخدمة قراءة SMTP secret بشكل مقيد من ملف root-owned، بلا secrets في environment/Git/logs.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 

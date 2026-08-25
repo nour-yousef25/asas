@@ -27,9 +27,30 @@ async function readRootOnlyJson(path: string) {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
+async function readSystemdCredentialJson(path: string) {
+  const details = await stat(path).catch(() => undefined);
+  if (!details?.isFile() || (details.mode & 0o077) !== 0) throw new MailTransportError("UNCONFIGURED");
+  return JSON.parse(await readFile(path, "utf8"));
+}
+
+function credentialPathFromEnvironment() {
+  const name = process.env.ASAS_MAIL_TRANSPORT_CONFIG_CREDENTIAL;
+  const directory = process.env.CREDENTIALS_DIRECTORY;
+  if (!name || !directory || !/^[A-Za-z0-9._-]{1,120}$/.test(name)) return undefined;
+  return `${directory}/${name}`;
+}
+
 export async function loadRootOnlySmtpTransportConfiguration(path: string): Promise<SmtpTransportConfiguration> {
   try {
     return smtpTransportConfigurationSchema.parse(await readRootOnlyJson(path));
+  } catch {
+    throw new MailTransportError("UNCONFIGURED");
+  }
+}
+
+async function loadSystemdCredentialSmtpTransportConfiguration(path: string): Promise<SmtpTransportConfiguration> {
+  try {
+    return smtpTransportConfigurationSchema.parse(await readSystemdCredentialJson(path));
   } catch {
     throw new MailTransportError("UNCONFIGURED");
   }
@@ -68,8 +89,12 @@ export function createSmtpTransport(configuration: SmtpTransportConfiguration): 
 }
 
 export async function installSmtpTransportFromEnvironment() {
-  const path = process.env.ASAS_MAIL_TRANSPORT_CONFIG_PATH;
-  if (!path || mailTransportInstalled()) return false;
-  installMailTransport(createSmtpTransport(await loadRootOnlySmtpTransportConfiguration(path)));
+  const credentialPath = credentialPathFromEnvironment();
+  const rootOnlyPath = process.env.ASAS_MAIL_TRANSPORT_CONFIG_PATH;
+  if ((!credentialPath && !rootOnlyPath) || mailTransportInstalled()) return false;
+  const configuration = credentialPath
+    ? await loadSystemdCredentialSmtpTransportConfiguration(credentialPath)
+    : await loadRootOnlySmtpTransportConfiguration(rootOnlyPath!);
+  installMailTransport(createSmtpTransport(configuration));
   return true;
 }
