@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
   }
   const correlationId = request.headers.get("x-correlation-id") ?? crypto.randomUUID();
   try {
+    const { bootstrapTenantRuntime } = await import("@/lib/tenant-runtime-bootstrap");
+    bootstrapTenantRuntime();
     const report = await withCorrelationId(correlationId, () =>
       collectHealthReport({
         database: async () => {
