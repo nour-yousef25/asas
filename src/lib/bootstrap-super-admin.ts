@@ -36,7 +36,7 @@ function fingerprint(value: string) { return createHash("sha256").update(`bootst
 
 export async function loadRootOnlyBootstrapSuperAdminRequest(path: string): Promise<BootstrapSuperAdminRequest> {
   const details = await stat(path).catch(() => undefined);
-  if (!details || !details.isFile() || details.uid !== 0 || (details.mode & 0o077) !== 0) throw new BootstrapSuperAdminError("REQUEST_INVALID");
+  if (!details || !details.isFile() || details.uid !== 0 || details.gid !== 0 || (details.mode & 0o077) !== 0) throw new BootstrapSuperAdminError("REQUEST_INVALID");
   try { return bootstrapSuperAdminRequestSchema.parse(JSON.parse(await readFile(path, "utf8"))); }
   catch { throw new BootstrapSuperAdminError("REQUEST_INVALID"); }
 }

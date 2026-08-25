@@ -22,18 +22,22 @@ async function main() {
   const request = await loadRootOnlyBootstrapSuperAdminRequest(requestPath);
   await assertRootOnlyNewAuditPath(auditPath);
   let password: Buffer | undefined;
-  const existing = await prisma.user.findUnique({ where: { email: request.email }, select: { id: true } });
-  if (!existing) password = await readRootOnlyBootstrapPassword(request.passwordFile);
-  const result = await provisionBootstrapSuperAdmin({
-    findByEmail: async (email) => prisma.user.findUnique({ where: { email }, select: { id: true, email: true, role: true, isActive: true, activeOrganizationId: true } }),
-    countOrganizationMemberships: async (userId) => prisma.organizationMembership.count({ where: { userId } }),
-    create: async (input) => prisma.user.create({ data: { ...input, role: Role.SUPER_ADMIN }, select: { id: true, email: true, role: true, isActive: true, activeOrganizationId: true } }),
-  }, request, password);
-  password?.fill(0);
-  const audit = { schema: "ASAS_BOOTSTRAP_SUPER_ADMIN_AUDIT_V1", requestId: request.requestId, outcome: result.outcome, accountFingerprint: fingerprint(result.userId), emailFingerprint: result.emailFingerprint, role: "SUPER_ADMIN", noOrganizationMembership: true, passwordArtifactRemoved: true, requestConsumed: true, correlationId: randomUUID(), at: new Date().toISOString() };
-  await writeFile(auditPath, `${JSON.stringify(audit)}\n`, { mode: 0o600, flag: "wx" });
+  let result: Awaited<ReturnType<typeof provisionBootstrapSuperAdmin>>;
+  try {
+    const existing = await prisma.user.findUnique({ where: { email: request.email }, select: { id: true } });
+    if (!existing) password = await readRootOnlyBootstrapPassword(request.passwordFile);
+    result = await provisionBootstrapSuperAdmin({
+      findByEmail: async (email) => prisma.user.findUnique({ where: { email }, select: { id: true, email: true, role: true, isActive: true, activeOrganizationId: true } }),
+      countOrganizationMemberships: async (userId) => prisma.organizationMembership.count({ where: { userId } }),
+      create: async (input) => prisma.user.create({ data: { ...input, role: Role.SUPER_ADMIN }, select: { id: true, email: true, role: true, isActive: true, activeOrganizationId: true } }),
+    }, request, password);
+  } finally {
+    password?.fill(0);
+  }
   await rm(requestPath, { force: false });
   await rm(request.passwordFile, { force: true });
+  const audit = { schema: "ASAS_BOOTSTRAP_SUPER_ADMIN_AUDIT_V1", requestId: request.requestId, outcome: result.outcome, accountFingerprint: fingerprint(result.userId), emailFingerprint: result.emailFingerprint, role: "SUPER_ADMIN", noOrganizationMembership: true, passwordArtifactRemoved: true, requestConsumed: true, correlationId: randomUUID(), at: new Date().toISOString() };
+  await writeFile(auditPath, `${JSON.stringify(audit)}\n`, { mode: 0o600, flag: "wx" });
   process.stdout.write(`BOOTSTRAP_SUPER_ADMIN_${result.outcome}\n`);
 }
 
