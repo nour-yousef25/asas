@@ -1,41 +1,43 @@
 # FINAL PRODUCTION PREFLIGHT — ASAS Plus
 
-هذا الـpreflight **لا ينشر** ولا يغير DNS أو public vhost أو traffic. الغرض منه عرض بوابات الإطلاق بصيغة قابلة للتدقيق وfail-closed.
-
-## التنفيذ المحلي قبل أي Go/No-Go
-
-شغّل:
+هذا الـpreflight **لا ينشر** ولا يغير DNS أو public vhost أو traffic. شغّل فقط:
 
 ```bash
 pnpm run preflight:external-gates
 ```
 
-المخرج JSON فقط، ولا يتضمن قيمة سر أو محتوى ملف request. يخرج الأمر بالرمز `0` فقط إن كانت كل البوابات المطلوبة مغلقة؛ والرمز `2` يعني `FINAL_PRODUCTION_GO_NO_GO_REVIEW` ولا يجوز تفسيره كنجاح جزئي.
+المخرج JSON redacted. القيمة `READY_FOR_PRODUCTION_SWITCH` وحدها تخرج بالرمز `0`. أما `FINAL_PRODUCTION_GO_NO_GO_REVIEW` فيخرج بالرمز `2`، وهو **No-Go** لا نجاح جزئي.
 
-| تحقق | نتيجة حالية | معيار المرور النهائي |
-|---|---:|---|
-| Core production runtime | `PASS` | web/worker/Redis active، listeners loopback فقط، health authorized `200`. |
-| DB/RLS/Broker/Queue | `PASS` | لا يعاد الاختبار هنا؛ baseline production evidence مثبت. |
-| Backup/restore/retention | `PASS` | manifest `HEALTHY` وrestore rehearsal وtimer retention active. |
-| Storage | `BLOCKED` | provider adapter + least-privilege credentials + read-only probe + tenant lifecycle proof. |
-| Bootstrap/IdP | `BLOCKED` | provisioner أو adapter production + request approved + negative/revocation evidence. |
-| Mail | `BLOCKED` | adapter + sandbox-only probe approved. |
-| Payments | `BLOCKED` | launch scope decision وprovider implementation/reconciliation؛ وإلا explicit excluded. |
-| License | `BLOCKED` | runtime enforcement + signed certificate/keyring/binding verification. |
-| Scheduler | `BLOCKED` | approved catalog + adapter + internal dry-run/health. |
-| Owner/window | `BLOCKED` | root-only approval request مع owner/window/reference. |
+## مدلول الحالات
 
-## متطلبات ملفات الطلبات
+| الحالة | المعنى |
+|---|---|
+| `CLOSED_INTERNAL_IMPLEMENTATION` | العقد/harness موجود ومختبر محلياً؛ لا يعني مزوداً حقيقياً أو credential صحيحاً. |
+| `EXTERNAL_INPUT_REQUIRED` | التنفيذ الداخلي أغلق، لكن يلزم ملف/قرار/credential reference حقيقي ومحدد. |
+| `EXPLICITLY_EXCLUDED` | استبعاد launch scope موثق وموافق عليه؛ المسار يبقى fail-closed. |
+| `NOT_APPLICABLE` | البند ليس dependency للمسار الذي اختاره المالك. |
+| `BLOCKED_IMPLEMENTATION` | عيب برمجي داخلي حقيقي؛ لا يظهر في الوضع الحالي لهذه البوابات. |
 
-ملفات الطلبات ليست credentials. تخزن تحت `/opt/asasplus/shared/production-requests/` بمالك `root:root` وصلاحية `0600`. يرفض preflight أي request file قابل للقراءة من group/other. ملفات secrets الفعلية منفصلة ولا تسجل في terminal أو Git أو report evidence.
+## مسار التشغيل الآمن
 
-| الملف | الحقول غير السرية المطلوبة | فحص preflight |
+| الترتيب | الإجراء | أثره |
 |---|---|---|
-| `ASAS_BOOTSTRAP_ADMIN_REQUEST_FILE` | `organizationName`, `adminName`, `adminEmail`, `approvalReference`, `passwordFile` | صيغة/permissions فقط. |
-| `ASAS_LICENSE_ACTIVATION_REQUEST_FILE` | `certificateFile`, `keyringFile`, `approvalReference` | صيغة/permissions فقط. |
-| `ASAS_DOMAIN_SCHEDULER_MANIFEST_PATH` | `owner`, `approvalReference`, `jobCatalogVersion` | صيغة/permissions فقط. |
-| `ASAS_GO_NO_GO_APPROVAL_FILE` | `owner`, `maintenanceWindowUtc`, `approvalReference` | صيغة/permissions فقط. |
+| 1 | وضع request/config files root-owned خارج Git في المسارات الواردة في قائمة المدخلات. | لا provider call. |
+| 2 | تشغيل preflight. | يقرأ schema/permissions فقط، ولا يطبع محتوى سرياً. |
+| 3 | تنفيذ proof مزود غير مدمر وموافق عليه لكل gate مطلوب. | لا DNS ولا public traffic. |
+| 4 | تحديث evidence completion ثم تشغيل preflight مرة أخرى. | لا يجعل ذلك cutover تلقائياً. |
+| 5 | إصدار Go/No-Go جديد. | cutover يحتاج نافذة صيانة وعبارة النشر الصريحة فقط بعد Go. |
 
-## قواعد التشغيل
+### Auth هو مسار واحد لا مساران متوازيان
 
-لا تُحمّل secrets من سطر الأوامر. لا تستخدم `prisma db seed`. لا تنشئ user أو organization أو tenant principal قبل وجود approval request صالح، وبعد التنفيذ يجب إزالة password/request material وفق runbook. لا يصبح وجود `S3_*` أو `PAYMENT_*` أو `OIDC_*` وحده PASS؛ الـprobe الصحيح في adapter المعتمد شرط مستقل.
+يجب أن يحدد المالك `ASAS_AUTH_LAUNCH_MODE` بالقيمة `BOOTSTRAP` أو `IDP`. في وضع bootstrap لا يصبح request وحده نجاحاً: يلزم completion evidence من إجراء بشري معتمد، ولا ينشئ preflight حساباً. في وضع IdP تصبح bootstrap غير منطبقة، بينما يلزم issuer/client/secret-file/redirect وproof metadata/JWKS أو SAML خارج preflight.
+
+### Scheduler dry-run
+
+لاختبار catalogue المحلي من دون job أو egress، يستخدم المسار التالي بعد وضع catalogue root-owned:
+
+```bash
+pnpm run scheduler:dry-run
+```
+
+ينتج `SCHEDULER_DRY_RUN_COMPLETE` أو يخرج `2` بصورة fail-closed. لا يكتب heartbeat ولا يفعّل systemd timer.

@@ -13,6 +13,17 @@ describe("mail, payment, and scheduler launch boundaries", () => {
     expect(transport.deliver).not.toHaveBeenCalled();
   });
 
+  it("bounds retry/timeout configuration and persists redacted mail audit events", async () => {
+    const audits: unknown[] = [];
+    const transport = { deliver: jest.fn().mockRejectedValue(new Error("provider unavailable")) };
+    const service = new MailDispatchService(transport, true, async (event) => { audits.push(event); });
+    const message = { organizationId: "org_123456789012", idempotencyKey: "mail.delivery:123456790", to: ["person@charity.sa"], subject: "Subject", text: "Body" };
+    await expect(service.deliver(message, { sender: "no-reply@charity.sa", secretReference: opaqueSecretReference("secretref:mail-credential-1234"), environment: "PRODUCTION", timeoutMs: 1_000, maxAttempts: 2 })).rejects.toMatchObject({ code: "PROVIDER_REJECTED" });
+    expect(transport.deliver).toHaveBeenCalledTimes(2);
+    expect(JSON.stringify(audits)).not.toContain("person@charity.sa");
+    await expect(service.deliver(message, { sender: "no-reply@charity.sa", secretReference: opaqueSecretReference("secretref:mail-credential-1234"), environment: "PRODUCTION", timeoutMs: 999 })).rejects.toMatchObject({ code: "MESSAGE_DENIED" });
+  });
+
   it("records only verified tenant-bound payment events idempotently", async () => {
     const rawBody = '{"event":"captured"}';
     const provider: PaymentProvider = { createIntent: async () => ({ providerPaymentId: "p1", checkoutUrl: "https://payments.example.test/p1" }), verifyWebhook: async () => ({ organizationId: "org_123456789012", providerKey: "provider", providerEventId: "evt1", providerPaymentId: "p1", status: "CAPTURED", amount: 10, currency: "SAR", occurredAt: new Date(), payloadDigest: paymentEventDigest(rawBody) }), reconcile: async () => { throw new Error("unused"); } };

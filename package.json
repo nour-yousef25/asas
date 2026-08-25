@@ -34,6 +34,7 @@
     "start": "NODE_ENV=production next start",
     "check:env": "node scripts/check-env.mjs",
     "preflight:external-gates": "node scripts/final-production-external-gates-preflight.mjs",
+    "scheduler:dry-run": "tsx scripts/asas-domain-scheduler-dry-run.ts",
     "backup:verify": "node scripts/verify-backup-manifest.mjs",
     "preflight": "tsx scripts/run-preflight.ts",
     "release:sign": "node scripts/create-release-manifest.mjs",

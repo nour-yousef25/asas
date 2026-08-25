@@ -1,6 +1,6 @@
 const production = process.env.NODE_ENV === "production";
 const required = ["DATABASE_URL", "AUTH_SECRET", "INTEGRATIONS_ENCRYPTION_KEY"];
-const storage = ["S3_ENDPOINT", "S3_ACCESS_KEY", "S3_SECRET_KEY", "S3_BUCKET"];
+const tenantStorage = ["TENANT_STORAGE_REFERENCE_DIRECTORY", "TENANT_STORAGE_CREDENTIAL_DIRECTORY"];
 const missing = [];
 
 for (const name of required) {
@@ -8,7 +8,19 @@ for (const name of required) {
 }
 
 if (production) {
-  for (const name of storage) {
+  for (const name of tenantStorage) {
+    if (!process.env[name]) missing.push(name);
+  }
+}
+
+if (process.env.ASAS_LICENSE_REQUIRED === "true") {
+  for (const name of ["ASAS_LICENSE_CERTIFICATE_PATH", "ASAS_LICENSE_KEYRING_PATH", "ASAS_LICENSE_REVOCATION_PATH", "ASAS_INSTANCE_ID"]) {
+    if (!process.env[name]) missing.push(name);
+  }
+}
+
+if (process.env.ASAS_SCHEDULER_HEARTBEAT_PATH || process.env.ASAS_SCHEDULER_MAX_LAG_SECONDS) {
+  for (const name of ["ASAS_SCHEDULER_HEARTBEAT_PATH", "ASAS_SCHEDULER_MAX_LAG_SECONDS"]) {
     if (!process.env[name]) missing.push(name);
   }
 }
@@ -27,6 +39,13 @@ if (process.env.INTEGRATIONS_ENCRYPTION_KEY) {
   const keyLength = Buffer.from(process.env.INTEGRATIONS_ENCRYPTION_KEY, "base64").length;
   if (keyLength !== 32) {
     console.error("✗ INTEGRATIONS_ENCRYPTION_KEY يجب أن يفك إلى 32 بايت Base64.");
+    process.exitCode = 1;
+  }
+}
+
+for (const name of ["TENANT_STORAGE_ALLOWED_GROUP_ID", "ASAS_SCHEDULER_MAX_LAG_SECONDS"]) {
+  if (process.env[name] && !/^(0|[1-9][0-9]{0,9})$/.test(process.env[name])) {
+    console.error(`✗ ${name} يجب أن يكون عدداً صحيحاً موجباً أو صفراً ضمن النطاق المسموح.`);
     process.exitCode = 1;
   }
 }

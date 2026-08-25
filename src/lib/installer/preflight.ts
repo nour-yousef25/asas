@@ -6,6 +6,7 @@ import { availableParallelism, freemem, totalmem } from "node:os";
 import { prisma } from "@/lib/db";
 import type { ComponentCheck } from "@/lib/platform/contracts";
 import { getRuntimeConfig, getRuntimeConfigurationSummary } from "@/lib/platform/runtime-config";
+import { assertSchedulerHeartbeat } from "@/lib/scheduler-health";
 
 type PreflightReport = {
   generatedAt: string;
@@ -25,6 +26,7 @@ export type PreflightDependencies = {
   memory?: () => { available: number; total: number };
   cpuCount?: () => number;
   permissions?: () => Promise<void>;
+  scheduler?: () => Promise<void>;
 };
 
 function nodeMajorVersion(): number {
@@ -85,6 +87,18 @@ async function checkHttpProbe(
   }
 }
 
+async function checkScheduler(environment: Record<string, string | undefined>, probe?: () => Promise<void>): Promise<ComponentCheck> {
+  const configured = Boolean(environment.ASAS_SCHEDULER_HEARTBEAT_PATH && environment.ASAS_SCHEDULER_MAX_LAG_SECONDS);
+  if (!configured) return { name: "scheduler", required: false, status: "NOT_CONFIGURED", summary: "No approved scheduler catalogue/heartbeat adapter is configured." };
+  const startedAt = Date.now();
+  try {
+    await (probe ?? (() => assertSchedulerHeartbeat(environment.ASAS_SCHEDULER_HEARTBEAT_PATH, environment.ASAS_SCHEDULER_MAX_LAG_SECONDS)))();
+    return { name: "scheduler", required: false, status: "HEALTHY", summary: "Approved scheduler heartbeat is within the configured lag limit.", latencyMs: Date.now() - startedAt };
+  } catch {
+    return { name: "scheduler", required: false, status: "DEGRADED", summary: "Scheduler heartbeat is unavailable or exceeds its lag limit.", latencyMs: Date.now() - startedAt };
+  }
+}
+
 export async function collectPreflightReport(
   environment: Record<string, string | undefined> = process.env,
   dependencies: PreflightDependencies = {},
@@ -142,7 +156,7 @@ export async function collectPreflightReport(
       status: config.REDIS_URL ? "DEGRADED" : "NOT_CONFIGURED",
       summary: config.REDIS_URL ? "Queue is configured; worker heartbeat must be verified separately." : "Durable queue is not configured.",
     },
-    { name: "scheduler", required: false, status: "NOT_CONFIGURED", summary: "No scheduler adapter is configured." },
+    await checkScheduler(environment, dependencies.scheduler),
     await checkHttpProbe("egress", false, config.ASAS_PREFLIGHT_EGRESS_URL, Boolean(config.ASAS_PREFLIGHT_EGRESS_URL), dependencies.egress),
   ];
 

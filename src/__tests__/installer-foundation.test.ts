@@ -76,10 +76,8 @@ describe("W01 installer foundation", () => {
     const report = await collectPreflightReport(
       {
         ...environment,
-        S3_ENDPOINT: "https://storage.example.test",
-        S3_ACCESS_KEY: "access-key",
-        S3_SECRET_KEY: "secret-key",
-        S3_BUCKET: "asas",
+        TENANT_STORAGE_REFERENCE_DIRECTORY: "/run/asas/storage-references",
+        TENANT_STORAGE_CREDENTIAL_DIRECTORY: "/run/asas/storage-credentials",
         ASAS_PREFLIGHT_STORAGE_PROBE_URL: "https://storage.example.test/health",
         ASAS_PREFLIGHT_EGRESS_URL: "https://egress.example.test/health",
       },

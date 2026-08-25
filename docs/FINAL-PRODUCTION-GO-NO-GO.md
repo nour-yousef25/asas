@@ -1,23 +1,21 @@
 # FINAL PRODUCTION GO/NO-GO REVIEW — ASAS Plus
 
-**قرار المراجعة:** `NO-GO`.
+**القرار الحالي: `NO-GO`.** لا يزال التطبيق غير موجّه إلى `asasplus.shop`، ولا يجيز هذا القرار أي DNS أو public vhost أو traffic.
 
-| المجال | القرار | السبب |
-|---|---:|---|
-| Platform core | `GO-ELIGIBLE` | production foundation/RLS/Broker/Redis/worker/backup/restore/rollback/TLS/candidate vhost مثبتة ضمن baseline. |
-| External gates | `NO-GO` | storage، bootstrap/IdP، mail، payments إن كانت ضمن scope، license، scheduler، وowner/window لم تغلق. |
-| DNS/public traffic | `HOLD` | لا تغيير أو تفعيل مسموح قبل إغلاق البوابات وعبارة النشر الصريحة. |
+| Gate | Status | Internal / External | Exact remaining input |
+|---|---|---|---|
+| Platform core، RLS، Broker، Redis، queue، worker، backup/restore/rollback | `CLOSED_INTERNAL_IMPLEMENTATION` | baseline production evidence | لا شيء في هذه الجولة. |
+| Storage | `EXTERNAL_INPUT_REQUIRED` | adapter closed / provider pending | directories per-tenant وaudit probe request. |
+| Authentication | `EXTERNAL_INPUT_REQUIRED` | contracts closed / owner path pending | اختيار `BOOTSTRAP` أو `IDP` ومدخلات المسار فقط. |
+| Mail | `EXTERNAL_INPUT_REQUIRED` | transport contract closed / provider pending | production request/config + explicit delivery enable. |
+| Payments | `EXTERNAL_INPUT_REQUIRED` | fail-closed gateway contract / scope pending | approved exclusion أو provider + ledger approval. |
+| License | `EXTERNAL_INPUT_REQUIRED` | runtime enforcement closed / certificate material pending | certificate/keyring/revocation/instance references. |
+| Scheduler | `EXTERNAL_INPUT_REQUIRED` | catalogue/dry-run/health closed / operational inputs pending | approved catalogue + heartbeat lag config. |
+| Go/No-Go owner/window | `EXTERNAL_INPUT_REQUIRED` | external decision | root-only owner/window approval file. |
+| DNS/public traffic | `NOT_APPLICABLE` | prohibited until a later Go | العبارة الصريحة `انشر على asasplus.shop الآن` بعد Go فقط. |
 
-## شروط تحويل القرار إلى Go
+> لا يكفي وجود credential أو request file لتغيير القرار. يلزم proof مزود حقيقي غير مدمر، least privilege، rotation/revocation plan، evidence بلا secrets، وpreflight أخضر فعلياً.
 
-يصبح القرار `GO` فقط عندما يعيد `pnpm run preflight:external-gates` حالة `READY_FOR_PRODUCTION_SWITCH`، وتكون adapters الناقصة مختبرة ببيئة provider الصحيحة، ويكون ملف approval الخاص بالمالك ونافذة الصيانة صالحاً، ثم ترد العبارة الصريحة: `انشر على asasplus.shop الآن`.
+## شروط تغيير القرار
 
-لا تكفي credentials، ولا certificate، ولا URL منفردة لتغيير القرار. يجب أن يثبت لكل integration: least privilege، health/probe غير مدمر، fail-closed، owner، rotation/revocation، وإدراج صحيح في backup/rollback implications.
-
-## No-Go triggers
-
-أي من الحالات التالية يبقي القرار `NO-GO`: health required component غير سليم، provider implementation placeholder أو mock، missing request approval، غياب owner/window، أي محاولة لتسجيل secret في evidence، أو أي تعديل DNS/public vhost قبل phrase النشر.
-
-## عند اكتمال البوابات
-
-لا يبدأ cutover تلقائياً. يتوقف العمل على هذا المستند إلى أن يقرر المالك scope للخدمات الاختيارية ويوفر الملفات/الأسرار المحددة في [FINAL-EXTERNAL-GATES-CLOSURE.md](./FINAL-EXTERNAL-GATES-CLOSURE.md)، ثم تصدر مراجعة Go/No-Go جديدة قبل تنفيذ [PRODUCTION-CUTOVER-RUNBOOK.md](./PRODUCTION-CUTOVER-RUNBOOK.md).
+يتحول القرار إلى `GO-ELIGIBLE` فقط بعد أن يعيد preflight `READY_FOR_PRODUCTION_SWITCH`، وتكتمل proofs الخارجية في نافذة المالك المعتمدة. عندئذ يظل العمل متوقفاً؛ لا يبدأ cutover إلا بعبارة المستخدم الصريحة المذكورة أعلاه.
