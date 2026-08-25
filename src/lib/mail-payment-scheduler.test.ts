@@ -33,7 +33,7 @@ describe("mail, payment, and scheduler launch boundaries", () => {
   });
 
   it("supports only approved catalogue jobs with dry-run, pause and idempotency guards", async () => {
-    const catalogue = parseSchedulerCatalogue({ schemaVersion: 1, jobs: [{ key: "publish.tenant", owner: "Communications Operations", version: "1.0.0", tenantMode: "TENANT", intervalSeconds: 300, timeoutSeconds: 30, retryLimit: 2, approved: true, paused: false }] });
+    const catalogue = parseSchedulerCatalogue({ schemaVersion: 1, jobs: [{ key: "publish.tenant", owner: "Communications Operations", version: "1.0.0", category: "NOTIFICATIONS", tenantMode: "TENANT", intervalSeconds: 300, timeoutSeconds: 30, retryLimit: 2, concurrency: 1, failureBehavior: "RETRY", auditRequired: true, safeAtLaunch: true, approved: true, paused: false }] });
     const store = new MemorySchedulerRunStore();
     const scheduler = new DomainScheduler(catalogue, store, { execute: jest.fn() }, () => new Date("2026-08-25T12:00:00.000Z"));
     const input = { jobKey: "publish.tenant", organizationId: "org_123456789012", scheduledFor: new Date("2026-08-25T12:00:00.000Z") };

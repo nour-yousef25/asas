@@ -6,7 +6,7 @@
 - [x] مراجعة العقود/المخطط/المسارات ذات الصلة لتحديد فجوات LocalStorage وBootstrap وSMTP وPlatform Billing/Organization Donations وSaaS License من دون إعادة فتح W02؛ النتيجة في `PRODUCTION-READINESS-RECONCILIATION-54.md`.
 - [ ] تنفيذ واختبار Local VPS tenant-private artifact adapter وBootstrap control-plane provision flow وSaaS subscription/entitlement abstraction fail-closed؛ لا users production أو credentials مخترعة.
 - [ ] تنفيذ طبقة مدفوعات tenant-aware للـplatform billing وorganization donations: configuration، ledger، reconciliation، idempotency، audit، refund/void contracts بلا card data أو provider call.
-- [ ] جرد scheduler catalogue الحقيقي وتصنيف كل job، ثم تنفيذ dry-run/staging proof الممكن فقط تحت tenant-bound authority ومن دون global credential أو external job.
+- [x] جرد scheduler catalogue الحقيقي وتصنيف كل job؛ النتيجة في `SCHEDULER-CATALOGUE-54.md`. تم تقوية dry-run/retry/concurrency contract محلياً؛ staging deployment/proof مؤجل حتى release/migration staging صريحين.
 - [ ] تحديث preflight وGate Matrix وDecision Register وGo/No-Go بتصنيف CLOSED/IMPLEMENTABLE NOW/EXTERNAL INPUT REQUIRED/PRODUCTION CUTOVER ONLY، ثم regression وcommit/push آمنين.
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
