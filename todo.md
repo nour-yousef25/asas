@@ -1,5 +1,14 @@
 # متابعة تنفيذ W01 — ASAS Plus
 
+## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
+
+- [ ] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
+- [ ] مراجعة العقود/المخطط/المسارات ذات الصلة لتحديد فجوات LocalStorage وBootstrap وSMTP وPlatform Billing/Organization Donations وSaaS License من دون إعادة فتح W02.
+- [ ] تنفيذ واختبار Local VPS tenant-private artifact adapter وBootstrap control-plane provision flow وSaaS subscription/entitlement abstraction fail-closed؛ لا users production أو credentials مخترعة.
+- [ ] تنفيذ طبقة مدفوعات tenant-aware للـplatform billing وorganization donations: configuration، ledger، reconciliation، idempotency، audit، refund/void contracts بلا card data أو provider call.
+- [ ] جرد scheduler catalogue الحقيقي وتصنيف كل job، ثم تنفيذ dry-run/staging proof الممكن فقط تحت tenant-bound authority ومن دون global credential أو external job.
+- [ ] تحديث preflight وGate Matrix وDecision Register وGo/No-Go بتصنيف CLOSED/IMPLEMENTABLE NOW/EXTERNAL INPUT REQUIRED/PRODUCTION CUTOVER ONLY، ثم regression وcommit/push آمنين.
+
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
 - [ ] تثبيت baseline `1ffe7ab` وحالة Git وحفظ أي work قائم قبل تنفيذ FINAL PRODUCTION IMPLEMENTATION CLOSURE.

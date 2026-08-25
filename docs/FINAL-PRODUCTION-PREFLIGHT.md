@@ -1,6 +1,6 @@
 # FINAL PRODUCTION PREFLIGHT — ASAS Plus
 
-هذا الـpreflight **لا ينشر** ولا يغير DNS أو public vhost أو traffic. شغّل فقط:
+هذا الـpreflight **لا ينشر** ولا يغير DNS أو public vhost أو traffic. تسري عليه قرارات [Reconciliation 54](./PRODUCTION-READINESS-DECISION-REGISTER.md): Bootstrap بدلاً من IdP في الإطلاق الأول، Local VPS storage بدلاً من S3، payments مطلوبة، وSaaS entitlements بدلاً من certificate gate. ستتغير checks البرمجية في scope التنفيذ التالي؛ حتى ذلك الوقت يظل أي مخرج سابق fail-closed ولا يجيز cutover. شغّل فقط:
 
 ```bash
 pnpm run preflight:external-gates
