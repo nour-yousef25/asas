@@ -2,6 +2,12 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [x] تثبيت baseline commit `6743382` ومراجعة عقود Storage/Auth/Mail/Integrations/License/Scheduler ومواضع secrets الحالية بلا قراءة قيم أو تغيير traffic.
+- [x] إغلاق readiness محلياً: schemas، secret references، fail-closed validation، health/readiness، smoke/preflight، ownership وrotation/revocation لكل بوابة خارجية.
+- [x] إعداد وتحقق domain scheduler catalog/disabled topology محلياً من دون تنفيذ job خارجي، وتوثيق أقل contract لتمكينه لاحقاً؛ بقي adapter نفسه BLOCKED — IMPLEMENTATION REQUIRED.
+- [x] إنشاء `FINAL-EXTERNAL-GATES-CLOSURE.md` و`FINAL-PRODUCTION-PREFLIGHT.md` و`FINAL-PRODUCTION-GO-NO-GO.md` مع قائمة inputs دقيقة وغير مطولة.
+- [x] تشغيل regression الكامل وحفظ الأدلة في Git بلا DNS أو public vhost أو production traffic.
+
 - [x] تثبيت baseline production readiness: Git canonical، release staging المعتمد، ومراجعة production-ASAS-only read-only بلا DNS أو traffic.
 - [x] تدقيق وإعداد production PostgreSQL/roles وRedis وsystemd/filesystem/logs/resources وtenant-bound runtime في مساحة ASAS فقط وبخطة revert.
 - [x] إعداد production backup/restore/retention/manifest وrollback/recovery، ثم rehearsal محصور في ASAS بلا تغيير قاعدة أو traffic إنتاجي.
