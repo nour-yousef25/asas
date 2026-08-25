@@ -8,7 +8,7 @@
 | Local VPS Storage | `CLOSED` | root-owned tenant-private provider، health، A/B proof وcleanup مثبتة | لا S3 input. |
 | Bootstrap Authentication | `CLOSED` | أول `SUPER_ADMIN` control-plane أُنشئ واختُبر على loopback، بلا membership أو tenant authority؛ password/request والـtemporary role نُظفت. | لا شيء في هذه الجولة. |
 | IdP | `NOT_APPLICABLE` | extension محايد | لا شيء لإطلاق Bootstrap. |
-| Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | transport/redaction/retry مغلقة | SMTP `schoolscreen.sa`: host/port/TLS/sender/secret reference وsandbox approval. |
+| Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | Nodemailer adapter sandbox-only، TLS/auth/timeout/retry/redaction/audit وsystemd credentials path مغلقة داخلياً؛ لا provider configuration أو sender معتمد. | SMTP `schoolscreen.sa`: sender صريح، host/port/TLS، username/password أو credential reference، sandbox recipient وapproval للإرسال الاختباري. |
 | Platform Billing + Organization Donations | `EXTERNAL_INPUT_REQUIRED` | ledger، reconciliation، idempotency، refund/void وRLS مثبتة | gateway Mada-compatible، merchant credentials، webhook secret، callback allow-list وUAT approval. |
 | SaaS Plans/Subscriptions/Entitlements | `CLOSED` | migrations 18/19 وruntime A/B proof مثبتة | certificate activation ليس شرط SaaS launch. |
 | Certificate Activation | `NOT_APPLICABLE` | self-hosted/license extension | ليس شرط SaaS launch. |

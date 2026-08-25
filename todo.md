@@ -10,11 +10,11 @@
 
 ## SMTP PRODUCTION READINESS GATE
 
-- [ ] SMTP01: جرد read-only لعقد transport وsender/reply-to/auth/TLS/timeout/retry/redaction/audit/template/sandbox في المصدر وVPS، بلا إرسال أو كشف secrets.
-- [ ] SMTP02: تصنيف مزود SMTP الفعلي أو المدخل الخارجي المطلوب بدقة، مع منع افتراض أن SnappyMail هو provider للتطبيق.
+- [x] SMTP01: جرد read-only لعقد transport وsender/reply-to/auth/TLS/timeout/retry/redaction/audit/template/sandbox في المصدر وVPS، بلا إرسال أو كشف secrets.
+- [x] SMTP02: تصنيف مزود SMTP الفعلي أو المدخل الخارجي المطلوب بدقة، مع منع افتراض أن SnappyMail هو provider للتطبيق.
 - [ ] SMTP03: عند توافر sender/config/approval معتمدة، تنفيذ staging-only connectivity/TLS/auth/delivery/failure/timeout/retry/redaction/audit؛ وإلا توثيق blocker فقط.
-- [ ] SMTP04: إنشاء adapter/configuration schema fail-closed لـSMTP الحقيقي واختبارات sandbox/template/retry/redaction من دون credentials أو egress.
-- [ ] SMTP05: تصميم وتحقق مسار systemd credentials أو آلية مكافئة تتيح للخدمة قراءة SMTP secret بشكل مقيد من ملف root-owned، بلا secrets في environment/Git/logs.
+- [x] SMTP04: إنشاء adapter/configuration schema fail-closed لـSMTP الحقيقي واختبارات sandbox/retry/redaction من دون credentials أو egress؛ template/product flows ما زالت غير موصولة.
+- [x] SMTP05: تصميم وتحقق مسار systemd credentials يتيح للخدمة قراءة SMTP secret بشكل مقيد من source root-owned، بلا secrets في environment/Git/logs.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
