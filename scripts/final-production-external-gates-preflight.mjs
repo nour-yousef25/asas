@@ -28,9 +28,26 @@ async function rootOnlyEvidence(name, expectedStatus) {
       : { ready: false, reason: `${name} does not prove ${expectedStatus} with production environment and cleanup evidence.` };
   } catch { return { ready: false, reason: `${name} cannot be validated without exposing its contents.` }; }
 }
+async function rootOnlyBootstrapClosureEvidence(name) {
+  const file = process.env[name];
+  if (!file) return { ready: false, reason: `${name} is not configured.` };
+  try {
+    const details = await stat(file);
+    if (!details.isFile() || details.uid !== 0 || (details.mode & 0o077) !== 0) return { ready: false, reason: `${name} must reference root-owned 0600 evidence.` };
+    const value = JSON.parse(await readFile(file, "utf8"));
+    const keys = Object.keys(value).sort().join(",");
+    return value.schema === "ASAS_BOOTSTRAP_SUPER_ADMIN_AUDIT_V1"
+      && value.outcome === "PROVISIONED"
+      && typeof value.accountFingerprint === "string"
+      && typeof value.emailFingerprint === "string"
+      && keys === "accountFingerprint,emailFingerprint,outcome,schema"
+      ? { ready: true, reason: "Root-only redacted Bootstrap closure evidence is valid." }
+      : { ready: false, reason: `${name} does not prove a redacted Bootstrap closure.` };
+  } catch { return { ready: false, reason: `${name} cannot be validated without exposing its contents.` }; }
+}
 function externalOrClosed(input) { return input.ready ? { status: status.closed, requiredInputs: [], summary: input.closedSummary } : { status: status.external, requiredInputs: input.requiredInputs, summary: input.reason }; }
 
-const bootstrap = await rootOnlyJsonRequest("ASAS_BOOTSTRAP_CONTROL_REQUEST_FILE", ["requestId", "kind", "approvedBy", "approvalReference", "passwordFile"]);
+const bootstrapClosure = await rootOnlyBootstrapClosureEvidence("ASAS_BOOTSTRAP_AUTH_CLOSURE_EVIDENCE_FILE");
 const mail = await rootOnlyJsonRequest("ASAS_MAIL_PRODUCTION_REQUEST_FILE", ["providerKey", "fromAddress", "fromName", "approvalReference"]);
 const payment = await rootOnlyJsonRequest("ASAS_PAYMENT_PRODUCTION_REQUEST_FILE", ["providerKey", "webhookUrl", "approvalReference"]);
 const scheduler = await rootOnlyJsonRequest("ASAS_DOMAIN_SCHEDULER_APPROVAL_FILE", ["owner", "approvalReference", "catalogueVersion"]);
@@ -49,10 +66,10 @@ const checks = [
     gate: "bootstrap_authentication",
     internalImplementation: status.closed,
     ...externalOrClosed({
-      ready: process.env.ASAS_AUTH_LAUNCH_MODE === "BOOTSTRAP" && bootstrap.ready && present("AUTH_SECRET") && process.env.AUTH_SECRET.length >= 32,
-      requiredInputs: ["ASAS_AUTH_LAUNCH_MODE=BOOTSTRAP", "ASAS_BOOTSTRAP_CONTROL_REQUEST_FILE", "root-only passwordFile referenced by the request", "AUTH_SECRET"],
-      reason: bootstrap.ready ? "Bootstrap control-plane provisioner is implemented; the server auth secret is missing or too short." : bootstrap.reason,
-      closedSummary: "Bootstrap request and credential-auth secret are present; this preflight did not create an administrator.",
+      ready: process.env.ASAS_AUTH_LAUNCH_MODE === "BOOTSTRAP" && bootstrapClosure.ready && present("AUTH_SECRET") && process.env.AUTH_SECRET.length >= 32,
+      requiredInputs: ["ASAS_AUTH_LAUNCH_MODE=BOOTSTRAP", "ASAS_BOOTSTRAP_AUTH_CLOSURE_EVIDENCE_FILE", "AUTH_SECRET"],
+      reason: bootstrapClosure.ready ? "Bootstrap closure evidence is valid; the server auth secret is missing or too short." : bootstrapClosure.reason,
+      closedSummary: "Redacted Bootstrap closure evidence and credential-auth secret are present; this preflight does not provision or rotate an administrator.",
     }),
   },
   { gate: "identity_provider", status: status.notApplicable, internalImplementation: status.closed, requiredInputs: [], summary: "IdP is a provider-neutral extension, not a dependency for the Bootstrap launch mode." },
