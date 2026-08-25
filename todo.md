@@ -2,6 +2,12 @@
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
+- [ ] تثبيت baseline `1ffe7ab` وحالة Git وحفظ أي work قائم قبل تنفيذ FINAL PRODUCTION IMPLEMENTATION CLOSURE.
+- [ ] بناء واختبار storage tenant provider contract وbootstrap-admin provisioner المدقق وprovider-neutral IdP contract بلا credentials أو users production.
+- [ ] بناء واختبار mail/payment abstractions وruntime license enforcement وscheduler adapter/catalogue في وضع dry-run/fail-closed بلا egress أو provider حقيقي.
+- [ ] تقوية `preflight:external-gates` إلى تصنيفات CLOSED_INTERNAL_IMPLEMENTATION/EXTERNAL_INPUT_REQUIRED/EXPLICITLY_EXCLUDED/NOT_APPLICABLE/BLOCKED_IMPLEMENTATION.
+- [ ] تشغيل regression وإثباتات W02/tenant isolation/RLS/Broker/Redis/queue/worker/backup/rollback/secret scan، وتحديث FINAL docs مع جدول Gate/Status/Internal-External/remaining input.
+
 - [x] تثبيت baseline commit `6743382` ومراجعة عقود Storage/Auth/Mail/Integrations/License/Scheduler ومواضع secrets الحالية بلا قراءة قيم أو تغيير traffic.
 - [x] إغلاق readiness محلياً: schemas، secret references، fail-closed validation، health/readiness، smoke/preflight، ownership وrotation/revocation لكل بوابة خارجية.
 - [x] إعداد وتحقق domain scheduler catalog/disabled topology محلياً من دون تنفيذ job خارجي، وتوثيق أقل contract لتمكينه لاحقاً؛ بقي adapter نفسه BLOCKED — IMPLEMENTATION REQUIRED.
