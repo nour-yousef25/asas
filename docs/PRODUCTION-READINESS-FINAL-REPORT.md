@@ -1,12 +1,12 @@
 # تقرير المراجعة النهائية لجاهزية إنتاج ASAS Plus
 
-**حالة القرار:** `NOT READY FOR PRODUCTION SWITCH — EXTERNAL INPUT REQUIRED`
+**حالة القرار:** `NOT READY FOR PRODUCTION SWITCH — RECONCILIATION IN PROGRESS`
 
 **Release الداخلي النشط بعد التحقق:** `20260824T215700Z-ef28e17`، المبني من commit `ef28e172c06f6b890b7b441c6153a8a81531b0c1`، ويظل loopback-only حتى بوابة التحويل.
 
 هذا التقرير يبدأ من baseline المثبتة: `STAGING VERIFIED — READY FOR PRODUCTION READINESS REVIEW`. جرى إنشاء foundation إنتاجية مستقلة ومقيدة على VPS، لكن **لم يُنشر** `asasplus.shop` ولم يتغير DNS أو OpenLiteSpeed public vhost أو traffic. تعني هذه النتيجة أن core platform الداخلي جاهز للتحويل فقط بعد إغلاق المدخلات الخارجية المحددة أدناه؛ ولا يجوز تحويل موقع عام أو وصفه بالإنتاج قبل ذلك.
 
-> لا تعتبر حالة `NOT_CONFIGURED` نجاحاً. ما يحتاج credential أو provider أو عقداً تشغيلياً خارجياً ولم يُقدَّم سجل هنا كـ`BLOCKED — EXTERNAL INPUT REQUIRED`.
+> لا تعتبر حالة `NOT_CONFIGURED` نجاحاً. تحكم قرارات المنتج اللاحقة في [سجل القرارات](./PRODUCTION-READINESS-DECISION-REGISTER.md) و[مصفوفة البوابات](./PRODUCTION-READINESS-GATE-MATRIX.md) تفسير بوابات storage/auth/payments/license/scheduler؛ لا تعيد فتح أدلة W02 أو foundation المثبتة.
 
 ## حدود التنفيذ المثبتة
 
@@ -38,12 +38,12 @@
 | Public vhost readiness | `PASS` | candidate proxy offline إلى `127.0.0.1:3106` محفوظ خارج config الحي؛ لم يُفعل. |
 | HTTPS/TLS readiness | `PASS` | شهادة `asasplus.shop` صالحة وقت الفحص حتى **21 نوفمبر 2026**، وآلية ACME cron موجودة. يلزم فحص تجديد ناجح في بوابة cutover نفسها. |
 | Scheduler (retention) | `PASS` | timer retention خاص بـASAS production مفعّل ومتحقق. |
-| Scheduler (domain jobs) | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا scheduler adapter أو catalogue jobs تشغيلي معتمد للمهام domain؛ health يعرضه `NOT_CONFIGURED`. |
-| Storage provider | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا S3/compatible endpoint أو bucket أو credentials حقيقية؛ لا storage smoke مزعوم. |
-| Auth/IdP | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا IdP أو bootstrap administrator production معتمد. لم يُشغّل seed لأنه ينشئ حسابات تجريبية وبيانات وهمية. |
+| Scheduler (domain jobs) | `IMPLEMENTABLE NOW` | قرار المنتج يطلب inventory/classification وstaging dry-run تحت tenant-bound authority؛ لا job حي أو global credential. |
+| Storage provider | `IMPLEMENTABLE NOW` | Local VPS tenant-private storage هو قرار الإطلاق؛ S3 لم يعد external launch gate. |
+| Auth/IdP | `IMPLEMENTABLE NOW` | Bootstrap Admin هو قرار الإطلاق؛ IdP ليس dependency للإطلاق الأول. لا seed أو user حقيقي بلا approval. |
 | Mail | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا SMTP/provider contract أو credentials؛ لم تُرسل أي رسالة. |
-| Integrations/payments | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا credentials أو عقود تشغيلية؛ لا payments أو provider calls. |
-| License/certificate | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا signed license certificate/activation contract production مقدم. |
+| Integrations/payments | `IMPLEMENTABLE NOW` | Payments مطلوبة؛ تبنى طبقة platform billing/organization donations الداخلية أولاً، ثم provider Mada-compatible هو gate خارجي لـE2E. |
+| License/certificate | `IMPLEMENTABLE NOW` | SaaS entitlements/activation داخلياً؛ signed certificate extension فقط لـDedicated/Self-Hosted. |
 | Production smoke plan | `PASS` | خطة smoke محلية وعامة مشروطة موثقة في runbook؛ local pre-cutover smoke اجتاز. |
 | Cutover plan | `PASS` | runbook متسلسل وatomic مع بوابات Go/No-Go ووقت مراقبة بلا DNS change. |
 | Rollback after cutover | `PASS` | runbook يحدد rollback vhost/release وrecovery DB forward-only من restore target، دون reset أو عكس migrations. |
@@ -60,12 +60,12 @@
 
 | بوابة | القرار الحالي |
 |---|---:|
-| Provider storage وbucket/policy/credentials وsmoke | `BLOCKED` |
-| Auth/IdP أو bootstrap administrator production المعتمد | `BLOCKED` |
+| Local VPS storage adapter وtenant-private proof | `IMPLEMENTABLE NOW` |
+| Bootstrap administrator production المعتمد | `IMPLEMENTABLE NOW` |
 | Mail provider وsender/domain contract | `BLOCKED` |
-| Integrations/payment contracts إن كانت ضمن launch scope | `BLOCKED` |
-| License certificate/activation | `BLOCKED` |
-| Scheduler domain jobs owner/catalogue | `BLOCKED` |
+| Platform billing/organization donations ومزود Mada-compatible | `IMPLEMENTABLE NOW` ثم `EXTERNAL INPUT REQUIRED` للـprovider E2E |
+| SaaS entitlements/activation | `IMPLEMENTABLE NOW` |
+| Scheduler domain jobs owner/catalogue | `IMPLEMENTABLE NOW` |
 | Go/No-Go owner ونافذة cutover | `EXTERNAL INPUT REQUIRED` |
 
 ## الخلاصة

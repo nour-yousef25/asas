@@ -8,6 +8,25 @@
 - [ ] إثبات login/session/logout وcontrol-plane authority والعزل tenant-bound، ثم استهلاك request وحذف password artifact.
 - [ ] تنفيذ regression وsecret hygiene، وتحديث preflight/Gate Matrix/Go-No-Go لإغلاق Authentication فقط ثم commit/push آمنين.
 
+## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
+
+- [x] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
+- [x] مراجعة العقود/المخطط/المسارات ذات الصلة لتحديد فجوات LocalStorage وBootstrap وSMTP وPlatform Billing/Organization Donations وSaaS License من دون إعادة فتح W02؛ النتيجة في `PRODUCTION-READINESS-RECONCILIATION-54.md`.
+- [x] تنفيذ واختبار Local VPS tenant-private artifact adapter وBootstrap control-plane provision flow وSaaS subscription/entitlement abstraction fail-closed؛ لا users production أو credentials مخترعة. يبقى release/migration/RLS runtime proof الداخلي قبل Go.
+- [x] تنفيذ طبقة مدفوعات tenant-aware للـplatform billing وorganization donations: configuration، ledger، reconciliation، idempotency، audit، refund/void contracts بلا card data أو provider call. يبقى gateway/UAT الخارجي وRLS runtime proof الداخلي.
+- [x] جرد scheduler catalogue الحقيقي وتصنيف كل job؛ النتيجة في `SCHEDULER-CATALOGUE-54.md`. تم تقوية dry-run/retry/concurrency contract محلياً وdry-run staging معزول مع cleanup؛ لا job حي أو service/timer أو provider call.
+- [x] تحديث preflight وGate Matrix وDecision Register وGo/No-Go بتصنيف CLOSED/IMPLEMENTABLE NOW/EXTERNAL INPUT REQUIRED/PRODUCTION CUTOVER ONLY؛ regression النهائي ناجح، ويبقى commit/push لهذا scope.
+
+## IMPLEMENTABLE NOW EXECUTION — RECONCILIATION 54
+
+- [x] تثبيت release على staging ثم production loopback-only وتطبيق migrations 18/19 بعد backup/restore rehearsal؛ لا DNS أو traffic.
+- [x] إعداد Local VPS Storage على staging وproduction: root-owned setgid path وdelivery secret server-only و`ASAS_STORAGE_PROVIDER=LOCAL_VPS`، ثم health/runtime validation بلا S3 أو public filesystem path.
+- [x] إثبات Private Artifact tenant A/B على staging وproduction: delivery token/cross-tenant denial/cleanup، بلا تسريب path أو secret.
+- [x] إثبات SaaS Entitlement وpayment ledger schema/RLS tenant A/B في staging وproduction: subscription/entitlement/configuration cross-tenant denial بلا gateway أو charge.
+- [x] إغلاق RLS payment-configuration tenant binding عبر migration forward-only وA/B negative proof قبل اعتبار payment ledger داخلياً مغلقاً.
+- [x] تحديث preflight/health/docs بعد evidence الواقعي لتغيير Local VPS Storage وSaaS Entitlements إلى `CLOSED`.
+- [x] تشغيل regression/release validation ثم commit/push evidence بأمان؛ التوقف الآن عند EXTERNAL_INPUT_REQUIRED فقط.
+
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
 - [ ] تثبيت baseline `1ffe7ab` وحالة Git وحفظ أي work قائم قبل تنفيذ FINAL PRODUCTION IMPLEMENTATION CLOSURE.

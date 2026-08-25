@@ -44,6 +44,12 @@ type CreateInput = Readonly<{ name: string; contentType: string; size: number; c
 export class PrivateArtifactRepository {
   constructor(private readonly executor?: TenantBoundPrismaExecutor, private readonly provider?: TenantArtifactProvider) {}
 
+  private async ensureRuntime() {
+    if (this.executor || this.provider) return;
+    const { bootstrapTenantRuntime } = await import("@/lib/tenant-runtime-bootstrap");
+    bootstrapTenantRuntime();
+  }
+
   private execute<T>(context: TenantContext, operation: (db: PrismaClient) => Promise<T>) {
     return (this.executor ?? requireTenantBoundPrismaExecutor()).execute(context, operation);
   }
@@ -55,6 +61,7 @@ export class PrivateArtifactRepository {
   }
 
   async create(context: TenantContext, input: CreateInput) {
+    await this.ensureRuntime();
     await requirePermission(context, PRIVATE_ARTIFACT_UPLOAD);
     if (!Number.isInteger(input.size) || input.size < 1 || input.size !== input.data.byteLength || input.size > 10 * 1024 * 1024) throw new TenantArtifactBoundaryError("TENANT_ARTIFACT_SIZE_INVALID");
     if (!/^[a-z0-9.+-]+\/[a-z0-9.+-]+$/i.test(input.contentType)) throw new TenantArtifactBoundaryError("TENANT_ARTIFACT_CONTENT_TYPE_INVALID");
@@ -82,6 +89,7 @@ export class PrivateArtifactRepository {
   }
 
   async list(context: TenantContext) {
+    await this.ensureRuntime();
     await requirePermission(context, PRIVATE_ARTIFACT_READ);
     return this.execute(context, (db) => db.privateArtifact.findMany({ where: { organizationId: context.organizationId, state: "ACTIVE" }, select: { id: true, version: true, contentType: true, size: true, createdAt: true, document: { select: { id: true, name: true, category: true, relatedEntity: true, relatedId: true } } }, orderBy: { createdAt: "desc" } }));
   }
@@ -93,6 +101,7 @@ export class PrivateArtifactRepository {
   }
 
   async issueDownload(context: TenantContext, artifactId: string) {
+    await this.ensureRuntime();
     await requirePermission(context, PRIVATE_ARTIFACT_READ);
     const artifact = await this.owned(context, artifactId);
     const issued = await this.storage().issueDelivery({ organizationId: context.organizationId, artifactId: artifact.id, objectKey: artifact.objectKey, expiresInSeconds: DELIVERY_TTL_SECONDS });
@@ -101,6 +110,7 @@ export class PrivateArtifactRepository {
   }
 
   async replace(context: TenantContext, artifactId: string, input: Readonly<{ contentType: string; size: number; data: Uint8Array }>) {
+    await this.ensureRuntime();
     await requirePermission(context, PRIVATE_ARTIFACT_MANAGE);
     const current = await this.owned(context, artifactId);
     if (!Number.isInteger(input.size) || input.size < 1 || input.size !== input.data.byteLength || input.size > 10 * 1024 * 1024) throw new TenantArtifactBoundaryError("TENANT_ARTIFACT_SIZE_INVALID");
@@ -123,6 +133,7 @@ export class PrivateArtifactRepository {
   }
 
   async delete(context: TenantContext, artifactId: string) {
+    await this.ensureRuntime();
     await requirePermission(context, PRIVATE_ARTIFACT_MANAGE);
     const artifact = await this.owned(context, artifactId);
     await this.storage().delete({ organizationId: context.organizationId, artifactId, objectKey: artifact.objectKey });

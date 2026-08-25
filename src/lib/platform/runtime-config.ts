@@ -29,10 +29,14 @@ const runtimeConfigSchema = z.object({
   S3_ACCESS_KEY: z.string().min(1).optional(),
   S3_SECRET_KEY: z.string().min(1).optional(),
   S3_BUCKET: z.string().min(1).optional(),
+  ASAS_STORAGE_PROVIDER: z.enum(["LOCAL_VPS", "S3"]).optional(),
   TENANT_STORAGE_REFERENCE_DIRECTORY: z.string().min(1).optional(),
   TENANT_STORAGE_CREDENTIAL_DIRECTORY: z.string().min(1).optional(),
   TENANT_STORAGE_ALLOWED_GROUP_ID: z.string().regex(/^(0|[1-9][0-9]{0,9})$/).optional(),
   ASAS_PREFLIGHT_STORAGE_PROBE_URL: z.string().url().optional(),
+  ASAS_LOCAL_STORAGE_ROOT: z.string().min(1).optional(),
+  ASAS_LOCAL_STORAGE_DELIVERY_SECRET: z.string().min(32).optional(),
+  ASAS_LOCAL_STORAGE_DELIVERY_PATH: z.string().regex(/^\/[A-Za-z0-9_./-]*$/).optional(),
   ASAS_PREFLIGHT_EGRESS_URL: z.string().url().optional(),
   ASAS_BACKUP_MANIFEST_PATH: z.string().min(1).optional(),
   AUTH_SECRET: z.string().min(32).optional(),
@@ -77,7 +81,9 @@ export function getRuntimeConfigurationSummary(
     dependencies: {
       database: Boolean(config.DATABASE_URL),
       redis: Boolean(config.REDIS_URL),
-      storage: Boolean(config.TENANT_STORAGE_REFERENCE_DIRECTORY && config.TENANT_STORAGE_CREDENTIAL_DIRECTORY),
+      storage: config.ASAS_STORAGE_PROVIDER === "LOCAL_VPS"
+        ? Boolean(config.ASAS_LOCAL_STORAGE_ROOT && config.ASAS_LOCAL_STORAGE_DELIVERY_SECRET)
+        : Boolean(config.TENANT_STORAGE_REFERENCE_DIRECTORY && config.TENANT_STORAGE_CREDENTIAL_DIRECTORY),
       publicUrl: Boolean(config.ASAS_PUBLIC_URL),
     },
   };
