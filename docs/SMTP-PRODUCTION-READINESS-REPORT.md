@@ -1,45 +1,33 @@
-# SMTP Production Readiness — Internal Closure / External Provider Gate
+# SMTP Production Readiness — `schoolscreen.sa` Sandbox Qualification
 
 ## القرار
 
-**الحالة: `SMTP BLOCKED — EXTERNAL INPUT REQUIRED`.** أُغلقت الجاهزية الداخلية القابلة للتنفيذ من دون إرسال أي رسالة ومن دون DNS أو public vhost أو public traffic. لا يصح اعتبار SMTP مغلقاً قبل إثبات transport حقيقي وTLS والمصادقة وهوية sender وتسليم sandbox معتمد.
+**الحالة: `CLOSED — SANDBOX VALIDATED`.** أُثبت مسار SMTP submission المحلي من التطبيق إلى خادم البريد تحت `schoolscreen.sa` باستخدام sender المعتمد `admin@schoolscreen.sa`، ونجح إثبات TLS والمصادقة وقبول رسالة sandbox مقيدة. لا يعني هذا تفعيل البريد الحي أو النشر العام: لا DNS أو public vhost أو public traffic أو تعديل Postfix/Exim/Dovecot، وruntime web الإنتاجي عاد إلى fail-closed بعد الاختبار.
 
-## ما تم التحقق منه
+## الأدلة الفعلية
 
-| المجال | الحالة | الدليل أو السلوك |
+| مجال الإثبات | النتيجة | الدليل المقيد |
 |---|---|---|
-| عقد التطبيق | `CLOSED_INTERNAL_IMPLEMENTATION` | `MailDispatchService` يفرض schema للمنظمة/idempotency/recipients والـsender، ويعطّل delivery افتراضياً. |
-| SMTP adapter | `CLOSED_INTERNAL_IMPLEMENTATION` | Nodemailer transport حقيقي يفرض `STARTTLS` أو `TLS` فقط، timeout من 1–60 ثانية، ولا يثبت transport عند غياب config. |
-| المصادقة والسر | `CLOSED_INTERNAL_IMPLEMENTATION` | username/password لا يخرجان إلى Git أو logs؛ يدعم runtime systemd credential خاصاً بالخدمة بدلاً من environment secret. |
-| sandbox guard | `CLOSED_INTERNAL_IMPLEMENTATION` | adapter يقبل `SANDBOX` فقط، ويرفض أي recipient خارج allow-list قبل الاتصال بالمزود. |
-| retry/failure | `CLOSED_INTERNAL_IMPLEMENTATION` | الحد الأقصى ثلاث محاولات، ولا يوجد retry لا نهائي؛ failure يعاد كرمز redacted. |
-| audit/redaction | `CLOSED_INTERNAL_IMPLEMENTATION` | audit يحفظ recipient fingerprints فقط ولا يحتفظ بالعنوان الصريح أو credential. |
-| Postfix/SnappyMail على VPS | `NOT_PROVEN_AS_APPLICATION_SMTP` | توجد بنية بريد محلية، لكن relayhost غير مضبوط وSASL غير مفعل، ولا يصح افتراض أن SnappyMail هو مزود SMTP للتطبيق. |
-| transport حقيقي وتسليم sandbox | `EXTERNAL_INPUT_REQUIRED` | لا يوجد sender أو host/port/TLS أو credential أو recipient تجريبي معتمد. |
+| SMTP submission المحلي | `PASS` | التطبيق يصل محلياً إلى `127.0.0.1:587` فقط؛ المسار `STARTTLS` واسم TLS هو `schoolscreen.sa`. |
+| TLS/هوية الخادم | `PASS` | تحقق hostname لشهادة `schoolscreen.sa` اجتاز عند اتصال التطبيق المحلي. |
+| SASL authentication | `PASS` | probe المصادق نجح باستخدام credential root-only؛ اختبار password خاطئ رُفض من دون إرسال رسالة. |
+| sender | `PASS` | خادم SMTP قبل رسالة sandbox واحدة من `admin@schoolscreen.sa` إلى recipient المعتمد فقط. |
+| sandbox recipient guard | `PASS` | recipient خارج allow-list رُفض قبل الاتصال بالمزود. لم يظهر recipient أو credential في المخرجات. |
+| submission/delivery sandbox | `PASS` | Nodemailer قبل provider message identifier ورسالة sandbox واحدة فقط؛ لا يُعلن إثبات قراءة inbox أو flow منتج غير موجود. |
+| timeout وretry | `PASS` | transport متعمد التعليق أثبت timeout عند ثانية واحدة وثلاث محاولات كحد أقصى، ثم فشل redacted. |
+| audit/redaction | `PASS` | تسلسل النجاح `QUEUED,SENT` وتسلسل الفشل `QUEUED,FAILED` احتويا fingerprints فقط، بلا recipient صريح أو password أو message identifier. |
+| تنظيف runtime | `PASS` | harness المؤقت حُذف، وdrop-in المؤقت أزيل، وخدمة `asasplus-web-production.service` نشطة مجدداً بلا `ASAS_MAIL_TRANSPORT_CONFIG_CREDENTIAL` وبلا `ASAS_MAIL_DELIVERY_ENABLED=true`. |
 
-## مسار الإعداد المعتمد عند توفر المدخلات
+## تصميم السر والتشغيل
 
-يُنشأ source credential غير متعقب في `/opt/asasplus/shared/production-secrets/asas-smtp-sandbox.json` بملكية `root:root` وصلاحية `0600`. لا يحتوي environment على password؛ بدلاً من ذلك يحمّل systemd هذا المصدر باسم credential `asas-smtp-sandbox` إلى مساحة خاصة بعملية خدمة ASAS. تستعمل الخدمة الاسم فقط عبر `ASAS_MAIL_TRANSPORT_CONFIG_CREDENTIAL=asas-smtp-sandbox`.
+يبقى source credential في `/opt/asasplus/shared/production-secrets/asas-smtp-sandbox.json` بملكية `root:root` وصلاحية `0600`. لا توضع كلمة المرور في Git أو environment أو السجلات. تُحمّل فقط في عملية systemd اختبارية أو خدمة معتمدة مستقبلاً عبر `LoadCredential=asas-smtp-sandbox:…` و`ASAS_MAIL_TRANSPORT_CONFIG_CREDENTIAL=asas-smtp-sandbox`.
 
-> لا يركب transport ولا يفتح اتصال SMTP عندما يغيب اسم credential أو ملفه. كما يبقى `ASAS_MAIL_DELIVERY_ENABLED` متوقفاً حتى توجد موافقة اختبار صريحة.
+> إعداد adapter يقبل `SANDBOX` فقط؛ ومن ثم لا توجد حالياً آلية تفعل مخاطبة مستخدمين أو حملة بريدية أو إرسال إنتاجي غير مقيد. كل تفعيل لاحق يحتاج تفويضاً مستقلاً وreview للـrecipient policy.
 
-## عناصر لا توجد لها wiring حالياً
+## ما لا يثبته هذا الاختبار
 
-يوفر transport نصاً وHTML، لكن لم يُكتشف renderer/templates أو مسارات product مربوطة فعلياً لـpassword reset أو invitations أو organization/system notifications. لا تمثل هذه فجوة في حماية transport؛ لكنها تعني أن هذه flows لا يمكن ادعاء اختبار تسليمها قبل تنفيذها وربطها بعقد mail نفسه.
+لا توجد حالياً قوالب أو مسارات منتج موصولة لـpassword reset أو invitations أو notifications. لذلك أُثبت **transport submission** وحده، لا تسليم flow منتج أو قراءة الرسالة من mailbox. لم تُفعّل أي payments أو scheduler، ولم يُعد فتح Authentication المغلقة.
 
-## المدخلات الخارجية المطلوبة
+## التشغيل الآمن والتدوير
 
-| المدخل | الغرض | أقل صلاحية وتخزين | الاختبار بعد الإدخال |
-|---|---|---|---|
-| sender صريح تحت `schoolscreen.sa` | From address المعتمد؛ وreply-to إن كان مختلفاً | قرار owner، بلا افتراض عنوان | sender validation ورفض sender غير المطابق |
-| SMTP host وport وTLS mode | submission route حقيقية؛ `STARTTLS` أو `TLS` فقط | غير سري، لكن يثبت في request root-only | TLS handshake/probe من staging فقط |
-| SMTP username/password أو service credential | مصادقة send-only | source `root:root 0600` ثم systemd credential؛ لا mailbox/admin scope | auth success/failure redacted ثم rotation proof |
-| sandbox recipient allow-list وapproval | منع أي تسليم لمستخدمين حقيقيين بلا إذن | request root-only، recipient واحد أو أكثر بحد أقصى 25 | رسالة sandbox واحدة بعد approval صريح |
-
-## الاختبارات المؤجلة إلى وجود المدخلات
-
-يلزم تنفيذ probe، TLS، authentication، sender validation، successful/failure delivery، timeout، bounded retry، redaction، audit وtemplate rendering على staging أولاً. لا يُرسل بريد حقيقي ولا يفعل production launch قبل هذه الأدلة.
-
-## الحدود التي لم تتغير
-
-لا DNS، ولا public vhost، ولا public traffic، ولا scheduler حي، ولا payments، ولا تعديل لـAuthentication المغلقة.
+عند تغيير كلمة مرور `admin@schoolscreen.sa`، يستبدل root فقط ملف credential بطريقة atomic مع بقاء `root:root 0600`، ثم يعاد تنفيذ probe sandbox المقيد تحت systemd credential. عند الإلغاء، يحذف root source credential وأي drop-in/service test، وتبقى خدمة التطبيق fail-closed بلا transport أو إرسال.

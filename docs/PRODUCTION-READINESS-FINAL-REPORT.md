@@ -41,7 +41,7 @@
 | Scheduler (domain jobs) | `IMPLEMENTABLE NOW` | قرار المنتج يطلب inventory/classification وstaging dry-run تحت tenant-bound authority؛ لا job حي أو global credential. |
 | Storage provider | `IMPLEMENTABLE NOW` | Local VPS tenant-private storage هو قرار الإطلاق؛ S3 لم يعد external launch gate. |
 | Auth/IdP | `IMPLEMENTABLE NOW` | Bootstrap Admin هو قرار الإطلاق؛ IdP ليس dependency للإطلاق الأول. لا seed أو user حقيقي بلا approval. |
-| Mail | `BLOCKED — EXTERNAL INPUT REQUIRED` | لا SMTP/provider contract أو credentials؛ لم تُرسل أي رسالة. |
+| Mail | `PASS — SANDBOX VALIDATED` | submission `schoolscreen.sa` المحلي اجتاز TLS/SASL/sender ورسالة sandbox واحدة واختبارات wrong-credential/recipient denial/timeout/retry/redaction/audit؛ runtime الإنتاجي أعيد fail-closed ولا product mail flow حي. |
 | Integrations/payments | `IMPLEMENTABLE NOW` | Payments مطلوبة؛ تبنى طبقة platform billing/organization donations الداخلية أولاً، ثم provider Mada-compatible هو gate خارجي لـE2E. |
 | License/certificate | `IMPLEMENTABLE NOW` | SaaS entitlements/activation داخلياً؛ signed certificate extension فقط لـDedicated/Self-Hosted. |
 | Production smoke plan | `PASS` | خطة smoke محلية وعامة مشروطة موثقة في runbook؛ local pre-cutover smoke اجتاز. |
@@ -62,7 +62,7 @@
 |---|---:|
 | Local VPS storage adapter وtenant-private proof | `IMPLEMENTABLE NOW` |
 | Bootstrap administrator production المعتمد | `IMPLEMENTABLE NOW` |
-| Mail provider وsender/domain contract | `BLOCKED` |
+| Mail provider وsender/domain contract | `CLOSED — SANDBOX VALIDATED` |
 | Platform billing/organization donations ومزود Mada-compatible | `IMPLEMENTABLE NOW` ثم `EXTERNAL INPUT REQUIRED` للـprovider E2E |
 | SaaS entitlements/activation | `IMPLEMENTABLE NOW` |
 | Scheduler domain jobs owner/catalogue | `IMPLEMENTABLE NOW` |
@@ -70,4 +70,4 @@
 
 ## الخلاصة
 
-اكتملت الجاهزية الداخلية القابلة للإثبات، بما في ذلك production PostgreSQL/RLS/Broker/Redis/worker/backup/restore/retention/release rollback/TLS وoffline vhost candidate. إلا أن ASAS Plus **ليست جاهزة بعد للتحويل العام** لأن onboarding الهوية والتخزين والترخيص والخدمات الخارجية لا يمكن إثباتها من دون مدخلات حقيقية. لا تغير DNS أو traffic حتى تُغلق هذه البنود ويُعطى أمر النشر الصريح.
+اكتملت الجاهزية الداخلية القابلة للإثبات، بما في ذلك production PostgreSQL/RLS/Broker/Redis/worker/backup/restore/retention/release rollback/TLS وoffline vhost candidate، كما اجتاز SMTP المحلي sandbox qualification. إلا أن ASAS Plus **ليست جاهزة بعد للتحويل العام** بسبب payments وscheduler وقرار Go/No-Go الخارجي؛ لا تغير DNS أو traffic حتى تُغلق هذه البنود ويُعطى أمر النشر الصريح.

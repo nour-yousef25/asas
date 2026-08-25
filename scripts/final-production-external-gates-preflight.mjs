@@ -45,10 +45,34 @@ async function rootOnlyBootstrapClosureEvidence(name) {
       : { ready: false, reason: `${name} does not prove a redacted Bootstrap closure.` };
   } catch { return { ready: false, reason: `${name} cannot be validated without exposing its contents.` }; }
 }
+async function rootOnlySmtpSandboxEvidence(name) {
+  const file = process.env[name];
+  if (!file) return { ready: false, reason: `${name} is not configured.` };
+  try {
+    const details = await stat(file);
+    if (!details.isFile() || details.uid !== 0 || (details.mode & 0o077) !== 0) return { ready: false, reason: `${name} must reference root-owned 0600 SMTP evidence.` };
+    const value = JSON.parse(await readFile(file, "utf8"));
+    const exactKeys = "authFailureDenied,environment,outcome,recipientGuardDenied,redactionAudit,runtimeRestoredFailClosed,sandboxDelivery,schema,senderValidation,timeoutRetry,tlsAuthentication";
+    return Object.keys(value).sort().join(",") === exactKeys
+      && value.schema === "ASAS_SMTP_SANDBOX_QUALIFICATION_V1"
+      && value.outcome === "SANDBOX_VALIDATED"
+      && value.environment === "sandbox"
+      && value.tlsAuthentication === true
+      && value.senderValidation === true
+      && value.sandboxDelivery === true
+      && value.authFailureDenied === true
+      && value.recipientGuardDenied === true
+      && value.timeoutRetry === true
+      && value.redactionAudit === true
+      && value.runtimeRestoredFailClosed === true
+      ? { ready: true, reason: "Root-only redacted SMTP sandbox qualification evidence is valid." }
+      : { ready: false, reason: `${name} does not prove the complete redacted SMTP sandbox qualification.` };
+  } catch { return { ready: false, reason: `${name} cannot be validated without exposing its contents.` }; }
+}
 function externalOrClosed(input) { return input.ready ? { status: status.closed, requiredInputs: [], summary: input.closedSummary } : { status: status.external, requiredInputs: input.requiredInputs, summary: input.reason }; }
 
 const bootstrapClosure = await rootOnlyBootstrapClosureEvidence("ASAS_BOOTSTRAP_AUTH_CLOSURE_EVIDENCE_FILE");
-const mail = await rootOnlyJsonRequest("ASAS_MAIL_PRODUCTION_REQUEST_FILE", ["providerKey", "fromAddress", "fromName", "approvalReference"]);
+const smtpSandbox = await rootOnlySmtpSandboxEvidence("ASAS_MAIL_SMTP_SANDBOX_EVIDENCE_FILE");
 const payment = await rootOnlyJsonRequest("ASAS_PAYMENT_PRODUCTION_REQUEST_FILE", ["providerKey", "webhookUrl", "approvalReference"]);
 const scheduler = await rootOnlyJsonRequest("ASAS_DOMAIN_SCHEDULER_APPROVAL_FILE", ["owner", "approvalReference", "catalogueVersion"]);
 const goNoGo = await rootOnlyJsonRequest("ASAS_GO_NO_GO_APPROVAL_FILE", ["owner", "maintenanceWindowUtc", "approvalReference"]);
@@ -77,10 +101,10 @@ const checks = [
     gate: "temporary_smtp_mail",
     internalImplementation: status.closed,
     ...externalOrClosed({
-      ready: mail.ready && present("ASAS_MAIL_TRANSPORT_CONFIG_PATH") && process.env.ASAS_MAIL_DELIVERY_ENABLED === "true",
-      requiredInputs: ["ASAS_MAIL_PRODUCTION_REQUEST_FILE", "ASAS_MAIL_TRANSPORT_CONFIG_PATH", "ASAS_MAIL_DELIVERY_ENABLED=true"],
-      reason: mail.ready ? "SMTP abstraction is installed; schoolscreen.sa SMTP configuration and an explicit delivery switch are still required." : mail.reason,
-      closedSummary: "Approved SMTP request/config and explicit delivery switch are present; this preflight sends no email.",
+      ready: smtpSandbox.ready,
+      requiredInputs: ["ASAS_MAIL_SMTP_SANDBOX_EVIDENCE_FILE"],
+      reason: smtpSandbox.reason,
+      closedSummary: "schoolscreen.sa SMTP sandbox qualification is present; production runtime remains fail-closed and this preflight sends no email.",
     }),
   },
   {

@@ -20,7 +20,7 @@
 |---|---|---|
 | Local VPS storage | `CLOSED` | release/config/health وA/B runtime proof مع cleanup مثبتة على staging وproduction loopback؛ لا S3 أو credential مزود خارجي. |
 | Bootstrap | `CLOSED` | أول `SUPER_ADMIN` control-plane provision/login/session/logout اختُبر على loopback؛ لا membership أو tenant authority، مع إزالة password/request والـtemporary role. |
-| Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | يلزم SMTP provider configuration المعتمد. |
+| Temporary SMTP | `CLOSED — SANDBOX VALIDATED` | مسار `schoolscreen.sa` المحلي اجتاز TLS/SASL/sender ورسالة sandbox مقيدة وfailure/timeout/retry/redaction/audit؛ لا live delivery أو product flow مفعّل. |
 | Payments | `EXTERNAL_INPUT_REQUIRED` | payments مطلوبة؛ يلزم gateway Mada-compatible وmerchant/webhook/UAT. |
 | SaaS entitlements | `CLOSED` | migrations 18/19 وRLS/runtime A/B proof مع cleanup مثبتة على staging وproduction loopback. |
 | Scheduler | `EXTERNAL_INPUT_REQUIRED` | يلزم owner-approved live catalogue/heartbeat؛ dry-run فقط مثبت. |
