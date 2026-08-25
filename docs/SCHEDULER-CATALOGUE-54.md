@@ -24,3 +24,9 @@
 ## تنفيذ staging المسموح لاحقاً
 
 بعد تركيب release الجديد على staging فقط، يسمح بـdry-run catalogue root-owned ثم health heartbeat/lag. لا يفعّل أي timer أو job مالي أو SMTP أو provider call. التفعيل الحقيقي لكل صف `DISABLED` يحتاج owner approval وcatalogue version معتمداً، ثم دليل A/B وfailure cleanup مستقل.
+
+## دليل staging المنفذ
+
+في **25 أغسطس 2026** شُغّل harness من source audit معزول خارج `staging-current`، مع catalogue root-owned مؤقت يحوي `publish.tenant` فقط وبـ`dryRun=true`. أعاد المخرج `SCHEDULER_DRY_RUN_COMPLETE` و`outcome=DRY_RUN`. لم يبدأ worker أو timer، ولم تتغير services staging، ولم تُنفذ عملية domain أو egress أو provider call. أزيل source audit وcatalogue المؤقتان بعد النجاح (`STAGING_SCHEDULER_AUDIT_CLEANED`).
+
+هذا الدليل يثبت parser/catalogue/tenant-identifier guard فقط؛ **لا يثبت tenant authority checkout أو تنفيذ publication حقيقي**، لأن dry-run لا يملك side effect. يظل ذلك محصوراً في worker النشر القائم وأدلته W02 المغلقة.
