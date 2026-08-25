@@ -2,7 +2,8 @@ import { execFileSync } from "node:child_process";
 import { randomBytes } from "node:crypto";
 import { chmodSync, writeFileSync } from "node:fs";
 
-const database = "asasplus_staging";
+const database = process.env.ASAS_RLS_PROOF_DATABASE ?? "asasplus_staging";
+if (!/^[a-z0-9_]+$/i.test(database)) throw new Error("SAAS_RLS_PROOF_DATABASE_INVALID");
 const suffix = randomBytes(7).toString("hex");
 const roleA = `r54a_${suffix}`, roleB = `r54b_${suffix}`;
 const passwordA = randomBytes(24).toString("base64url"), passwordB = randomBytes(24).toString("base64url");
