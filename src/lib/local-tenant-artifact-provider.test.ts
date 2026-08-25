@@ -13,7 +13,7 @@ describe("LocalTenantArtifactProvider", () => {
   afterEach(async () => { await rm(root, { recursive: true, force: true }); });
 
   it("stores only tenant-private keys and returns no local path in short-lived delivery", async () => {
-    const provider = new LocalTenantArtifactProvider(root, "a".repeat(32), "/api/documents/delivery", () => new Date("2026-08-25T12:00:00.000Z"));
+    const provider = new LocalTenantArtifactProvider(root, "a".repeat(32), "/api/documents/delivery", () => new Date("2026-08-25T12:00:00.000Z"), process.getuid?.());
     await provider.put({ organizationId, artifactId, objectKey, data: new Uint8Array([1, 2, 3]), contentType: "application/pdf" });
     const details = await stat(join(root, ...objectKey.split("/")));
     expect(details.mode & 0o007).toBe(0);
@@ -24,7 +24,7 @@ describe("LocalTenantArtifactProvider", () => {
   });
 
   it("denies cross-tenant traversal and token replay into another tenant", async () => {
-    const provider = new LocalTenantArtifactProvider(root, "b".repeat(32), "/api/documents/delivery", () => new Date("2026-08-25T12:00:00.000Z"));
+    const provider = new LocalTenantArtifactProvider(root, "b".repeat(32), "/api/documents/delivery", () => new Date("2026-08-25T12:00:00.000Z"), process.getuid?.());
     await expect(provider.put({ organizationId, artifactId, objectKey: "private/org_other_123456789/artifact/artifact_123456789012/v1", data: new Uint8Array([1]), contentType: "text/plain" })).rejects.toMatchObject({ code: "OBJECT_SCOPE_DENIED" });
     await provider.put({ organizationId, artifactId, objectKey, data: new Uint8Array([1]), contentType: "text/plain" });
     const delivery = await provider.issueDelivery({ organizationId, artifactId, objectKey, expiresInSeconds: 120 });

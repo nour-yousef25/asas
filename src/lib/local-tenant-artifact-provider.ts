@@ -22,13 +22,13 @@ function encode(value: unknown) { return Buffer.from(JSON.stringify(value)).toSt
 function decode(value: string) { return JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as unknown; }
 
 export class LocalTenantArtifactProvider implements TenantArtifactProvider {
-  constructor(private readonly rootDirectory: string, private readonly deliverySecret: string, private readonly deliveryPath = "/api/documents/delivery", private readonly now: () => Date = () => new Date()) {
+  constructor(private readonly rootDirectory: string, private readonly deliverySecret: string, private readonly deliveryPath = "/api/documents/delivery", private readonly now: () => Date = () => new Date(), private readonly expectedRootUid = 0) {
     if (!isAbsolute(rootDirectory) || deliverySecret.length < 32 || !deliveryPath.startsWith("/")) throw new LocalTenantArtifactError("ROOT_DENIED");
   }
 
   private async root() {
     const details = await stat(this.rootDirectory).catch(() => undefined);
-    if (!details?.isDirectory() || (details.mode & 0o007) !== 0 || (details.mode & 0o022) !== 0) throw new LocalTenantArtifactError("ROOT_DENIED");
+    if (!details?.isDirectory() || details.uid !== this.expectedRootUid || (details.mode & 0o007) !== 0 || (details.mode & 0o002) !== 0) throw new LocalTenantArtifactError("ROOT_DENIED");
     return this.rootDirectory;
   }
 
