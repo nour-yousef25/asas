@@ -29,7 +29,7 @@ export type BootstrapSuperAdminUser = Readonly<{ id: string; email: string; role
 export type BootstrapSuperAdminStore = Readonly<{
   findByEmail(email: string): Promise<BootstrapSuperAdminUser | null>;
   countOrganizationMemberships(userId: string): Promise<number>;
-  create(input: Readonly<{ name: string; email: string; passwordHash: string; role: "SUPER_ADMIN"; isActive: true; activeOrganizationId: null }>): Promise<BootstrapSuperAdminUser>;
+  create(input: Readonly<{ name: string; email: string; password: string; role: "SUPER_ADMIN"; isActive: true; activeOrganizationId: null }>): Promise<BootstrapSuperAdminUser>;
 }>;
 
 function fingerprint(value: string) { return createHash("sha256").update(`bootstrap-super-admin:${value}`).digest("base64url"); }
@@ -63,7 +63,7 @@ export async function provisionBootstrapSuperAdmin(store: BootstrapSuperAdminSto
   if (!password) throw new BootstrapSuperAdminError("PASSWORD_INVALID");
   const passwordHash = await bcrypt.hash(password.toString("utf8"), 12);
   password.fill(0);
-  const created = await store.create({ name: request.displayName, email: request.email, passwordHash, role: "SUPER_ADMIN", isActive: true, activeOrganizationId: null });
+  const created = await store.create({ name: request.displayName, email: request.email, password: passwordHash, role: "SUPER_ADMIN", isActive: true, activeOrganizationId: null });
   const memberships = await store.countOrganizationMemberships(created.id);
   if (memberships !== 0 || created.activeOrganizationId !== null || created.role !== "SUPER_ADMIN") throw new BootstrapSuperAdminError("MEMBERSHIP_DENIED");
   return { outcome: "PROVISIONED" as const, userId: created.id, emailFingerprint: fingerprint(created.email) };

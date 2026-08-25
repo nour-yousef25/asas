@@ -9,7 +9,7 @@ const requestPath = process.env.ASAS_BOOTSTRAP_CONTROL_REQUEST_FILE;
 const auditPath = process.env.ASAS_BOOTSTRAP_AUDIT_FILE;
 if (process.env.ASAS_BOOTSTRAP_EXECUTION !== "CONFIRM" || !requestPath || !auditPath) throw new BootstrapSuperAdminError("EXECUTION_NOT_CONFIRMED");
 
-const prisma = new PrismaClient({ log: ["error"] });
+const prisma = new PrismaClient();
 const TEMPORARY_BOOTSTRAP_ROLE = "asasplus_bootstrap_grant";
 const fingerprint = (value: string) => createHash("sha256").update(`bootstrap-audit:${value}`).digest("base64url");
 
