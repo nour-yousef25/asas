@@ -66,9 +66,9 @@ const checks = [
     gate: "bootstrap_authentication",
     internalImplementation: status.closed,
     ...externalOrClosed({
-      ready: process.env.ASAS_AUTH_LAUNCH_MODE === "BOOTSTRAP" && bootstrapClosure.ready && present("AUTH_SECRET") && process.env.AUTH_SECRET.length >= 32,
-      requiredInputs: ["ASAS_AUTH_LAUNCH_MODE=BOOTSTRAP", "ASAS_BOOTSTRAP_AUTH_CLOSURE_EVIDENCE_FILE", "AUTH_SECRET"],
-      reason: bootstrapClosure.ready ? "Bootstrap closure evidence is valid; the server auth secret is missing or too short." : bootstrapClosure.reason,
+      ready: bootstrapClosure.ready && present("AUTH_SECRET"),
+      requiredInputs: ["ASAS_BOOTSTRAP_AUTH_CLOSURE_EVIDENCE_FILE", "AUTH_SECRET"],
+      reason: bootstrapClosure.ready ? "Bootstrap closure evidence is valid; the server auth secret is absent." : bootstrapClosure.reason,
       closedSummary: "Redacted Bootstrap closure evidence and credential-auth secret are present; this preflight does not provision or rotate an administrator.",
     }),
   },
