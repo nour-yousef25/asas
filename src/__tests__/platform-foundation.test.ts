@@ -44,10 +44,8 @@ describe("W01 platform contracts", () => {
       ASAS_RELEASE_CHANNEL: "STABLE",
       DATABASE_URL: "postgresql://user:password@localhost:5432/asas",
       REDIS_URL: "redis://localhost:6379",
-      S3_ENDPOINT: "https://storage.example.test",
-      S3_ACCESS_KEY: "access-key",
-      S3_SECRET_KEY: "secret-key",
-      S3_BUCKET: "asas",
+      TENANT_STORAGE_REFERENCE_DIRECTORY: "/run/asas/storage-references",
+      TENANT_STORAGE_CREDENTIAL_DIRECTORY: "/run/asas/storage-credentials",
     });
 
     expect(summary).toEqual({

@@ -1,49 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PaymentGatewayError, requirePaymentProvider } from "@/lib/payment-gateway";
 
 /**
  * واجهة Webhook لتلقي تحديثات الدفع من بوابة الدفع.
  */
 export async function POST(request: NextRequest) {
   try {
-    const payload = await request.json();
-
-    // تحقق من صحة الطلب (مثال: التوقيع أو الـ secret key)
-    const signature = request.headers.get("X-Signature");
-    if (!verifySignature(payload, signature)) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
-
-    // معالجة التحديث (مثال: تحديث حالة الدفع في قاعدة البيانات)
-    console.log("Received payment update:", payload);
-
-    // الرد بنجاح
-    return NextResponse.json({ success: true });
-  } catch (error: any) {
-    console.error("Error handling payment webhook:", error);
+    // لا نقبل webhook حتى يتم تركيب provider verifier وtenant-bound idempotent ledger معاً.
+    requirePaymentProvider();
+    return NextResponse.json({ error: "PAYMENT_WEBHOOK_LEDGER_UNCONFIGURED" }, { status: 503 });
+  } catch (error) {
+    if (error instanceof PaymentGatewayError) return NextResponse.json({ error: "PAYMENT_PROVIDER_UNCONFIGURED" }, { status: 503 });
     return NextResponse.json(
-      { error: "Failed to process payment webhook" },
+      { error: "PAYMENT_WEBHOOK_REJECTED" },
       { status: 500 }
     );
   }
-}
-
-/**
- * دالة للتحقق من توقيع الطلب (لأغراض أمنية).
- */
-function verifySignature(payload: any, signature: string | null): boolean {
-  if (!signature || !process.env.PAYMENT_SECRET) return false;
-  // مثال: مقارنة التوقيع مع الـ secret key
-  const expectedSignature = generateExpectedSignature(payload, process.env.PAYMENT_SECRET);
-  return signature === expectedSignature;
-}
-
-/**
- * مثال لتوليد التوقيع المتوقع.
- */
-function generateExpectedSignature(payload: any, secret: string): string {
-  const crypto = require("crypto");
-  return crypto
-    .createHmac("sha256", secret)
-    .update(JSON.stringify(payload))
-    .digest("hex");
 }

@@ -1,4 +1,4 @@
-// محاكاة بوابة الدفع (يجب استبدالها بالتكامل الحقيقي مع م stanie/Apple Pay/STC Pay)
+// الدفع لا يملك implementation افتراضياً؛ أي gateway يجب تركيبها خارجياً بعد contract وwebhook ledger موثوقين.
 interface ProcessPaymentArgs {
   amount: number;
   method: string;
@@ -20,8 +20,7 @@ export async function processPayment(args: ProcessPaymentArgs): Promise<PaymentR
   if (!validMethods.includes(method)) {
     return { success: false, reference, message: "طريقة دفع غير مدعومة" };
   }
-  // محاكاة: يتم الموافقة على الدفع دائماً في وضع التطوير
-  return { success: true, reference, message: "تمت معالجة الدفع بنجاح" };
+  return { success: false, reference, message: "بوابة الدفع محجوبة حتى تركيب مسار tenant-bound وledger reconciliation معتمدين" };
 }
 
 export const PAYMENT_METHODS = [

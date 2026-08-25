@@ -17,6 +17,8 @@ export type HealthDependencies = {
   storage?: () => Promise<void>;
   backup?: () => Promise<void>;
   workerHeartbeat?: () => Promise<boolean>;
+  license?: () => Promise<void>;
+  scheduler?: () => Promise<void>;
   now?: () => Date;
   disk?: () => Promise<{ available: number; total: number }>;
   memory?: () => { available: number; total: number };
@@ -131,6 +133,7 @@ export async function collectHealthReport(
     });
   }
 
+  const schedulerConfigured = Boolean(environment.ASAS_SCHEDULER_HEARTBEAT_PATH && environment.ASAS_SCHEDULER_MAX_LAG_SECONDS);
   checks.push(
     {
       name: "worker",
@@ -143,10 +146,8 @@ export async function collectHealthReport(
             : "Worker role is enabled but no current heartbeat was found."
           : "Worker role is not enabled for this runtime.",
     },
-    { name: "scheduler", required: false, status: "NOT_CONFIGURED", summary: "No scheduler adapter is configured." },
-    { name: "mail", required: false, status: "NOT_CONFIGURED", summary: "No mail provider is configured." },
-    { name: "integrations", required: false, status: "NOT_CONFIGURED", summary: "Provider-specific integration health is not configured." },
-    { name: "license", required: false, status: "NOT_CONFIGURED", summary: "License validation is intentionally scheduled for W02." },
+    { name: "mail", required: false, status: "NOT_CONFIGURED", summary: "Mail transport contract is installed but no external transport is configured." },
+    { name: "integrations", required: false, status: "NOT_CONFIGURED", summary: "Payment/IdP provider-neutral contracts are installed but no external provider is configured." },
     {
       name: "security",
       required: config.NODE_ENV === "production",
@@ -160,6 +161,23 @@ export async function collectHealthReport(
           : "Production security configuration is incomplete.",
     },
   );
+
+  if (schedulerConfigured && dependencies.scheduler) {
+    checks.push(await measuredCheck("scheduler", false, "Approved scheduler heartbeat is within the configured lag limit.", dependencies.scheduler));
+  } else if (schedulerConfigured) {
+    checks.push({ name: "scheduler", required: false, status: "DEGRADED", summary: "Scheduler heartbeat is configured but no runtime probe is available." });
+  } else {
+    checks.push({ name: "scheduler", required: false, status: "NOT_CONFIGURED", summary: "No approved scheduler catalogue/heartbeat adapter is configured." });
+  }
+
+  const licenseRequired = environment.ASAS_LICENSE_REQUIRED === "true";
+  if (licenseRequired && dependencies.license) {
+    checks.push(await measuredCheck("license", config.NODE_ENV === "production", "Signed runtime license, instance binding, keyring and revocation set verified.", dependencies.license));
+  } else if (licenseRequired) {
+    checks.push({ name: "license", required: config.NODE_ENV === "production", status: "UNAVAILABLE", summary: "License is required but no runtime verifier is available." });
+  } else {
+    checks.push({ name: "license", required: false, status: "NOT_CONFIGURED", summary: "Runtime license enforcement is not enabled for this deployment." });
+  }
 
   try {
     checks.push(resourceCheck("disk", true, await disk()));

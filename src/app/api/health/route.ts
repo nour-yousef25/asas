@@ -8,6 +8,8 @@ import { healthHttpStatus } from "@/lib/platform/contracts";
 import { withCorrelationId } from "@/lib/observability/correlation";
 import { logger } from "@/lib/logger";
 import { TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY } from "@/lib/tenant-worker-heartbeat";
+import { assertRuntimeLicense } from "@/lib/runtime-license";
+import { assertSchedulerHeartbeat } from "@/lib/scheduler-health";
 
 export const runtime = "nodejs";
 
@@ -51,6 +53,8 @@ export async function GET(request: NextRequest) {
           const { getRedis } = await import("@/lib/redis");
           return Boolean(await getRedis().get(TENANT_PUBLICATION_SUPERVISOR_HEARTBEAT_KEY));
         },
+        license: async () => { await assertRuntimeLicense(); },
+        scheduler: async () => { await assertSchedulerHeartbeat(process.env.ASAS_SCHEDULER_HEARTBEAT_PATH, process.env.ASAS_SCHEDULER_MAX_LAG_SECONDS); },
       }),
     );
 

@@ -79,10 +79,8 @@ describe("W01 health foundation", () => {
       {
         ...baseEnvironment,
         NODE_ENV: "production",
-        S3_ENDPOINT: "https://storage.example.test",
-        S3_ACCESS_KEY: "access-key",
-        S3_SECRET_KEY: "secret-key",
-        S3_BUCKET: "asas",
+        TENANT_STORAGE_REFERENCE_DIRECTORY: "/run/asas/storage-references",
+        TENANT_STORAGE_CREDENTIAL_DIRECTORY: "/run/asas/storage-credentials",
         AUTH_SECRET: "a".repeat(32),
         INTEGRATIONS_ENCRYPTION_KEY: "key",
       },
