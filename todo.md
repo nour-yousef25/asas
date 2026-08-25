@@ -10,6 +10,9 @@
 
 ## SMTP PRODUCTION READINESS GATE
 
+- [ ] SMTP06: فحص read-only لـSMTP submission المحلي على `schoolscreen.sa`: listener/TLS/SASL/relay/sender acceptance، بلا تغيير أو إرسال أو كشف secret.
+- [ ] SMTP07: إذا اجتاز SMTP المحلي discovery، تجهيز configuration sandbox وintake credential root-only فقط؛ وإلا توثيق مزود خارجي محدد.
+- [ ] SMTP08: دعم TLS server name صريح في SMTP configuration لتبقى وصلة التطبيق إلى `127.0.0.1:587` محلية مع تحقق شهادة `schoolscreen.sa`.
 - [x] SMTP01: جرد read-only لعقد transport وsender/reply-to/auth/TLS/timeout/retry/redaction/audit/template/sandbox في المصدر وVPS، بلا إرسال أو كشف secrets.
 - [x] SMTP02: تصنيف مزود SMTP الفعلي أو المدخل الخارجي المطلوب بدقة، مع منع افتراض أن SnappyMail هو provider للتطبيق.
 - [ ] SMTP03: عند توافر sender/config/approval معتمدة، تنفيذ staging-only connectivity/TLS/auth/delivery/failure/timeout/retry/redaction/audit؛ وإلا توثيق blocker فقط.
