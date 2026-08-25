@@ -1,4 +1,4 @@
-import { createHash, randomUUID } from "node:crypto";
+import { createHash } from "node:crypto";
 import { rm, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import process from "node:process";
@@ -59,7 +59,12 @@ async function main() {
   }
   await rm(requestPath, { force: false });
   await rm(request.passwordFile, { force: true });
-  const audit = { schema: "ASAS_BOOTSTRAP_SUPER_ADMIN_AUDIT_V1", requestId: request.requestId, outcome: result.outcome, accountFingerprint: fingerprint(result.userId), emailFingerprint: result.emailFingerprint, role: "SUPER_ADMIN", noOrganizationMembership: true, passwordArtifactRemoved: true, requestConsumed: true, correlationId: randomUUID(), at: new Date().toISOString() };
+  const audit = {
+    schema: "ASAS_BOOTSTRAP_SUPER_ADMIN_AUDIT_V1",
+    outcome: result.outcome,
+    accountFingerprint: fingerprint(result.userId),
+    emailFingerprint: result.emailFingerprint,
+  };
   await writeFile(auditPath, `${JSON.stringify(audit)}\n`, { mode: 0o600, flag: "wx" });
   process.stdout.write(`BOOTSTRAP_SUPER_ADMIN_${result.outcome}\n`);
 }
