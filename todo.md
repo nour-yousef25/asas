@@ -15,6 +15,7 @@
 - [ ] إعداد Local VPS Storage على staging: root-owned path وdelivery secret server-only و`ASAS_STORAGE_PROVIDER=LOCAL_VPS`، ثم health/runtime validation بلا S3 أو public filesystem path.
 - [ ] إثبات Private Artifact tenant A/B على staging: upload/list/download token/cross-tenant denial/replace/delete/cleanup، مع عدم تسريب path أو secret.
 - [ ] إثبات SaaS Entitlement وpayment ledger schema/RLS tenant A/B في staging: subscription/entitlement/transaction/webhook idempotency/refund-void contracts بلا gateway أو charge.
+- [ ] إغلاق RLS payment-configuration tenant binding عبر migration forward-only وA/B negative proof قبل اعتبار payment ledger داخلياً مغلقاً.
 - [ ] تحديث preflight/health/docs بعد evidence الواقعي لتغيير Local VPS Storage وSaaS Entitlements إلى `CLOSED` أو تسجيل blocker حقيقي فقط.
 - [ ] تشغيل regression/release validation ثم commit/push evidence بأمان، والتوقف عند EXTERNAL_INPUT_REQUIRED فقط.
 
