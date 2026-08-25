@@ -2,12 +2,21 @@
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
-- [ ] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
+- [x] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
 - [x] مراجعة العقود/المخطط/المسارات ذات الصلة لتحديد فجوات LocalStorage وBootstrap وSMTP وPlatform Billing/Organization Donations وSaaS License من دون إعادة فتح W02؛ النتيجة في `PRODUCTION-READINESS-RECONCILIATION-54.md`.
 - [x] تنفيذ واختبار Local VPS tenant-private artifact adapter وBootstrap control-plane provision flow وSaaS subscription/entitlement abstraction fail-closed؛ لا users production أو credentials مخترعة. يبقى release/migration/RLS runtime proof الداخلي قبل Go.
 - [x] تنفيذ طبقة مدفوعات tenant-aware للـplatform billing وorganization donations: configuration، ledger، reconciliation، idempotency، audit، refund/void contracts بلا card data أو provider call. يبقى gateway/UAT الخارجي وRLS runtime proof الداخلي.
 - [x] جرد scheduler catalogue الحقيقي وتصنيف كل job؛ النتيجة في `SCHEDULER-CATALOGUE-54.md`. تم تقوية dry-run/retry/concurrency contract محلياً وdry-run staging معزول مع cleanup؛ لا job حي أو service/timer أو provider call.
 - [x] تحديث preflight وGate Matrix وDecision Register وGo/No-Go بتصنيف CLOSED/IMPLEMENTABLE NOW/EXTERNAL INPUT REQUIRED/PRODUCTION CUTOVER ONLY؛ regression النهائي ناجح، ويبقى commit/push لهذا scope.
+
+## IMPLEMENTABLE NOW EXECUTION — RECONCILIATION 54
+
+- [ ] تثبيت release مرشح على staging فقط وتطبيق migration `20260825090000_saas_payments_entitlements` في staging، مع backup/rehearsal وrollback release بلا production DB أو traffic.
+- [ ] إعداد Local VPS Storage على staging: root-owned path وdelivery secret server-only و`ASAS_STORAGE_PROVIDER=LOCAL_VPS`، ثم health/runtime validation بلا S3 أو public filesystem path.
+- [ ] إثبات Private Artifact tenant A/B على staging: upload/list/download token/cross-tenant denial/replace/delete/cleanup، مع عدم تسريب path أو secret.
+- [ ] إثبات SaaS Entitlement وpayment ledger schema/RLS tenant A/B في staging: subscription/entitlement/transaction/webhook idempotency/refund-void contracts بلا gateway أو charge.
+- [ ] تحديث preflight/health/docs بعد evidence الواقعي لتغيير Local VPS Storage وSaaS Entitlements إلى `CLOSED` أو تسجيل blocker حقيقي فقط.
+- [ ] تشغيل regression/release validation ثم commit/push evidence بأمان، والتوقف عند EXTERNAL_INPUT_REQUIRED فقط.
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
