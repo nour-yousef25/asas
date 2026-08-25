@@ -18,11 +18,11 @@
 
 | Gate | Status | السبب |
 |---|---|---|
-| Local VPS storage | `IMPLEMENTABLE_NOW` | يحتاج release/config/probe محليين، لا S3 أو credential مزود خارجي. |
+| Local VPS storage | `CLOSED` | release/config/health وA/B runtime proof مع cleanup مثبتة على staging وproduction loopback؛ لا S3 أو credential مزود خارجي. |
 | Bootstrap | `EXTERNAL_INPUT_REQUIRED` | يلزم owner-approved real identity/password material. |
 | Temporary SMTP | `EXTERNAL_INPUT_REQUIRED` | يلزم SMTP provider configuration المعتمد. |
 | Payments | `EXTERNAL_INPUT_REQUIRED` | payments مطلوبة؛ يلزم gateway Mada-compatible وmerchant/webhook/UAT. |
-| SaaS entitlements | `IMPLEMENTABLE_NOW` | يحتاج migration/RLS/runtime proof داخليين. |
+| SaaS entitlements | `CLOSED` | migrations 18/19 وRLS/runtime A/B proof مع cleanup مثبتة على staging وproduction loopback. |
 | Scheduler | `EXTERNAL_INPUT_REQUIRED` | يلزم owner-approved live catalogue/heartbeat؛ dry-run فقط مثبت. |
 | IdP/certificate activation | `NOT_APPLICABLE` | ليسا dependencies للإطلاق SaaS Bootstrap. |
 | DNS/public traffic | `PRODUCTION_CUTOVER_ONLY` | محظور قبل Go وعبارة النشر الصريحة. |

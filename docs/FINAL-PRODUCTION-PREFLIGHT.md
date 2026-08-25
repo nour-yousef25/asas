@@ -10,7 +10,7 @@ pnpm run preflight:external-gates
 
 | الحالة | المعنى |
 |---|---|
-| `CLOSED` | contract/config المطلوبان موجودان؛ لا يعني provider probe تلقائياً. |
+| `CLOSED` | contract/config المطلوبان موجودان، ولـLocal Storage/SaaS يلزم evidence production root-only مع cleanup؛ لا يعني provider probe تلقائياً. |
 | `IMPLEMENTABLE_NOW` | التنفيذ موجود لكن يلزم release/config/proof داخلي قبل Go؛ لا يساوي نجاحاً. |
 | `EXTERNAL_INPUT_REQUIRED` | يلزم قرار/هوية/config/provider حقيقي من المالك. |
 | `NOT_APPLICABLE` | ليس dependency لمسار Bootstrap SaaS المعتمد. |
@@ -19,6 +19,6 @@ pnpm run preflight:external-gates
 
 ## التسلسل الآمن
 
-ابدأ بالعمل الداخلي المتبقي: release/migration + RLS/runtime proof للـSaaS/payment وLocal Storage على staging، ثم production فقط بعد gate خاص. بعد ذلك ضع request/config files root-owned خارج Git، وشغّل preflight، ثم نفذ proof مزود غير مدمر معتمد. لا ينشئ preflight Bootstrap admin، ولا يرسل mail، ولا ينفذ charge، ولا يشغل scheduler job.
+أُنجز العمل الداخلي: release/migrations 18/19 وRLS/runtime proof للـSaaS/payment وLocal Storage على staging ثم production loopback. بعد ذلك توضع request/config files root-owned خارج Git، ويشغّل preflight، ثم ينفذ proof مزود غير مدمر معتمد. لا ينشئ preflight Bootstrap admin، ولا يرسل mail، ولا ينفذ charge، ولا يشغل scheduler job.
 
 `pnpm run scheduler:dry-run` يقرأ catalogue root-owned ويعيد `SCHEDULER_DRY_RUN_COMPLETE` أو `SCHEDULER_DRY_RUN_BLOCKED`; لا يكتب heartbeat ولا يفعّل timer. دليل staging الحالي dry-run فقط ولا يثبت tenant checkout أو execution حي.

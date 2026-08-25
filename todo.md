@@ -11,13 +11,13 @@
 
 ## IMPLEMENTABLE NOW EXECUTION — RECONCILIATION 54
 
-- [ ] تثبيت release مرشح على staging فقط وتطبيق migration `20260825090000_saas_payments_entitlements` في staging، مع backup/rehearsal وrollback release بلا production DB أو traffic.
-- [ ] إعداد Local VPS Storage على staging: root-owned path وdelivery secret server-only و`ASAS_STORAGE_PROVIDER=LOCAL_VPS`، ثم health/runtime validation بلا S3 أو public filesystem path.
-- [ ] إثبات Private Artifact tenant A/B على staging: upload/list/download token/cross-tenant denial/replace/delete/cleanup، مع عدم تسريب path أو secret.
-- [ ] إثبات SaaS Entitlement وpayment ledger schema/RLS tenant A/B في staging: subscription/entitlement/transaction/webhook idempotency/refund-void contracts بلا gateway أو charge.
-- [ ] إغلاق RLS payment-configuration tenant binding عبر migration forward-only وA/B negative proof قبل اعتبار payment ledger داخلياً مغلقاً.
-- [ ] تحديث preflight/health/docs بعد evidence الواقعي لتغيير Local VPS Storage وSaaS Entitlements إلى `CLOSED` أو تسجيل blocker حقيقي فقط.
-- [ ] تشغيل regression/release validation ثم commit/push evidence بأمان، والتوقف عند EXTERNAL_INPUT_REQUIRED فقط.
+- [x] تثبيت release على staging ثم production loopback-only وتطبيق migrations 18/19 بعد backup/restore rehearsal؛ لا DNS أو traffic.
+- [x] إعداد Local VPS Storage على staging وproduction: root-owned setgid path وdelivery secret server-only و`ASAS_STORAGE_PROVIDER=LOCAL_VPS`، ثم health/runtime validation بلا S3 أو public filesystem path.
+- [x] إثبات Private Artifact tenant A/B على staging وproduction: delivery token/cross-tenant denial/cleanup، بلا تسريب path أو secret.
+- [x] إثبات SaaS Entitlement وpayment ledger schema/RLS tenant A/B في staging وproduction: subscription/entitlement/configuration cross-tenant denial بلا gateway أو charge.
+- [x] إغلاق RLS payment-configuration tenant binding عبر migration forward-only وA/B negative proof قبل اعتبار payment ledger داخلياً مغلقاً.
+- [x] تحديث preflight/health/docs بعد evidence الواقعي لتغيير Local VPS Storage وSaaS Entitlements إلى `CLOSED`.
+- [x] تشغيل regression/release validation ثم commit/push evidence بأمان؛ التوقف الآن عند EXTERNAL_INPUT_REQUIRED فقط.
 
 ## W02 AUTONOMOUS GLOBAL COMPLETION — CURRENT EXECUTION
 
