@@ -42,7 +42,7 @@
 | Storage provider | `IMPLEMENTABLE NOW` | Local VPS tenant-private storage هو قرار الإطلاق؛ S3 لم يعد external launch gate. |
 | Auth/IdP | `IMPLEMENTABLE NOW` | Bootstrap Admin هو قرار الإطلاق؛ IdP ليس dependency للإطلاق الأول. لا seed أو user حقيقي بلا approval. |
 | Mail | `PASS — SANDBOX VALIDATED` | submission `schoolscreen.sa` المحلي اجتاز TLS/SASL/sender ورسالة sandbox واحدة واختبارات wrong-credential/recipient denial/timeout/retry/redaction/audit؛ runtime الإنتاجي أعيد fail-closed ولا product mail flow حي. |
-| Integrations/payments | `IMPLEMENTABLE NOW` | Payments مطلوبة؛ تبنى طبقة platform billing/organization donations الداخلية أولاً، ثم provider Mada-compatible هو gate خارجي لـE2E. |
+| Integrations/payments | `BLOCKED — EXTERNAL INPUT REQUIRED` | hardening platform billing/organization donation وRLS/ledger/invoice/entitlement على staging loopback مثبت وruntime fail-closed؛ يلزم provider Mada وmerchant mapping وUAT/webhook حقيقي قبل E2E. |
 | License/certificate | `IMPLEMENTABLE NOW` | SaaS entitlements/activation داخلياً؛ signed certificate extension فقط لـDedicated/Self-Hosted. |
 | Production smoke plan | `PASS` | خطة smoke محلية وعامة مشروطة موثقة في runbook؛ local pre-cutover smoke اجتاز. |
 | Cutover plan | `PASS` | runbook متسلسل وatomic مع بوابات Go/No-Go ووقت مراقبة بلا DNS change. |
@@ -63,7 +63,7 @@
 | Local VPS storage adapter وtenant-private proof | `IMPLEMENTABLE NOW` |
 | Bootstrap administrator production المعتمد | `IMPLEMENTABLE NOW` |
 | Mail provider وsender/domain contract | `CLOSED — SANDBOX VALIDATED` |
-| Platform billing/organization donations ومزود Mada-compatible | `IMPLEMENTABLE NOW` ثم `EXTERNAL INPUT REQUIRED` للـprovider E2E |
+| Platform billing/organization donations ومزود Mada-compatible | `EXTERNAL INPUT REQUIRED` — البناء الداخلي مثبت على staging fail-closed، لكن provider/merchant/UAT/webhook غير متوفرين |
 | SaaS entitlements/activation | `IMPLEMENTABLE NOW` |
 | Scheduler domain jobs owner/catalogue | `IMPLEMENTABLE NOW` |
 | Go/No-Go owner ونافذة cutover | `EXTERNAL INPUT REQUIRED` |

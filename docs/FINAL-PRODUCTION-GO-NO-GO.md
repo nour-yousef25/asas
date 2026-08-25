@@ -9,7 +9,7 @@
 | Bootstrap Authentication | `CLOSED` | أول `SUPER_ADMIN` control-plane أُنشئ واختُبر على loopback، بلا membership أو tenant authority؛ password/request والـtemporary role نُظفت. | لا شيء في هذه الجولة. |
 | IdP | `NOT_APPLICABLE` | extension محايد | لا شيء لإطلاق Bootstrap. |
 | Temporary SMTP | `CLOSED — SANDBOX VALIDATED` | SMTP submission المحلي `127.0.0.1:587` عبر `STARTTLS` وSASL وsender `admin@schoolscreen.sa` اجتاز probe ورسالة sandbox مقيدة واختبارات failure/timeout/retry/redaction/audit. | لا شيء لبوابة qualification؛ يبقى البريد الحي وproduct flows غير مفعّلين ويتطلبان تفويضاً مستقلاً. |
-| Platform Billing + Organization Donations | `EXTERNAL_INPUT_REQUIRED` | ledger، reconciliation، idempotency، refund/void وRLS مثبتة | gateway Mada-compatible، merchant credentials، webhook secret، callback allow-list وUAT approval. |
+| Platform Billing + Organization Donations | `EXTERNAL_INPUT_REQUIRED` | ledger/RLS/idempotency/reconciliation وplatform-vs-organization merchant boundaries مثبتة على staging loopback؛ runtime fail-closed ولا provider adapter أو webhook حي. | مزود Mada متعاقد، merchant/settlement mapping منفصل للمنصة ولكل جمعية، sandbox/UAT credential، webhook verifier/HTTPS allow-list، وسياسة capture/refund/void/reconciliation. |
 | SaaS Plans/Subscriptions/Entitlements | `CLOSED` | migrations 18/19 وruntime A/B proof مثبتة | certificate activation ليس شرط SaaS launch. |
 | Certificate Activation | `NOT_APPLICABLE` | self-hosted/license extension | ليس شرط SaaS launch. |
 | Domain Scheduler | `EXTERNAL_INPUT_REQUIRED` | catalogue/dry-run/guard/heartbeat contract مغلق | owner-approved catalogue، heartbeat path/max lag، ثم proof مستقل لكل job حي. |

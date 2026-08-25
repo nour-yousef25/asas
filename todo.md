@@ -21,14 +21,14 @@
 
 ## PAYMENTS / MADA PRODUCTION READINESS GATE
 
-- [ ] PAY01: تدقيق read-only لعقود platform subscription وorganization donation والـledger وRLS/webhooks/refunds/idempotency/audit والـruntime wiring.
-- [ ] PAY02: تحديد adapter Mada الحقيقي أو فجوة provider، ومتطلبات merchant onboarding وcredentials/webhook/callback/UAT/reconciliation من دون افتراض مزود.
-- [ ] PAY03: تنفيذ واختبار أي hardening داخلي قابل للإثبات على staging/loopback فقط، بلا charge أو transaction حقيقية أو mock PASS.
+- [x] PAY01: تدقيق read-only لعقود platform subscription وorganization donation والـledger وRLS/webhooks/refunds/idempotency/audit والـruntime wiring.
+- [x] PAY02: تحديد عدم وجود adapter Mada ومتطلبات merchant onboarding وcredentials/webhook/callback/UAT/reconciliation من دون افتراض مزود.
+- [x] PAY03: hardening داخلي واختبارات staging/loopback: fail-closed، provider/amount/currency/merchant guards، migration وhealth؛ بلا charge أو transaction أو callback حقيقي.
 - [ ] PAY04: تحديث قرار Payments وGo/No-Go وpreflight بالنتائج الفعلية ثم regression وcommit/push non-force.
-- [ ] PAY05: فصل merchant settlement لمسار `PLATFORM_BILLING` عن merchant configuration العائدة للجمعية، ومنع ربطهما ضمن transaction واحدة.
-- [ ] PAY06: إزالة خطر مسار donation القديم الذي يمكنه وسم التبرع مكتملًا خارج tenant payment ledger، وتثبيت checkout fail-closed حتى adapter حقيقي.
-- [ ] PAY07: تعريف contract webhook حقيقي مقيد بـprovider/merchant/transaction/amount/currency/idempotency، مع إبقاء endpoint معطلاً حتى provider verifier معتمد.
-- [ ] PAY08: ربط `PLATFORM_BILLING` الملتقط فقط بتفعيل الاشتراك والـentitlements الخاصة بالمنظمة، مع منع donation من تعديل أي entitlement.
+- [x] PAY05: فصل merchant settlement لمسار `PLATFORM_BILLING` عن merchant configuration العائدة للجمعية، ومنع ربطهما ضمن transaction واحدة.
+- [x] PAY06: إزالة خطر مسار donation القديم الذي يمكنه وسم التبرع مكتملًا خارج tenant payment ledger، وتثبيت checkout fail-closed حتى adapter حقيقي.
+- [x] PAY07: تعريف contract webhook مقيد بـprovider/merchant/transaction/amount/currency/idempotency، مع إبقاء endpoint معطلاً حتى provider verifier معتمد.
+- [x] PAY08: ربط `PLATFORM_BILLING` الملتقط فقط بتفعيل الاشتراك والـentitlements الخاصة بالمنظمة، مع منع donation من تعديل أي entitlement.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
