@@ -220,6 +220,12 @@ model Organization {
   identityProviderConfigs IdentityProviderConfig[]
   identitySubjectBindings IdentitySubjectBinding[]
   identityCallbackStates  IdentityProviderCallbackState[]
+  subscriptions           OrganizationSubscription[]
+  entitlements            OrganizationEntitlement[]
+  paymentConfigurations   PaymentConfiguration[]
+  paymentTransactions     PaymentTransaction[]
+  platformInvoices        PlatformInvoice[]
+  paymentWebhookEvents    PaymentWebhookEvent[]
 
   @@map("organizations")
 }
@@ -1090,6 +1096,7 @@ model Donation {
   campaign     DonationCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
   project      Project?          @relation(fields: [projectId], references: [id])
   invoice      Invoice?
+  paymentTransaction PaymentTransaction?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1189,6 +1196,256 @@ enum InvoiceStatus {
   PAID
   CANCELLED
   REFUNDED
+}
+
+// ============================================
+// SaaS plans, entitlements and payment ledger
+// ============================================
+
+enum SubscriptionStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  CANCELLED
+}
+
+enum EntitlementStatus {
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+}
+
+enum PaymentPurpose {
+  PLATFORM_BILLING
+  ORGANIZATION_DONATION
+}
+
+enum PaymentTransactionStatus {
+  CREATED
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  REFUNDED
+  VOIDED
+}
+
+enum PaymentAttemptStatus {
+  CREATED
+  REDIRECTED
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  VOIDED
+}
+
+enum PaymentWebhookStatus {
+  RECEIVED
+  VERIFIED
+  REJECTED
+  APPLIED
+}
+
+enum PaymentAdjustmentType {
+  REFUND
+  VOID
+}
+
+model PlatformPlan {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(12, 2)
+  currency    String   @default("SAR")
+  interval    String
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions OrganizationSubscription[]
+
+  @@map("platform_plans")
+}
+
+model OrganizationSubscription {
+  id             String             @id @default(cuid())
+  organizationId String
+  planId         String
+  status         SubscriptionStatus @default(TRIAL)
+  startsAt       DateTime           @default(now())
+  endsAt         DateTime?
+  activatedAt    DateTime?
+  suspendedAt    DateTime?
+  expiredAt      DateTime?
+  source         String
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  plan         PlatformPlan             @relation(fields: [planId], references: [id], onDelete: Restrict)
+  entitlements OrganizationEntitlement[]
+  transactions PaymentTransaction[]
+  invoices     PlatformInvoice[]
+
+  @@index([organizationId, status])
+  @@index([planId, status])
+  @@map("organization_subscriptions")
+}
+
+model OrganizationEntitlement {
+  id             String            @id @default(cuid())
+  organizationId String
+  subscriptionId String
+  key            String
+  value          Json?
+  status         EntitlementStatus @default(ACTIVE)
+  startsAt       DateTime          @default(now())
+  endsAt         DateTime?
+  source         String
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription OrganizationSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, key])
+  @@index([subscriptionId, status])
+  @@map("organization_entitlements")
+}
+
+model PaymentConfiguration {
+  id              String   @id @default(cuid())
+  organizationId  String
+  providerKey     String
+  credentialRef   String
+  enabled         Boolean  @default(false)
+  methods         String[]
+  callbackBaseUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transactions PaymentTransaction[]
+
+  @@unique([organizationId, providerKey])
+  @@map("payment_configurations")
+}
+
+model PaymentTransaction {
+  id                     String                   @id @default(cuid())
+  organizationId         String
+  purpose                PaymentPurpose
+  paymentConfigurationId String?
+  subscriptionId         String?
+  donationId             String?                  @unique
+  idempotencyKey         String
+  amount                 Decimal                  @db.Decimal(12, 2)
+  currency               String                   @default("SAR")
+  method                 String
+  providerPaymentId      String?
+  status                 PaymentTransactionStatus @default(CREATED)
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  capturedAt             DateTime?
+
+  organization    Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  configuration   PaymentConfiguration?    @relation(fields: [paymentConfigurationId], references: [id], onDelete: SetNull)
+  subscription    OrganizationSubscription? @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+  donation        Donation?                @relation(fields: [donationId], references: [id], onDelete: SetNull)
+  attempts        PaymentAttempt[]
+  webhookEvents   PaymentWebhookEvent[]
+  reconciliations PaymentReconciliation[]
+  adjustments     PaymentAdjustment[]
+
+  @@unique([organizationId, idempotencyKey])
+  @@index([organizationId, purpose, status])
+  @@index([providerPaymentId])
+  @@map("payment_transactions")
+}
+
+model PaymentAttempt {
+  id            String               @id @default(cuid())
+  transactionId String
+  attemptNo     Int
+  providerRef   String?
+  status        PaymentAttemptStatus @default(CREATED)
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  transaction PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@unique([transactionId, attemptNo])
+  @@map("payment_attempts")
+}
+
+model PaymentWebhookEvent {
+  id              String               @id @default(cuid())
+  organizationId  String
+  transactionId   String?
+  providerKey     String
+  providerEventId String
+  payloadDigest   String
+  status          PaymentWebhookStatus @default(RECEIVED)
+  occurredAt      DateTime
+  receivedAt      DateTime             @default(now())
+  appliedAt       DateTime?
+
+  organization Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  transaction  PaymentTransaction? @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, providerKey, providerEventId])
+  @@index([transactionId, status])
+  @@map("payment_webhook_events")
+}
+
+model PaymentReconciliation {
+  id            String   @id @default(cuid())
+  transactionId String
+  outcome       String
+  reasonCode    String?
+  providerRef   String?
+  reconciledAt  DateTime @default(now())
+
+  transaction PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@index([transactionId, reconciledAt])
+  @@map("payment_reconciliations")
+}
+
+model PaymentAdjustment {
+  id            String                @id @default(cuid())
+  transactionId String
+  type          PaymentAdjustmentType
+  amount        Decimal               @db.Decimal(12, 2)
+  reason        String
+  providerRef   String?
+  createdAt     DateTime              @default(now())
+
+  transaction PaymentTransaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  @@map("payment_adjustments")
+}
+
+model PlatformInvoice {
+  id             String        @id @default(cuid())
+  organizationId String
+  subscriptionId String
+  invoiceNo      String        @unique
+  amount         Decimal       @db.Decimal(12, 2)
+  taxAmount      Decimal       @default(0) @db.Decimal(12, 2)
+  totalAmount    Decimal       @db.Decimal(12, 2)
+  status         InvoiceStatus @default(ISSUED)
+  issuedAt       DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  subscription OrganizationSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, status])
+  @@map("platform_invoices")
 }
 
 // ============================================

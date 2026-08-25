@@ -4,6 +4,7 @@ import { TenantAccessBroker } from "@/lib/tenant-access-broker";
 import { FileTenantConnectionProvider } from "@/lib/tenant-file-connection-provider";
 import { installTenantBoundPrismaExecutor, TenantBoundPrismaCredentialAuthority, TenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-authority";
 import { installTenantArtifactProvider } from "@/lib/private-artifact";
+import { installLocalTenantArtifactProvider, LocalTenantArtifactProvider } from "@/lib/local-tenant-artifact-provider";
 import { FileTenantS3CredentialResolver, FileTenantStorageReferenceResolver, TenantS3ArtifactProvider } from "@/lib/tenant-s3-artifact-provider";
 
 let bootstrapped = false;
@@ -18,6 +19,15 @@ function credentialReadGroupId(variable: string) {
 }
 
 function installTenantStorageRuntime() {
+  if (process.env.ASAS_STORAGE_PROVIDER === "LOCAL_VPS") {
+    const root = process.env.ASAS_LOCAL_STORAGE_ROOT;
+    const secret = process.env.ASAS_LOCAL_STORAGE_DELIVERY_SECRET;
+    if (!root || !secret) throw new Error("LOCAL_TENANT_STORAGE_UNCONFIGURED");
+    const provider = new LocalTenantArtifactProvider(root, secret, process.env.ASAS_LOCAL_STORAGE_DELIVERY_PATH ?? "/api/documents/delivery");
+    installTenantArtifactProvider(provider);
+    installLocalTenantArtifactProvider(provider);
+    return;
+  }
   const references = process.env.TENANT_STORAGE_REFERENCE_DIRECTORY;
   const credentials = process.env.TENANT_STORAGE_CREDENTIAL_DIRECTORY;
   if (!references && !credentials) return;
