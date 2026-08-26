@@ -36,7 +36,10 @@ export async function POST(request: NextRequest) {
   try { input = await request.json(); } catch { return NextResponse.json({ message: PASSWORD_RECOVERY_GENERIC_MESSAGE }); }
   // Response stays uniform; asynchronous delivery does not change enumeration behavior.
   setImmediate(() => {
-    void recoveryService().request(input).catch(() => logger.warn("Password recovery request processing failed"));
+    void recoveryService().request(input).catch((error) => logger.warn("Password recovery request processing failed", {
+      failureClass: error instanceof Error ? error.name : "Unknown",
+      failureCode: typeof (error as { code?: unknown })?.code === "string" ? (error as { code: string }).code : "NONE",
+    }));
   });
   return NextResponse.json({ message: PASSWORD_RECOVERY_GENERIC_MESSAGE });
 }
