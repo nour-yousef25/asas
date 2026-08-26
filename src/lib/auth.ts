@@ -79,8 +79,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
     async session({ session, token }) {
       const authToken = token as { id?: string; role?: Role; authVersion?: number };
+      if (!authToken.id || typeof authToken.authVersion !== "number") return { expires: session.expires };
+      const current = await prisma.user.findUnique({
+        where: { id: authToken.id },
+        select: { isActive: true, authVersion: true, role: true },
+      });
+      // A reset increments authVersion. An older JWT is then represented as an anonymous session.
+      if (!current?.isActive || current.authVersion !== authToken.authVersion) return { expires: session.expires };
       session.user.id = authToken.id ?? "";
-      session.user.role = authToken.role ?? Role.MEMBER;
+      session.user.role = current.role;
       session.user.authVersion = authToken.authVersion ?? 0;
       return session;
     },

@@ -83,6 +83,10 @@ export default function LoginPage() {
             {loading ? "جارٍ التحقق..." : "تسجيل الدخول"}
           </Button>
 
+          <div className="text-center text-sm">
+            <a href="/forgot-password" className="text-primary hover:underline">نسيت كلمة المرور؟</a>
+          </div>
+
           <div className="text-center text-sm text-muted-foreground">
             ليس لديك حساب؟{" "}
             <a href="/login?tab=register" className="text-primary hover:underline">

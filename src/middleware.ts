@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 import { isCanonicalAuthRequestHost } from "@/lib/auth-origin";
 
-const publicPaths = ["/login", "/api/auth", "/api/health", "/donate", "/store"];
+const publicPaths = ["/login", "/forgot-password", "/reset-password", "/api/auth", "/api/password-recovery", "/api/health", "/donate", "/store"];
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -34,6 +34,16 @@ function applyRateLimit(request: NextRequest, pathname: string): NextResponse | 
         { status: 429 }
       );
     }
+  }
+
+  if (pathname === "/api/password-recovery/request") {
+    const result = rateLimit(`password-recovery:request:${ip}`, RATE_LIMITS.passwordRecoveryRequest);
+    if (!result.success) return NextResponse.json({ message: "إذا كان الحساب موجوداً، فستصلك تعليمات الاستعادة." }, { status: 429 });
+  }
+
+  if (pathname === "/api/password-recovery/reset") {
+    const result = rateLimit(`password-recovery:reset:${ip}`, RATE_LIMITS.passwordRecoveryReset);
+    if (!result.success) return NextResponse.json({ error: "تم تجاوز الحد المسموح. حاول مرة أخرى لاحقاً" }, { status: 429 });
   }
 
   if (pathname.startsWith("/api/sms")) {
@@ -77,6 +87,12 @@ export function middleware(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api/installer")) {
+    const rateLimitResponse = applyRateLimit(request, pathname);
+    if (rateLimitResponse) return rateLimitResponse;
+    return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/api/password-recovery/")) {
     const rateLimitResponse = applyRateLimit(request, pathname);
     if (rateLimitResponse) return rateLimitResponse;
     return NextResponse.next();

@@ -95,6 +95,23 @@
 - [x] HTTPSR03: اجتاز redirect HTTP→HTTPS وTLS/login/hydration/10 chunks/Auth providers/Credentials وNode loopback وV2 fail-closed. لم تزد أخطاء configtest الخاصة بـASAS؛ أخطاء مواقع PHP الأخرى التاريخية لم تُمس.
 - [x] HTTPSR04: استعيد proxy `asasplus_next → 127.0.0.1:3106` المعتمد بعد backup جديد، واكتمل public cutover مع monitoring قصير: OLS/Node/worker/health سليمة، other vhosts/global unchanged، ولا critical logs. النتيجة `PRODUCTION CUTOVER — SUCCESS`.
 
+## SUPER ADMIN PASSWORD ROTATION — AUTHORIZATION 2026-08-26
+
+- [ ] SAPR01: إثبات read-only لحساب Super Admin القائم وخصائص control-plane فقط، وتدقيق helper root-only وسياسة كلمة المرور بلا قراءة credential أو تغيير بيانات.
+- [ ] SAPR02: توجيه إدخال كلمة المرور الجديدة حصراً عبر prompt تفاعلي root-only على VPS، ثم تنفيذ rotation المعتمد بلا arguments أو logs أو Git أو restart غير مصرح.
+- [ ] SAPR03: إثبات بعد التدوير لنفس المستخدم وrole/active organization/memberships/authVersion وعدم إنشاء user/organization/membership أو artifact credentials.
+- [ ] SAPR04: اختبار public login الصحيح والخاطئ والجلسة وtenant denial وlogout/session invalidation بلا كشف password أو cookies/tokens، ثم security/V2 verification والتقرير النهائي.
+
+## PASSWORD RECOVERY — STAGING FIRST AUTHORIZATION 2026-08-26
+
+- [ ] PR01: توثيق اختيار secure reset link أو OTP، token hashing/single-use/expiry/rate limits/anti-enumeration/audit، وحدود SMTP sandbox وproduction no-mutation.
+- [ ] PR02: مراجعة Prisma/RLS/Auth/SMTP والـUI الحالية ثم إنشاء migration وآلية Password Recovery مع bcrypt وauthVersion increment من دون tenant authority أو عضويات.
+- [ ] PR03: إضافة اختبارات functional/security تشمل token replay/expiry/cross-user/wrong token/rate limits/anti-enumeration/password policy/session invalidation وV2 safety.
+- [ ] PR04: تمرير TypeScript/build/tests/secret and hygiene scans محلياً ثم commit/push release candidate.
+- [ ] PR05: تطبيق migration ونشر immutable staging release فقط مع rollback، وعدم تعديل production أو OLS/DNS/public traffic.
+- [ ] PR06: إثبات staging end-to-end باستخدام sandbox recipient فقط: mail، reset، login/session/logout، Super Admin invariants، tenant isolation، وSMTP redaction/audit.
+- [ ] PR07: توثيق PASSWORD RECOVERY IMPLEMENTATION RESULT وإيقاف العمل عند STAGING READY أو BLOCKED؛ production يتطلب تفويضاً لاحقاً منفصلاً.
+
 ## LOGIN HYDRATION BLOCKER INVESTIGATION
 
 - [ ] HYD01: إعادة إنتاج read-only لصفحة login عبر Node loopback والمسارات المحلية المتاحة مع browser/network evidence بلا credentials أو cookies محفوظة.

@@ -1,5 +1,12 @@
 import { z } from "zod";
 
+export const passwordPolicySchema = z.string()
+  .min(12, "كلمة المرور يجب أن تتكون من 12 حرفاً على الأقل")
+  .max(4_096)
+  .regex(/[a-z]/, "كلمة المرور يجب أن تحتوي حرفاً صغيراً")
+  .regex(/[A-Z]/, "كلمة المرور يجب أن تحتوي حرفاً كبيراً")
+  .regex(/[0-9]/, "كلمة المرور يجب أن تحتوي رقماً");
+
 // ===== المستخدمون =====
 export const loginSchema = z.object({
   identifier: z.string().min(1, "البريد أو الجوال مطلوب"),
@@ -10,7 +17,7 @@ export const registerSchema = z.object({
   name: z.string().min(2, "الاسم مطلوب").max(100),
   email: z.string().email("البريد الإلكتروني غير صحيح").optional().or(z.literal("")),
   phone: z.string().regex(/^(\+966|0)?5\d{8}$/, "رقم الجوال غير صحيح"),
-  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+  password: passwordPolicySchema,
   nationalId: z.string().regex(/^\d{10}$/, "رقم الهوية يجب أن يكون 10 أرقام").optional().or(z.literal("")),
 });
 

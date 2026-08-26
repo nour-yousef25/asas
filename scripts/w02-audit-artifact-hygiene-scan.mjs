@@ -49,7 +49,10 @@ for (const file of walk(root)) {
   const isEvidenceOrReport = /(?:evidence|report)/i.test(rel) && /\.(?:json|md|txt)$/i.test(rel);
   if (isEvidenceOrReport && safeReadHasSecret(file)) findings.push({ category: 'SECRET_PATTERN_IN_EVIDENCE_OR_REPORT', path: rel });
   const stat = lstatSync(file);
-  if (/\.(?:sql|txt|json)$/i.test(rel) && sensitiveName.test(rel) && (stat.mode & 0o077) !== 0) {
+  // Prisma migrations are public, immutable source code. A feature name such as
+  // "password_recovery" is not credential material and cannot retain 0600 mode in Git.
+  const isTrackedMigration = rel.startsWith('prisma/migrations/');
+  if (/\.(?:sql|txt|json)$/i.test(rel) && sensitiveName.test(rel) && !isTrackedMigration && (stat.mode & 0o077) !== 0) {
     findings.push({ category: 'UNSAFE_SENSITIVE_FILE_PERMISSION', path: rel, mode: (stat.mode & 0o777).toString(8) });
   }
 }

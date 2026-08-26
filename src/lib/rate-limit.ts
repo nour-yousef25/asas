@@ -29,6 +29,8 @@ export function rateLimit(
 export const RATE_LIMITS = {
   api: { windowMs: 60_000, maxRequests: 60 },
   auth: { windowMs: 900_000, maxRequests: 10 },
+  passwordRecoveryRequest: { windowMs: 15 * 60_000, maxRequests: 3 },
+  passwordRecoveryReset: { windowMs: 15 * 60_000, maxRequests: 5 },
   sms: { windowMs: 60_000, maxRequests: 5 },
   donation: { windowMs: 60_000, maxRequests: 20 },
 } as const;

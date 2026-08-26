@@ -31,7 +31,7 @@ describe("registerSchema", () => {
     const result = registerSchema.safeParse({
       name: "أحمد محمد",
       phone: "0512345678",
-      password: "password123",
+      password: "Password1234",
     });
     expect(result.success).toBe(true);
   });

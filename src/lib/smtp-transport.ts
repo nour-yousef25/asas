@@ -4,6 +4,7 @@ import * as nodemailer from "nodemailer";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { z } from "zod";
 import { MailTransportError, installMailTransport, mailTransportInstalled, type MailTransport } from "@/lib/mail-transport";
+import { opaqueSecretReference } from "@/lib/w02-security-contracts";
 
 export const smtpTransportConfigurationSchema = z.object({
   host: z.string().trim().min(1).max(253),
@@ -57,6 +58,15 @@ async function loadSystemdCredentialSmtpTransportConfiguration(path: string): Pr
   }
 }
 
+async function loadSmtpTransportConfigurationFromEnvironment(): Promise<SmtpTransportConfiguration> {
+  const credentialPath = credentialPathFromEnvironment();
+  const rootOnlyPath = process.env.ASAS_MAIL_TRANSPORT_CONFIG_PATH;
+  if (!credentialPath && !rootOnlyPath) throw new MailTransportError("UNCONFIGURED");
+  return credentialPath
+    ? loadSystemdCredentialSmtpTransportConfiguration(credentialPath)
+    : loadRootOnlySmtpTransportConfiguration(rootOnlyPath!);
+}
+
 export function createSmtpTransport(configuration: SmtpTransportConfiguration): MailTransport {
   const transportOptions: SMTPTransport.Options = {
     host: configuration.host,
@@ -91,12 +101,22 @@ export function createSmtpTransport(configuration: SmtpTransportConfiguration): 
 }
 
 export async function installSmtpTransportFromEnvironment() {
-  const credentialPath = credentialPathFromEnvironment();
-  const rootOnlyPath = process.env.ASAS_MAIL_TRANSPORT_CONFIG_PATH;
-  if ((!credentialPath && !rootOnlyPath) || mailTransportInstalled()) return false;
-  const configuration = credentialPath
-    ? await loadSystemdCredentialSmtpTransportConfiguration(credentialPath)
-    : await loadRootOnlySmtpTransportConfiguration(rootOnlyPath!);
+  if (mailTransportInstalled()) return false;
+  const configuration = await loadSmtpTransportConfigurationFromEnvironment();
   installMailTransport(createSmtpTransport(configuration));
   return true;
+}
+
+/** Only recovery may opt in to sandbox delivery; general product mail remains fail-closed. */
+export async function loadPasswordRecoveryMailConfiguration() {
+  const configuration = await loadSmtpTransportConfigurationFromEnvironment();
+  if (configuration.sender !== "admin@schoolscreen.sa") throw new MailTransportError("UNCONFIGURED");
+  return {
+    sender: configuration.sender,
+    secretReference: opaqueSecretReference("secretref:password-recovery-smtp-v1"),
+    environment: "SANDBOX" as const,
+    sandboxRecipientAllowList: configuration.sandboxRecipientAllowList,
+    timeoutMs: configuration.timeoutMs,
+    maxAttempts: configuration.maxAttempts,
+  };
 }
