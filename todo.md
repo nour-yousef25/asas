@@ -112,6 +112,12 @@
 - [x] PR06: اجتازت UI/anti-enumeration/request rate limit/wrong-token/tenant denial وSMTP systemd credential loading. E2E mail/reset/login/session/logout بقي BLOCKED لأن staging لا يملك Super Admin ولا أي active user يطابق sandbox recipient allow-list؛ لم يُنشأ مستخدم ولم يُرسل بريد إلى مستلم غير معتمد.
 - [x] PR07: وثقت النتيجة كـ`PASSWORD RECOVERY — BLOCKED` وحددت المدخل الخارجي الأدنى. لا production deployment أو loopback أو public cutover قبل إغلاق gate staging.
 
+## PASSWORD RECOVERY — STAGING SANDBOX RECIPIENT AUTHORIZATION 2026-08-26
+
+- [x] PRE2E01: أُخذ backup root-only وأضيف بريد المستخدم ذي fingerprint `82300b73de016cf2` فقط إلى allow-list staging؛ زاد العدد `1→2`، وبقي الملف `0600 root:root` والخدمة/health PASS.
+- [x] PRE2E02: اجتازت sandbox delivery audit وvalid reset وexpiry/wrong/replay denial وold/new login وauthVersion/stale-session invalidation وlogout/authenticated tenant denial وanti-enumeration/rate limit. **لم يُستخرج reset link من صندوق البريد** لأن المستلم خارج mailbox/spool المحلي ولا توجد credentials أو قناة وصول صندوق بريد مفوضة؛ valid reset استُخدم token داخلياً لإثبات endpoint فقط.
+- [x] PRE2E03: بقي role/active organization/membership/cross-user/tenant authority ثابتاً، وبقيت V2 fail-closed. النتيجة `PASSWORD RECOVERY — BLOCKED` حصراً على mailbox link extraction؛ لا production deployment أو public تغيير.
+
 ## LOGIN HYDRATION BLOCKER INVESTIGATION
 
 - [ ] HYD01: إعادة إنتاج read-only لصفحة login عبر Node loopback والمسارات المحلية المتاحة مع browser/network evidence بلا credentials أو cookies محفوظة.
