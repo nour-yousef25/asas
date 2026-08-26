@@ -88,6 +88,13 @@
 - [x] PCUT03: نجحت HTTPS/login/hydration/console في المسار العام أثناء proxy، لكن HTTP أعاد `200` بدلاً من تحويل HTTPS المطلوب؛ لذلك لم تُستكمل بقية public auth/tenant checks ولم يُخترع PASS.
 - [x] PCUT04: نُفذ rollback للـproxy فقط من أحدث backup ثم مراقبة: OLS/Node/worker/health active، Node loopback-only، other vhosts unchanged، ولا critical logs خلال النافذة القصيرة. النتيجة `ROLLBACK EXECUTED`.
 
+## HTTP TO HTTPS REDIRECT FIX — AUTHORIZATION 2026-08-26
+
+- [x] HTTPSR01: أثبت التشخيص أن HTTP وHTTPS يربطان نفس vhost `asasplus.shop` وأن `rewrite` كان مفعلاً بلا قاعدة redirect؛ لذلك كان المسار vhost-only ممكناً بلا global OLS أو DNS أو موقع آخر.
+- [x] HTTPSR02: أُخذ backup root-only جديد للـvhost ASAS فقط وأضيف redirect ثابت إلى `https://asasplus.shop` يحافظ على path/query؛ لم يتغير global OLS أو DNS أو أي vhost آخر.
+- [x] HTTPSR03: اجتاز redirect HTTP→HTTPS وTLS/login/hydration/10 chunks/Auth providers/Credentials وNode loopback وV2 fail-closed. لم تزد أخطاء configtest الخاصة بـASAS؛ أخطاء مواقع PHP الأخرى التاريخية لم تُمس.
+- [x] HTTPSR04: استعيد proxy `asasplus_next → 127.0.0.1:3106` المعتمد بعد backup جديد، واكتمل public cutover مع monitoring قصير: OLS/Node/worker/health سليمة، other vhosts/global unchanged، ولا critical logs. النتيجة `PRODUCTION CUTOVER — SUCCESS`.
+
 ## LOGIN HYDRATION BLOCKER INVESTIGATION
 
 - [ ] HYD01: إعادة إنتاج read-only لصفحة login عبر Node loopback والمسارات المحلية المتاحة مع browser/network evidence بلا credentials أو cookies محفوظة.
