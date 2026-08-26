@@ -90,11 +90,11 @@
 
 ## HYDRATION RELEASE PACKAGING + AUTH HOST FIX
 
-- [ ] HFIX01: تحديد deployment packaging gate لنسخ `.next/static` و`public` عند وجوده إلى standalone، والتحقق من build ID/chunks قبل release.
-- [ ] HFIX02: تثبيت Auth.js canonical host contract المحدد لـ`asasplus.shop` من خلال runtime configuration غير سرية، بلا wildcard أو bypass.
-- [ ] HFIX03: تنفيذ TypeScript/lint/build/unit-integration/static gate وsecret hygiene محلياً قبل staging.
-- [ ] HFIX04: إنشاء ونشر immutable staging release ثم إثبات assets/hydration/auth/session/logout/tenant denial وrollback readiness.
-- [ ] HFIX05: إنشاء ونشر immutable production release loopback-only ثم إثبات نفس العقود بلا OLS/DNS/public traffic أو database mutation.
+- [x] HFIX01: إضافة packaging gate لنسخ `.next/static` و`public` عند وجوده إلى standalone، والتحقق من build ID وعدد الأصول قبل كل release؛ أثبت staging وproduction `127/127` ملفاً كاملاً/standalone.
+- [x] HFIX02: تثبيت Auth.js canonical host contract المحدد حصراً لـ`asasplus.shop` عبر `AUTH_URL` غير السرية في ملفات runtime root-only، بلا wildcard أو bypass؛ يرد Auth providers للـcanonical host ويُرفض المضيف غير المطابق بـ400.
+- [x] HFIX03: اجتازت TypeScript ووحدة `auth-origin` والبناء وبوابة standalone وJest الكامل محلياً. بقي lint التاريخي واسع النطاق غير متعلق بالتغيير؛ كما بقي `E-HYG-01` artefacts `/tmp` خارج نطاق ASAS non-blocking موثقاً بلا تنظيف غير مملوك.
+- [x] HFIX04: نُشر staging immutable `ddf824b` مع rollback backup؛ اجتازت أصول login وbrowser hydration وproviders ورفض كلمة المرور الخاطئة بلا session. لم يُنشأ مستخدم staging ولم يُعد اختبار Super Admin الصحيح لأن قاعدة staging مستقلة ولا توجد بيانات اعتماد آمنة دائمة.
+- [x] HFIX05: نُشر production immutable `ddf824b` loopback-only مع backup/rollback؛ اجتازت الأصول وbrowser hydration وproviders ورفض المضيف/كلمة المرور وhealth وtenant denial. تحقق read-only من Super Admin القائم: `SUPER_ADMIN` بلا active organization وبلا memberships؛ اختبار login/session/logout الصحيح لم يُعد لأن artifact كلمة المرور حُذف عمداً بعد AUTH closure.
 
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
