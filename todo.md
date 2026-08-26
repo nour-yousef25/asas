@@ -104,13 +104,13 @@
 
 ## PASSWORD RECOVERY — STAGING FIRST AUTHORIZATION 2026-08-26
 
-- [ ] PR01: توثيق اختيار secure reset link أو OTP، token hashing/single-use/expiry/rate limits/anti-enumeration/audit، وحدود SMTP sandbox وproduction no-mutation.
-- [ ] PR02: مراجعة Prisma/RLS/Auth/SMTP والـUI الحالية ثم إنشاء migration وآلية Password Recovery مع bcrypt وauthVersion increment من دون tenant authority أو عضويات.
-- [ ] PR03: إضافة اختبارات functional/security تشمل token replay/expiry/cross-user/wrong token/rate limits/anti-enumeration/password policy/session invalidation وV2 safety.
-- [ ] PR04: تمرير TypeScript/build/tests/secret and hygiene scans محلياً ثم commit/push release candidate.
-- [ ] PR05: تطبيق migration ونشر immutable staging release فقط مع rollback، وعدم تعديل production أو OLS/DNS/public traffic.
-- [ ] PR06: إثبات staging end-to-end باستخدام sandbox recipient فقط: mail، reset، login/session/logout، Super Admin invariants، tenant isolation، وSMTP redaction/audit.
-- [ ] PR07: توثيق PASSWORD RECOVERY IMPLEMENTATION RESULT وإيقاف العمل عند STAGING READY أو BLOCKED؛ production يتطلب تفويضاً لاحقاً منفصلاً.
+- [x] PR01: اختير secure reset link بtoken 32-byte cryptographic في fragment فقط؛ hash فقط في DB، single-use، 15 دقيقة، anti-enumeration وrate limits وتدقيق redacted، مع SMTP sandbox recovery-only وproduction no-mutation.
+- [x] PR02: نُفذت migration control-plane ودوال محدودة للـissue/consume/audit، bcrypt 12 وauthVersion increment، وواجهتا forgot/reset؛ لا tenant authority أو role أو active organization أو membership.
+- [x] PR03: أضيفت اختبارات replay/expiry/wrong token/policy/anti-enumeration، واختبارات rate limit وtenant denial على staging؛ لم يُنشأ user أو membership أو tenant fixture.
+- [x] PR04: اجتازت Prisma validate وTypeScript و154 Jest tests (1 skipped) وbuild/standalone `131/131` وartifact hygiene scan؛ commit المرشح `c518acd` pushed. تحذيرات build التاريخية غير حاجبة فقط.
+- [x] PR05: طُبقت migration على staging فقط، ونُشر immutable release `20260826T012205Z-c518acd` مع backup schema وrollback symlink/drop-in؛ production وOLS/DNS/public traffic لم تتغير.
+- [x] PR06: اجتازت UI/anti-enumeration/request rate limit/wrong-token/tenant denial وSMTP systemd credential loading. E2E mail/reset/login/session/logout بقي BLOCKED لأن staging لا يملك Super Admin ولا أي active user يطابق sandbox recipient allow-list؛ لم يُنشأ مستخدم ولم يُرسل بريد إلى مستلم غير معتمد.
+- [x] PR07: وثقت النتيجة كـ`PASSWORD RECOVERY — BLOCKED` وحددت المدخل الخارجي الأدنى. لا production deployment أو loopback أو public cutover قبل إغلاق gate staging.
 
 ## LOGIN HYDRATION BLOCKER INVESTIGATION
 
