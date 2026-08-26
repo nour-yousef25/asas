@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { isCanonicalAuthRequestHost } from "@/lib/auth-origin";
 
 const publicPaths = ["/login", "/api/auth", "/api/health", "/donate", "/store"];
 
@@ -70,6 +71,10 @@ function applyRateLimit(request: NextRequest, pathname: string): NextResponse | 
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/api/auth") && !isCanonicalAuthRequestHost(request.headers)) {
+    return NextResponse.json({ error: "المضيف غير موثوق" }, { status: 400 });
+  }
 
   if (pathname.startsWith("/api/installer")) {
     const rateLimitResponse = applyRateLimit(request, pathname);

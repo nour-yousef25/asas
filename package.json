@@ -39,6 +39,7 @@
     "preflight": "tsx scripts/run-preflight.ts",
     "release:sign": "node scripts/create-release-manifest.mjs",
     "release:verify": "node scripts/verify-release-manifest.mjs",
+    "release:verify-standalone": "node scripts/verify-next-standalone-runtime.mjs",
     "lint": "eslint",
     "test": "jest",
     "test:watch": "jest --watch",

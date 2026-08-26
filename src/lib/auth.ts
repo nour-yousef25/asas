@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { Role } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { readCanonicalAuthOrigin } from "@/lib/auth-origin";
 
 declare module "next-auth" {
   interface Session {
@@ -15,8 +16,14 @@ declare module "next-auth" {
   }
 }
 
+const canonicalAuthOrigin = readCanonicalAuthOrigin();
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
+  // AUTH_URL is validated as the exact School Screen HTTPS origin. Auth.js
+  // derives trustHost from that canonical URL; middleware still rejects any
+  // incoming non-canonical Host before this handler is reached.
+  trustHost: Boolean(canonicalAuthOrigin),
   pages: {
     signIn: "/login",
   },

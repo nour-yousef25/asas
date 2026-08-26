@@ -37,6 +37,65 @@
 - [x] SCH03: hardening وdry-run staging loopback: parsing/scoping/idempotency/concurrency/retry/timeout/heartbeat/lag/audit/cleanup مثبتة بلا side effect خارجي؛ لا service/timer حي.
 - [x] SCH04: تحديث وثائق Scheduler وGo/No-Go وpreflight ثم regression/secret hygiene/commit/push non-force؛ self-test hygiene تاريخي منفصل فشل بلا تجاوز ويوثق كـblocker جودة غير متعلق بالـscheduler.
 
+## FINAL PRE-LAUNCH RECONCILIATION
+
+- [ ] FPR01: تجميع read-only للأدلة والقرار الفعلي لجميع بوابات الإطلاق من دون إعادة اختبار بوابة مغلقة أو mutation.
+- [ ] FPR02: تحليل read-only لـ`E-HYG-01:UNEXPECTED_STATUS_OR_CLEANUP` وتحديد علاقته بـproduction invariants وتصنيفه التشغيلي.
+- [ ] FPR03: إصدار جدول reconciliation وقرار No-Go وقائمة مدخلات خارجية قصيرة، مع تقرير/commit توثيقي فقط إن لزم.
+
+## V1 LAUNCH SCOPE — SCHEDULER REDUCTION
+
+- [ ] V1SCH01: جرد read-only للوظائف التشغيلية الحالية وربطها بعقود worker/queue/backup/Payments/SMTP.
+- [ ] V1SCH02: تحديد الوظائف الضرورية لـSchool Screen V1 وتقييم تشغيلها بلا Domain Scheduler عام.
+- [ ] V1SCH03: تصنيف وظائف V2 المؤجلة وعوائق V1 المتبقية من دون تعديل أو تفعيل.
+
+## V1 FINAL SCOPE RECONCILIATION
+
+- [ ] V1F01: تصنيف Payments وDomain Scheduler كـV2 deferred والتحقق من بقاء runtime fail-closed بلا provider أو scheduler عام.
+- [ ] V1F02: تجميع بوابات V1 الفعلية والتحقق read-only من متطلبات cutover الخارجية المتبقية.
+- [ ] V1F03: إصدار V1 Final Go/No-Go وقائمة متبقي مختصرة بلا نشر أو تعديل تنفيذي.
+
+## CYBERPANEL CUTOVER ARCHITECTURE REVIEW
+
+- [ ] CP01: تدقيق read-only لـCyberPanel/OpenLiteSpeed/Node support وموقع asasplus.shop والبنية الحالية، بلا تعديل VHost أو DNS أو traffic.
+- [ ] CP02: مقارنة الوثائق الرسمية ومسار Node المدعوم مع Next.js الحالي وتحديد application root/public_html/startup/port/service ownership.
+- [ ] CP03: تصميم migration وsecurity/permissions/rollback تحت `/home/asasplus.shop/` للتنفيذ اللاحق فقط، بلا نقل أو نشر.
+
+## CYBERPANEL / OPENLITESPEED PROXY PREFLIGHT
+
+- [ ] CPP01: تحقق read-only من CyberPanel/vhost/TLS/listeners/Node/service/loopback وعدم وجود External App أو Proxy Context قائم لـasasplus.shop.
+- [ ] CPP02: توثيق أقل proxy change معزول أو قرار Blocked، مع hostname/HTTP-HTTPS/www/static/health/websocket behavior من دون تنفيذ.
+- [ ] CPP03: إعداد pseudo-diff وbackup/validation/rollback/isolation proof وcutover flow مقترحة فقط.
+
+## ASASPLUS OLS PROXY — AUTHORIZED LIMITED CHANGE
+
+- [ ] OLS01: إثبات baseline توافق CyberPanel والعزل وغياب Node proxy الحالي وتحديد maxConns المحافظ قبل الكتابة.
+- [ ] OLS02: أخذ backup root-only وحفظ hashes/metadata للـvhost وglobal config وvhosts المرجعية، ثم إضافة proxy محلي إلى `asasplus.shop` فقط.
+- [ ] OLS03: فحص diff والعزل وNode loopback قبل reload؛ graceful reload فقط عند تحقق كل الشروط، مع rollback فوري عند الخطأ.
+- [ ] OLS04: إثبات بعد reload لحالة OLS/Node/TLS/CyberPanel/other-vhosts وfail-closed لPayments/Scheduler/SMTP ثم تقديم الدليل والتوقف.
+
+## FINAL PRODUCTION CUTOVER
+
+- [ ] CUT01: تنفيذ FINAL READ-ONLY GO CHECK: DNS، TLS، proxy، runtime، required V1 gates، وfail-closed لـV2.
+- [ ] CUT02: تنفيذ public cutover المقيد تلقائياً فقط إذا كان DNS يشير فعلاً إلى VPS وكل شروط V1 ناجحة؛ لا DNS mutation ولا توسعة نطاق.
+- [ ] CUT03: تنفيذ public verification وpost-cutover monitoring والrollback عند triggers محددة.
+- [ ] CUT04: توثيق FINAL PRODUCTION CUTOVER RESULT والتوقف.
+
+## LOGIN HYDRATION BLOCKER INVESTIGATION
+
+- [ ] HYD01: إعادة إنتاج read-only لصفحة login عبر Node loopback والمسارات المحلية المتاحة مع browser/network evidence بلا credentials أو cookies محفوظة.
+- [ ] HYD02: تدقيق هوية release/build/chunk/RSC/manifest وسلامة static assets وعقد Next runtime بلا أسرار.
+- [ ] HYD03: تدقيق middleware/login/auth/environment presence ومقارنة metadata staging/production لتصنيف السبب فقط.
+- [ ] HYD04: إصدار LOGIN HYDRATION BLOCKER INVESTIGATION REPORT وsmallest safe fix المقترح بلا تنفيذ.
+
+## HYDRATION RELEASE PACKAGING + AUTH HOST FIX
+
+- [ ] HFIX01: تحديد deployment packaging gate لنسخ `.next/static` و`public` عند وجوده إلى standalone، والتحقق من build ID/chunks قبل release.
+- [ ] HFIX02: تثبيت Auth.js canonical host contract المحدد لـ`asasplus.shop` من خلال runtime configuration غير سرية، بلا wildcard أو bypass.
+- [ ] HFIX03: تنفيذ TypeScript/lint/build/unit-integration/static gate وsecret hygiene محلياً قبل staging.
+- [ ] HFIX04: إنشاء ونشر immutable staging release ثم إثبات assets/hydration/auth/session/logout/tenant denial وrollback readiness.
+- [ ] HFIX05: إنشاء ونشر immutable production release loopback-only ثم إثبات نفس العقود بلا OLS/DNS/public traffic أو database mutation.
+
 ## PRODUCTION READINESS RECONCILIATION — PRODUCT DECISIONS 54
 
 - [x] تثبيت قرارات المنتج: `BOOTSTRAP` للمصادقة، Local VPS storage، SMTP مؤقت، payments مطلوبة، SaaS entitlements، وتصنيف scheduler؛ بلا DNS أو public traffic.
