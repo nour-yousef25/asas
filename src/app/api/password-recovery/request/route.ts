@@ -1,5 +1,6 @@
-import { after, NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { MailDispatchService } from "@/lib/mail-transport";
 import { PASSWORD_RECOVERY_GENERIC_MESSAGE, PasswordRecoveryService } from "@/lib/password-recovery";
 import { installSmtpTransportFromEnvironment, loadPasswordRecoveryMailConfiguration } from "@/lib/smtp-transport";
@@ -34,6 +35,8 @@ export async function POST(request: NextRequest) {
   let input: unknown;
   try { input = await request.json(); } catch { return NextResponse.json({ message: PASSWORD_RECOVERY_GENERIC_MESSAGE }); }
   // Response stays uniform; asynchronous delivery does not change enumeration behavior.
-  after(async () => { try { await recoveryService().request(input); } catch { /* redacted by design */ } });
+  setImmediate(() => {
+    void recoveryService().request(input).catch(() => logger.warn("Password recovery request processing failed"));
+  });
   return NextResponse.json({ message: PASSWORD_RECOVERY_GENERIC_MESSAGE });
 }
