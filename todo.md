@@ -81,6 +81,13 @@
 - [ ] CUT03: تنفيذ public verification وpost-cutover monitoring والrollback عند triggers محددة.
 - [ ] CUT04: توثيق FINAL PRODUCTION CUTOVER RESULT والتوقف.
 
+## FINAL PUBLIC CUTOVER — AUTHORIZATION 2026-08-26
+
+- [x] PCUT01: تم pre-cutover read-only على release `ddf824b` وNode/health/static/Auth/Super Admin/storage/backup/OLS/CyberPanel/TLS/DNS بلا تغيير DNS أو بيانات؛ أثبتت أدلة tenant/storage السابقة read-only ولم يُعد تشغيل harness يكتب fixtures.
+- [x] PCUT02: أُخذ backup root-only جديد لـ`asasplus.shop` واستعيد proxy OLS المعتمد `asasplus_next → 127.0.0.1:3106` مع context `/` و`maxConns 10` ثم SIGUSR1 graceful reload؛ أُعيد فوراً إلى baseline بعد فشل شرط HTTP→HTTPS.
+- [x] PCUT03: نجحت HTTPS/login/hydration/console في المسار العام أثناء proxy، لكن HTTP أعاد `200` بدلاً من تحويل HTTPS المطلوب؛ لذلك لم تُستكمل بقية public auth/tenant checks ولم يُخترع PASS.
+- [x] PCUT04: نُفذ rollback للـproxy فقط من أحدث backup ثم مراقبة: OLS/Node/worker/health active، Node loopback-only، other vhosts unchanged، ولا critical logs خلال النافذة القصيرة. النتيجة `ROLLBACK EXECUTED`.
+
 ## LOGIN HYDRATION BLOCKER INVESTIGATION
 
 - [ ] HYD01: إعادة إنتاج read-only لصفحة login عبر Node loopback والمسارات المحلية المتاحة مع browser/network evidence بلا credentials أو cookies محفوظة.
