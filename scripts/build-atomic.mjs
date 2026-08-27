@@ -31,15 +31,12 @@ function insideTemp(candidate) { return path.resolve(candidate).startsWith(`${pa
 if (process.getuid?.() === 0) fail("BUILD_MUST_NOT_RUN_AS_ROOT");
 if (process.env.ASAS_NEXT_DIST_DIR) fail("ASAS_NEXT_DIST_DIR_MUST_BE_UNSET_AT_ENTRY");
 if (text("git", ["status", "--porcelain", "--untracked-files=all"])) fail("GIT_WORKING_TREE_NOT_CLEAN");
-fs.mkdirSync(stageRoot, { recursive: true, mode: 0o750 });
+fs.mkdirSync(sourceRoot, { recursive: true, mode: 0o750 });
 if (!insideTemp(stageRoot) || !insideTemp(sourceRoot)) fail("TEMP_BUILD_PATH_ESCAPE");
-fs.cpSync(root, sourceRoot, {
-  recursive: true,
-  filter: (source) => {
-    const relative = path.relative(root, source);
-    return !relative.split(path.sep).some((part) => excludedTopLevel.has(part));
-  },
-});
+for (const entry of fs.readdirSync(root)) {
+  if (excludedTopLevel.has(entry)) continue;
+  fs.cpSync(path.join(root, entry), path.join(sourceRoot, entry), { recursive: true });
+}
 fs.symlinkSync(path.relative(sourceRoot, path.join(root, "node_modules")), path.join(sourceRoot, "node_modules"), "dir");
 const buildEnv = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
 run(process.execPath, ["node_modules/next/dist/bin/next", "build", "--webpack"], sourceRoot, buildEnv);
