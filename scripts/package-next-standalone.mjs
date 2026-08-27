@@ -2,7 +2,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 const root = process.cwd();
-const nextRoot = path.join(root, ".next");
+const configuredDistDir = process.env.ASAS_NEXT_DIST_DIR ?? ".next";
+if (configuredDistDir !== ".next" && (!configuredDistDir.startsWith(".build-tmp/") || configuredDistDir.includes(".."))) {
+  fail("INVALID_DIST_DIR");
+}
+const nextRoot = path.resolve(root, configuredDistDir);
 const standaloneRoot = path.join(nextRoot, "standalone");
 const sourceStatic = path.join(nextRoot, "static");
 const targetStatic = path.join(standaloneRoot, ".next", "static");
