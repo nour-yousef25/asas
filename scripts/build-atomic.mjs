@@ -37,7 +37,11 @@ for (const entry of fs.readdirSync(root)) {
   if (excludedTopLevel.has(entry)) continue;
   fs.cpSync(path.join(root, entry), path.join(sourceRoot, entry), { recursive: true });
 }
-fs.symlinkSync(path.relative(sourceRoot, path.join(root, "node_modules")), path.join(sourceRoot, "node_modules"), "dir");
+fs.cpSync(
+  path.join(root, "node_modules"),
+  path.join(sourceRoot, "node_modules"),
+  { recursive: true, dereference: true },
+);
 const buildEnv = { ...process.env, NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1" };
 run(process.execPath, ["node_modules/next/dist/bin/next", "build", "--webpack"], sourceRoot, buildEnv);
 run(process.execPath, ["scripts/package-next-standalone.mjs"], sourceRoot, buildEnv);
