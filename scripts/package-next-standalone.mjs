@@ -20,8 +20,85 @@ function countFiles(directory) {
 }
 
 const buildIdPath = path.join(nextRoot, "BUILD_ID");
+
+if (!fs.existsSync(sourceStatic) || !fs.existsSync(buildIdPath)) {
+  fail("REQUIRED_BUILD_ARTIFACT_MISSING");
+}
+
+// Next.js file tracing can preserve the atomic build staging path inside
+// the standalone directory. Locate the actual standalone payload and
+// normalize it to the canonical .next/standalone root.
+let standalonePayload = standaloneRoot;
+
+if (
+  !fs.existsSync(path.join(standalonePayload, "server.js")) ||
+  !fs.existsSync(path.join(standalonePayload, ".next", "BUILD_ID"))
+) {
+  const candidates = [];
+  const walk = (dir) => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (
+          entry.name === "node_modules" ||
+          entry.name === ".next" ||
+          entry.name === ".build-tmp"
+        ) {
+          walk(full);
+        } else {
+          walk(full);
+        }
+      } else if (entry.isFile() && entry.name === "server.js") {
+        const candidateRoot = path.dirname(full);
+        if (
+          fs.existsSync(path.join(candidateRoot, ".next", "BUILD_ID")) &&
+          fs.existsSync(path.join(candidateRoot, "package.json"))
+        ) {
+          candidates.push(candidateRoot);
+        }
+      }
+    }
+  };
+
+  walk(standaloneRoot);
+
+  if (candidates.length !== 1) {
+    fail(`STANDALONE_PAYLOAD_DISCOVERY:${candidates.length}`);
+  }
+
+  standalonePayload = candidates[0];
+
+  if (standalonePayload !== standaloneRoot) {
+    const entries = fs.readdirSync(standalonePayload);
+    for (const entry of entries) {
+      const src = path.join(standalonePayload, entry);
+      const dst = path.join(standaloneRoot, entry);
+
+      if (entry === ".next" || entry === "node_modules") {
+        fs.rmSync(dst, { recursive: true, force: true });
+      } else if (fs.existsSync(dst)) {
+        fs.rmSync(dst, { recursive: true, force: true });
+      }
+
+      fs.renameSync(src, dst);
+    }
+
+    fs.rmSync(path.join(standaloneRoot, ".build-tmp"), {
+      recursive: true,
+      force: true,
+    });
+  }
+}
+
 const standaloneBuildIdPath = path.join(standaloneRoot, ".next", "BUILD_ID");
-if (!fs.existsSync(standaloneRoot) || !fs.existsSync(sourceStatic) || !fs.existsSync(buildIdPath) || !fs.existsSync(standaloneBuildIdPath)) {
+
+if (
+  !fs.existsSync(standaloneRoot) ||
+  !fs.existsSync(path.join(standaloneRoot, "server.js")) ||
+  !fs.existsSync(sourceStatic) ||
+  !fs.existsSync(standaloneBuildIdPath)
+) {
   fail("REQUIRED_BUILD_ARTIFACT_MISSING");
 }
 
