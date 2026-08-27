@@ -15,7 +15,7 @@ function command(name, args, allowFailure = false) {
 if (process.getuid?.() !== 0) fail("ACTIVATION_REQUIRES_ROOT_OPERATOR");
 if (!runId || !buildIdPattern.test(runId)) fail("INVALID_BUILD_RUN_ID");
 const stageRoot = path.join(root, ".build-tmp", `build-${runId}`);
-const stagedNext = path.join(stageRoot, ".next");
+const stagedNext = path.join(stageRoot, "source", ".next");
 const readyPath = path.join(stageRoot, "READY.json");
 const activeNext = path.join(root, ".next");
 const previousNext = path.join(stageRoot, "previous-active-next");
