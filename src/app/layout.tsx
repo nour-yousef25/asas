@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { Cairo } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ToastProvider } from "@/components/ui/toast";
 import { SessionProvider } from "next-auth/react";
 
-const cairo = Cairo({
+const cairo = localFont({
+  src: "../fonts/Cairo-Variable.ttf",
   variable: "--font-cairo",
-  subsets: ["arabic", "latin"],
   display: "swap",
+  weight: "200 1000",
+  style: "normal",
 });
 
 export const metadata: Metadata = {
