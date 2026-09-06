@@ -1,5 +1,8 @@
+import { Role } from "@prisma/client";
 import { dashboardRepository } from "@/lib/dashboard-repository";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { hasActiveTenantMembership, requireTenantContext } from "@/lib/tenant-context";
 import { requirePermission } from "@/lib/policy";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -15,6 +18,11 @@ import { formatDistanceToNow } from "date-fns";
 import { ar } from "date-fns/locale";
 
 export default async function DashboardPage() {
+  // نفس حارس الـ layout: حساب المنصة بلا جمعية يُوجَّه قبل أي استدعاء لسياق المستأجر.
+  const session = await auth();
+  if (session?.user?.role === Role.SUPER_ADMIN && !(await hasActiveTenantMembership(session.user.id))) {
+    redirect("/platform");
+  }
   const context = await requireTenantContext();
   await requirePermission(context, "dashboard.read");
   const { totalDonations, activeMembers, totalMembers, activeBeneficiaries, activeProjects, completedProjects, recentDonations, projects, kpis } = await dashboardRepository.getSnapshot(context);

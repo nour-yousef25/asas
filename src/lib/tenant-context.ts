@@ -77,6 +77,15 @@ export async function resolveTenantContextForUser(input: {
   });
 }
 
+/** Read-only probe: does this user currently hold an active organization binding? Never throws. */
+export async function hasActiveTenantMembership(userId: string): Promise<boolean> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { activeOrganizationId: true },
+  });
+  return Boolean(user?.activeOrganizationId);
+}
+
 export async function requireTenantContext(): Promise<ResolvedTenantContext> {
   const session = await auth();
   if (!session?.user?.id || typeof session.user.authVersion !== "number") {
