@@ -23,7 +23,8 @@ export default function TasksPage() {
 
   const load = async () => {
     const res = await fetch("/api/tasks");
-    setTasks(await res.json());
+    const data = await res.json();
+    setTasks(Array.isArray(data) ? data : []);
   };
   React.useEffect(() => { load(); }, []);
   React.useEffect(() => {

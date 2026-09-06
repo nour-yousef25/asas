@@ -3,15 +3,13 @@
  */
 import { Prisma, PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
-
 export type EventCreateInput = Prisma.EventUncheckedCreateInput;
 
 /**
  * إنشاء فعالية جديدة.
  */
-export async function createEvent(data: EventCreateInput) {
-  return prisma.event.create({
+export async function createEvent(db: PrismaClient, data: EventCreateInput) {
+  return db.event.create({
     data,
   });
 }
@@ -19,15 +17,15 @@ export async function createEvent(data: EventCreateInput) {
 /**
  * جلب جميع الفعاليات.
  */
-export async function getAllEvents() {
-  return prisma.event.findMany();
+export async function getAllEvents(db: PrismaClient) {
+  return db.event.findMany();
 }
 
 /**
  * جلب فعالية عبر معرفها.
  */
-export async function getEventById(id: string) {
-  return prisma.event.findUnique({
+export async function getEventById(db: PrismaClient, id: string) {
+  return db.event.findUnique({
     where: { id },
   });
 }
@@ -35,8 +33,8 @@ export async function getEventById(id: string) {
 /**
  * تحديث بيانات فعالية موجودة.
  */
-export async function updateEvent(id: string, data: Prisma.EventUncheckedUpdateInput) {
-  return prisma.event.update({
+export async function updateEvent(db: PrismaClient, id: string, data: Prisma.EventUncheckedUpdateInput) {
+  return db.event.update({
     where: { id },
     data,
   });
@@ -45,8 +43,8 @@ export async function updateEvent(id: string, data: Prisma.EventUncheckedUpdateI
 /**
  * حذف فعالية عبر معرفها.
  */
-export async function deleteEvent(id: string) {
-  return prisma.event.delete({
+export async function deleteEvent(db: PrismaClient, id: string) {
+  return db.event.delete({
     where: { id },
   });
 }

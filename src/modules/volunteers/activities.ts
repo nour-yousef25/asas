@@ -3,15 +3,13 @@
  */
 import { Prisma, PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient();
-
 export type VolunteerActivityCreateInput = Prisma.VolunteerActivityUncheckedCreateInput;
 
 /**
  * إضافة نشاط جديد لمتطوع معين.
  */
-export async function createActivity(data: VolunteerActivityCreateInput) {
-  return prisma.volunteerActivity.create({
+export async function createActivity(db: PrismaClient, data: VolunteerActivityCreateInput) {
+  return db.volunteerActivity.create({
     data,
   });
 }
@@ -19,8 +17,8 @@ export async function createActivity(data: VolunteerActivityCreateInput) {
 /**
  * جلب جميع الأنشطة المرتبطة بمتطوع معين.
  */
-export async function getVolunteerActivities(volunteerId: string) {
-  return prisma.volunteerActivity.findMany({
+export async function getVolunteerActivities(db: PrismaClient, volunteerId: string) {
+  return db.volunteerActivity.findMany({
     where: { volunteerId },
   });
 }
@@ -28,8 +26,8 @@ export async function getVolunteerActivities(volunteerId: string) {
 /**
  * تحديث نشاط تطوعي معين.
  */
-export async function updateActivity(id: string, data: Prisma.VolunteerActivityUncheckedUpdateInput) {
-  return prisma.volunteerActivity.update({
+export async function updateActivity(db: PrismaClient, id: string, data: Prisma.VolunteerActivityUncheckedUpdateInput) {
+  return db.volunteerActivity.update({
     where: { id },
     data,
   });
@@ -38,8 +36,8 @@ export async function updateActivity(id: string, data: Prisma.VolunteerActivityU
 /**
  * حذف نشاط تطوعي معين.
  */
-export async function deleteActivity(id: string) {
-  return prisma.volunteerActivity.delete({
+export async function deleteActivity(db: PrismaClient, id: string) {
+  return db.volunteerActivity.delete({
     where: { id },
   });
 }

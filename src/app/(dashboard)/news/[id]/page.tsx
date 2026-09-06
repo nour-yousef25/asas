@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { queryTenant } from "@/lib/tenant-query";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,10 +20,12 @@ export default async function NewsDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const news = await prisma.news.findUnique({
-    where: { id },
-    include: { author: { select: { name: true } } },
-  });
+  const news = await queryTenant((db, context) =>
+    db.news.findFirst({
+      where: { id, organizationId: context.organizationId },
+      include: { author: { select: { name: true } } },
+    }),
+  );
 
   if (!news) return notFound();
   const s = statusMap[news.status] || { label: news.status, variant: "outline" };

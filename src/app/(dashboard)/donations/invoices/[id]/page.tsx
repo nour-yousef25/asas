@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { requireTenantContext } from "@/lib/tenant-context";
 import { requirePermission } from "@/lib/policy";
 import { financialRepository } from "@/lib/financial-repository";
+import { PrintButton } from "@/components/print/print-report";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate, formatCurrency } from "@/lib/format";
 
@@ -19,9 +20,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ id: st
     <div className="space-y-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between no-print">
         <h1 className="text-2xl font-bold">فاتورة إلكترونية</h1>
-        <button onClick={() => window.print()} className="rounded-md bg-primary text-primary-foreground px-4 py-2 text-sm">
-          طباعة
-        </button>
+<PrintButton />
       </div>
       <Card className="p-8 print-area">
         <div className="text-center border-b pb-6">

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { newsSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
-import { auth } from "@/lib/auth";
+import { queryTenantApi, isTenantApiError } from "@/lib/tenant-query";
 
 export async function GET(
   req: NextRequest,
@@ -10,10 +9,13 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const news = await prisma.news.findUnique({
-      where: { id },
-      include: { author: { select: { id: true, name: true } } },
-    });
+    const news = await queryTenantApi((db, context) =>
+      db.news.findFirst({
+        where: { id, organizationId: context.organizationId },
+        include: { author: { select: { id: true, name: true } } },
+      }),
+    );
+    if (isTenantApiError(news)) return news;
 
     if (!news) {
       return NextResponse.json({ error: "الخبر غير موجود" }, { status: 404 });
@@ -29,30 +31,38 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-    }
-
     const { id } = await params;
     const body = await req.json();
     const validated = newsSchema.partial().parse(body);
 
-    let generatedSlug: string | undefined;
-    if (validated.title) {
-      generatedSlug = slugify(validated.title);
-      const existing = await prisma.news.findUnique({ where: { slug: generatedSlug } });
-      if (existing && existing.id !== id) generatedSlug = `${generatedSlug}-${Date.now()}`;
-    }
+    const news = await queryTenantApi(async (db, context) => {
+      const existingNews = await db.news.findFirst({
+        where: { id, organizationId: context.organizationId },
+      });
+      if (!existingNews) return null;
 
-    const news = await prisma.news.update({
-      where: { id },
-      data: {
-        ...validated,
-        ...(generatedSlug ? { slug: generatedSlug } : {}),
-        publishedAt: validated.status === "PUBLISHED" ? new Date() : undefined,
-      },
+      let generatedSlug: string | undefined;
+      if (validated.title) {
+        generatedSlug = slugify(validated.title);
+        const existing = await db.news.findFirst({
+          where: { slug: generatedSlug, organizationId: context.organizationId },
+        });
+        if (existing && existing.id !== id) generatedSlug = `${generatedSlug}-${Date.now()}`;
+      }
+
+      return db.news.update({
+        where: { id },
+        data: {
+          ...validated,
+          ...(generatedSlug ? { slug: generatedSlug } : {}),
+          publishedAt: validated.status === "PUBLISHED" ? new Date() : undefined,
+        },
+      });
     });
+    if (isTenantApiError(news)) return news;
+    if (!news) {
+      return NextResponse.json({ error: "الخبر غير موجود" }, { status: 404 });
+    }
     return NextResponse.json(news);
   } catch (error: any) {
     if (error.name === "ZodError") {
@@ -67,13 +77,14 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-    }
-
     const { id } = await params;
-    await prisma.news.delete({ where: { id } });
+    const result = await queryTenantApi((db, context) =>
+      db.news.deleteMany({ where: { id, organizationId: context.organizationId } }),
+    );
+    if (isTenantApiError(result)) return result;
+    if (result.count === 0) {
+      return NextResponse.json({ error: "الخبر غير موجود" }, { status: 404 });
+    }
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "خطأ في حذف الخبر" }, { status: 500 });

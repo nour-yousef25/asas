@@ -26,7 +26,7 @@ export default function VolunteerActivitiesPage({ params }: { params: Promise<{ 
           throw new Error("Failed to fetch activities");
         }
         const data = await response.json();
-        setActivities(data);
+        setActivities(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
       }

@@ -25,13 +25,24 @@ type Announcement = {
 export default function AnnouncementsPage() {
   const { addToast } = useToast();
   const [items, setItems] = React.useState<Announcement[]>([]);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editing, setEditing] = React.useState<Announcement | null>(null);
 
   const load = async () => {
-    const res = await fetch("/api/announcements");
-    const data = await res.json();
-    setItems(data);
+    try {
+      const res = await fetch("/api/announcements");
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = await res.json();
+      const list = Array.isArray(body) ? body : Array.isArray(body?.data) ? body.data : null;
+      if (!list) throw new Error("Unexpected response shape");
+      setItems(list);
+      setLoadError(null);
+    } catch (error) {
+      console.error("Failed to load announcements", error);
+      setItems([]);
+      setLoadError("تعذر تحميل الإعلانات. حاول مرة أخرى.");
+    }
   };
 
   React.useEffect(() => { load(); }, []);
@@ -77,6 +88,12 @@ export default function AnnouncementsPage() {
         description="إدارة الإعلانات الخاصة بالجمعية"
         actions={<Button onClick={() => { setEditing(null); setModalOpen(true); }}>إضافة إعلان</Button>}
       />
+
+      {loadError && (
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          {loadError}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         {items.map((a) => (

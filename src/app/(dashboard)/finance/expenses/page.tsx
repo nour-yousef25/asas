@@ -26,7 +26,7 @@ export default function ExpensesPage({ params }: { params: Promise<{ budgetItemI
           throw new Error("فشل في جلب المصروفات");
         }
         const data = await response.json();
-        setExpenses(data);
+        setExpenses(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
       }

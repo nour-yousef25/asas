@@ -29,7 +29,7 @@ export default async function BeneficiaryDetailPage({ params }: { params: Promis
     <div className="space-y-6">
       <PageHeader
         title={`ملف المستفيد: ${b.name}`}
-        actions={<Button onClick={() => {}} variant="outline">تعديل</Button>}
+        actions={<Button variant="outline">تعديل</Button>}
       />
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>

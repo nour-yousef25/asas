@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { queryTenant } from "@/lib/tenant-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/data-table";
@@ -22,13 +22,15 @@ type Volunteer = {
 };
 
 export default async function VolunteersPage() {
-  const volunteers = (await prisma.volunteer.findMany({
-    include: {
-      user: { select: { id: true, name: true, phone: true, email: true } },
-      activities: true,
-    },
-    orderBy: { createdAt: "desc" },
-  })) as Volunteer[];
+  const volunteers = (await queryTenant((db) =>
+    db.volunteer.findMany({
+      include: {
+        user: { select: { id: true, name: true, phone: true, email: true } },
+        activities: true,
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  )) as Volunteer[];
 
   return (
     <div className="space-y-6">

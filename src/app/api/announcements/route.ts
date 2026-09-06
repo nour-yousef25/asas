@@ -1,17 +1,20 @@
 import { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
 import { announcementSchema } from "@/lib/validations";
 import { auth } from "@/lib/auth";
 import { logger } from "@/lib/logger";
 import { apiSuccess, apiUnauthorized, apiError, apiInternalError } from "@/lib/api-response";
+import { queryTenantApi, isTenantApiError } from "@/lib/tenant-query";
 
 const log = logger.child("announcements");
 
 export async function GET() {
   try {
-    const items = await prisma.announcement.findMany({
-      orderBy: { sortOrder: "asc" },
-    });
+    const items = await queryTenantApi((db) =>
+      db.announcement.findMany({
+        orderBy: { sortOrder: "asc" },
+      }),
+    );
+    if (isTenantApiError(items)) return items;
     return apiSuccess(items);
   } catch (error) {
     log.error("Failed to fetch announcements", error);
@@ -26,7 +29,10 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const validated = announcementSchema.parse(body);
-    const item = await prisma.announcement.create({ data: validated });
+    const item = await queryTenantApi((db) =>
+      db.announcement.create({ data: validated }),
+    );
+    if (isTenantApiError(item)) return item;
 
     log.info("Announcement created", { id: item.id, title: item.title });
     return apiSuccess(item, 201);

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { newsSchema } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
-import { auth } from "@/lib/auth";
+import { queryTenantApi, isTenantApiError } from "@/lib/tenant-query";
 
 // الحصول على قائمة الأخبار
 export async function GET(req: NextRequest) {
@@ -13,22 +12,26 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "50");
     const page = parseInt(searchParams.get("page") || "1");
 
-    const where: any = {};
-    if (status) where.status = status;
-    if (category) where.category = category;
+    const result = await queryTenantApi(async (db, context) => {
+      const where: any = { organizationId: context.organizationId };
+      if (status) where.status = status;
+      if (category) where.category = category;
 
-    const [news, total] = await Promise.all([
-      prisma.news.findMany({
-        where,
-        include: { author: { select: { id: true, name: true } } },
-        orderBy: { createdAt: "desc" },
-        take: limit,
-        skip: (page - 1) * limit,
-      }),
-      prisma.news.count({ where }),
-    ]);
+      const [news, total] = await Promise.all([
+        db.news.findMany({
+          where,
+          include: { author: { select: { id: true, name: true } } },
+          orderBy: { createdAt: "desc" },
+          take: limit,
+          skip: (page - 1) * limit,
+        }),
+        db.news.count({ where }),
+      ]);
+      return { data: news, total };
+    });
+    if (isTenantApiError(result)) return result;
 
-    return NextResponse.json({ data: news, total, page, limit });
+    return NextResponse.json({ data: result.data, total: result.total, page, limit });
   } catch (error) {
     console.error("GET /api/news error:", error);
     return NextResponse.json({ error: "خطأ في جلب الأخبار" }, { status: 500 });
@@ -38,26 +41,27 @@ export async function GET(req: NextRequest) {
 // إضافة خبر جديد
 export async function POST(req: NextRequest) {
   try {
-    const session = await auth();
-    if (!session?.user) {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
-    }
-
     const body = await req.json();
     const validated = newsSchema.parse(body);
 
-    let slug = slugify(validated.title);
-    const existing = await prisma.news.findUnique({ where: { slug } });
-    if (existing) slug = `${slug}-${Date.now()}`;
+    const news = await queryTenantApi(async (db, context) => {
+      let slug = slugify(validated.title);
+      const existing = await db.news.findFirst({
+        where: { slug, organizationId: context.organizationId },
+      });
+      if (existing) slug = `${slug}-${Date.now()}`;
 
-    const news = await prisma.news.create({
-      data: {
-        ...validated,
-        slug,
-        publishedAt: validated.status === "PUBLISHED" ? new Date() : null,
-        authorId: session.user.id,
-      },
+      return db.news.create({
+        data: {
+          ...validated,
+          slug,
+          organizationId: context.organizationId,
+          publishedAt: validated.status === "PUBLISHED" ? new Date() : null,
+          authorId: context.userId,
+        },
+      });
     });
+    if (isTenantApiError(news)) return news;
 
     return NextResponse.json(news, { status: 201 });
   } catch (error: any) {

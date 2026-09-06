@@ -24,7 +24,7 @@ export default function AttendancePage({ params }: { params: Promise<{ id: strin
           throw new Error("فشل في جلب قائمة الحضور");
         }
         const data = await response.json();
-        setAttendanceList(data);
+        setAttendanceList(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
       }

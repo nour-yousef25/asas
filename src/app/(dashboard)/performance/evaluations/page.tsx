@@ -43,7 +43,8 @@ export default function EvaluationsPage() {
 
   const load = async () => {
     const res = await fetch("/api/evaluations");
-    setEvaluations(await res.json());
+    const data = await res.json();
+    setEvaluations(Array.isArray(data) ? data : []);
   };
   const loadUsers = async () => {
     const res = await fetch("/api/memberships?page=1&pageSize=100");

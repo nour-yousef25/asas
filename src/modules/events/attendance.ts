@@ -1,9 +1,7 @@
 /**
  * وظائف إدارة الحضور للفعاليات.
  */
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import type { PrismaClient } from "@prisma/client";
 
 export type AttendanceCreateInput = {
   eventId: string;
@@ -14,8 +12,8 @@ export type AttendanceCreateInput = {
 /**
  * تسجيل حالة حضور جديدة لفعالية.
  */
-export async function createAttendance(data: AttendanceCreateInput) {
-  return prisma.eventAttendance.create({
+export async function createAttendance(db: PrismaClient, data: AttendanceCreateInput) {
+  return db.eventAttendance.create({
     data,
   });
 }
@@ -23,8 +21,8 @@ export async function createAttendance(data: AttendanceCreateInput) {
 /**
  * تحديث حالة الحضور لفعالية.
  */
-export async function updateAttendance(id: string, data: Partial<AttendanceCreateInput>) {
-  return prisma.eventAttendance.update({
+export async function updateAttendance(db: PrismaClient, id: string, data: Partial<AttendanceCreateInput>) {
+  return db.eventAttendance.update({
     where: { id },
     data,
   });
@@ -33,8 +31,8 @@ export async function updateAttendance(id: string, data: Partial<AttendanceCreat
 /**
  * جلب قائمة الحضور لفعالية معينة.
  */
-export async function getAttendanceByEvent(eventId: string) {
-  return prisma.eventAttendance.findMany({
+export async function getAttendanceByEvent(db: PrismaClient, eventId: string) {
+  return db.eventAttendance.findMany({
     where: { eventId },
   });
 }
@@ -42,8 +40,8 @@ export async function getAttendanceByEvent(eventId: string) {
 /**
  * حذف تسجيل حضور.
  */
-export async function deleteAttendance(id: string) {
-  return prisma.eventAttendance.delete({
+export async function deleteAttendance(db: PrismaClient, id: string) {
+  return db.eventAttendance.delete({
     where: { id },
   });
 }

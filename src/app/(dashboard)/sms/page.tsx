@@ -19,7 +19,8 @@ export default function SMSPage() {
 
   const loadTemplates = async () => {
     const res = await fetch("/api/sms");
-    setTemplates(await res.json());
+    const data = await res.json();
+    setTemplates(Array.isArray(data) ? data : []);
   };
   React.useEffect(() => { loadTemplates(); }, []);
 

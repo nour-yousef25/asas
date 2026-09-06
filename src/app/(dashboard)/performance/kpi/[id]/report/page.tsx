@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { queryTenant } from "@/lib/tenant-query";
 import { ReportHeader, ReportTitle, ReportSignature, ReportFooter, PrintButton } from "@/components/print/print-report";
 import { Card } from "@/components/ui/card";
 import { BarChartComponent, RadialGaugeComponent } from "@/components/charts";
@@ -12,10 +12,13 @@ const entityMap: Record<string, string> = { DEPARTMENT: "وحدة عمل", PROJE
 
 export default async function KPIReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const kpi = await prisma.kPI.findUnique({
-    where: { id },
-    include: { records: { orderBy: { period: "asc" } } },
-  });
+  const kpi = await queryTenant((db, context) =>
+    db.kPI.findFirst({
+      where: { id, organizationId: context.organizationId },
+      include: { records: { orderBy: { period: "asc" } } },
+    }),
+    "kpi.read",
+  );
   if (!kpi) return notFound();
 
   const latest = kpi.records[kpi.records.length - 1];

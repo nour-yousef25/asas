@@ -25,7 +25,7 @@ export default function BudgetPage() {
           throw new Error("فشل في جلب الميزانيات");
         }
         const data = await response.json();
-        setBudgets(data);
+        setBudgets(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
       }

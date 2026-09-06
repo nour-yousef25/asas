@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getPageById, updatePage, deletePage } from "@/modules/content/pages";
+import { queryTenantApi, isTenantApiError } from "@/lib/tenant-query";
 
 export async function GET(
   req: Request,
@@ -7,7 +8,8 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const page = await getPageById(id);
+    const page = await queryTenantApi((db) => getPageById(db, id));
+    if (isTenantApiError(page)) return page;
 
     if (!page) {
       return new NextResponse("Page not found", { status: 404 });
@@ -29,13 +31,10 @@ export async function PUT(
     const body = await req.json();
     const { title, slug, content, category, isPublished } = body;
 
-    const page = await updatePage(id, {
-      title,
-      slug,
-      content,
-      category,
-      isPublished,
-    });
+    const page = await queryTenantApi((db) =>
+      updatePage(db, id, { title, slug, content, category, isPublished }),
+    );
+    if (isTenantApiError(page)) return page;
 
     if (!page) {
       return new NextResponse("Page not found", { status: 404 });
@@ -54,7 +53,8 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const page = await deletePage(id);
+    const page = await queryTenantApi((db) => deletePage(db, id));
+    if (isTenantApiError(page)) return page;
 
     if (!page) {
       return new NextResponse("Page not found", { status: 404 });

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
 import { auth } from "@/lib/auth";
-
-const prisma = new PrismaClient();
+import { queryTenantApi, isTenantApiError } from "@/lib/tenant-query";
 
 /**
  * واجهة API لحفظ إعدادات المظهر.
@@ -17,23 +15,18 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { logoUrl, primaryColor, secondaryColor } = body;
 
-    const organization = await prisma.organization.findFirst({
-      select: { id: true },
-      orderBy: { createdAt: "asc" },
-    });
-    if (!organization) {
-      return NextResponse.json({ error: "لم يتم إعداد بيانات الجمعية بعد" }, { status: 404 });
-    }
-
-    // تحديث الإعدادات في قاعدة البيانات
-    const updatedSettings = await prisma.organization.update({
-      where: { id: organization.id },
-      data: {
-        logo: logoUrl,
-        primaryColor,
-        secondaryColor,
-      },
-    });
+    const updatedSettings = await queryTenantApi((db, context) =>
+      db.organization.update({
+        where: { id: context.organizationId },
+        data: {
+          logo: logoUrl,
+          primaryColor,
+          secondaryColor,
+        },
+      }),
+      "settings.manage",
+    );
+    if (isTenantApiError(updatedSettings)) return updatedSettings;
 
     return NextResponse.json(updatedSettings, { status: 200 });
   } catch (error: any) {

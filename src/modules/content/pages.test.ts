@@ -39,7 +39,7 @@ describe('Content Page Module', () => {
       const createdPage = { id: '1', ...newPageData, createdAt: new Date(), updatedAt: new Date(), sortOrder: 0, isPublished: false };
       (prisma.contentPage.create as jest.Mock).mockResolvedValue(createdPage);
 
-      await expect(createPage(newPageData)).resolves.toEqual(createdPage);
+      await expect(createPage(prisma as unknown as PrismaClient, newPageData)).resolves.toEqual(createdPage);
       expect(prisma.contentPage.create).toHaveBeenCalledWith({ data: newPageData });
     });
   });
@@ -51,7 +51,7 @@ describe('Content Page Module', () => {
       const updatedPage = { id: pageId, title: 'Updated Test Page', slug: 'test-page', content: 'This is a test page.', category: 'Tests', createdAt: new Date(), updatedAt: new Date(), sortOrder: 0, isPublished: false };
       (prisma.contentPage.update as jest.Mock).mockResolvedValue(updatedPage);
 
-      await expect(updatePage(pageId, updateData)).resolves.toEqual(updatedPage);
+      await expect(updatePage(prisma as unknown as PrismaClient, pageId, updateData)).resolves.toEqual(updatedPage);
       expect(prisma.contentPage.update).toHaveBeenCalledWith({
         where: { id: pageId },
         data: updateData,
@@ -63,7 +63,7 @@ describe('Content Page Module', () => {
       const updateData: ContentPageUpdateInput = { title: 'Updated Test Page' };
       (prisma.contentPage.update as jest.Mock).mockRejectedValue(new Error('Record not found'));
 
-      await expect(updatePage(pageId, updateData)).rejects.toThrow('Record not found');
+      await expect(updatePage(prisma as unknown as PrismaClient, pageId, updateData)).rejects.toThrow('Record not found');
     });
   });
 
@@ -73,7 +73,7 @@ describe('Content Page Module', () => {
       const foundPage = { id: '1', title: 'Test Page', slug: pageSlug, content: 'This is a test page.', category: 'Tests', createdAt: new Date(), updatedAt: new Date(), sortOrder: 0, isPublished: false };
       (prisma.contentPage.findUnique as jest.Mock).mockResolvedValue(foundPage);
 
-      await expect(getPageBySlug(pageSlug)).resolves.toEqual(foundPage);
+      await expect(getPageBySlug(prisma as unknown as PrismaClient, pageSlug)).resolves.toEqual(foundPage);
       expect(prisma.contentPage.findUnique).toHaveBeenCalledWith({ where: { slug: pageSlug } });
     });
 
@@ -81,7 +81,7 @@ describe('Content Page Module', () => {
       const pageSlug = 'nonexistent-page';
       (prisma.contentPage.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await expect(getPageBySlug(pageSlug)).resolves.toBeNull();
+      await expect(getPageBySlug(prisma as unknown as PrismaClient, pageSlug)).resolves.toBeNull();
       expect(prisma.contentPage.findUnique).toHaveBeenCalledWith({ where: { slug: pageSlug } });
     });
   });
@@ -94,14 +94,14 @@ describe('Content Page Module', () => {
       ];
       (prisma.contentPage.findMany as jest.Mock).mockResolvedValue(allPages);
 
-      await expect(getAllPages()).resolves.toEqual(allPages);
+      await expect(getAllPages(prisma as unknown as PrismaClient)).resolves.toEqual(allPages);
       expect(prisma.contentPage.findMany).toHaveBeenCalledTimes(1);
     });
 
     it('should return an empty array if no pages exist', async () => {
       (prisma.contentPage.findMany as jest.Mock).mockResolvedValue([]);
 
-      await expect(getAllPages()).resolves.toEqual([]);
+      await expect(getAllPages(prisma as unknown as PrismaClient)).resolves.toEqual([]);
       expect(prisma.contentPage.findMany).toHaveBeenCalledTimes(1);
     });
   });

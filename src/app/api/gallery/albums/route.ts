@@ -1,21 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { auth } from "@/lib/auth";
+import { queryTenantApi, isTenantApiError } from "@/lib/tenant-query";
 
 export async function GET() {
-  const albums = await prisma.photoAlbum.findMany({
-    include: { photos: true },
-    orderBy: { sortOrder: "asc" },
-  });
+  const albums = await queryTenantApi((db) =>
+    db.photoAlbum.findMany({
+      include: { photos: true },
+      orderBy: { sortOrder: "asc" },
+    }),
+  );
+  if (isTenantApiError(albums)) return albums;
   return NextResponse.json(albums);
 }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
   const body = await req.json();
-  const album = await prisma.photoAlbum.create({
-    data: { title: body.title, description: body.description, coverUrl: body.coverUrl },
-  });
+  const album = await queryTenantApi((db) =>
+    db.photoAlbum.create({
+      data: { title: body.title, description: body.description, coverUrl: body.coverUrl },
+    }),
+  );
+  if (isTenantApiError(album)) return album;
   return NextResponse.json(album, { status: 201 });
 }

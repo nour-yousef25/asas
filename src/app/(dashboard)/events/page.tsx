@@ -25,7 +25,7 @@ export default function EventsPage() {
           throw new Error("فشل في جلب الفعاليات");
         }
         const data = await response.json();
-        setEvents(data);
+        setEvents(Array.isArray(data) ? data : []);
       } catch (error) {
         console.error(error);
       }
