@@ -64,6 +64,13 @@ export function installTenantBoundPrismaExecutor(executor: TenantBoundPrismaExec
 }
 
 export function requireTenantBoundPrismaExecutor() {
+  if (installedExecutor) return installedExecutor;
+  // The instrumentation register() hook is not guaranteed to run in every
+  // production runtime (e.g. standalone deployments where the instrumentation
+  // convention file is not detected). Install lazily on first use; the
+  // bootstrap still fails closed when TENANT_CREDENTIAL_DIRECTORY is absent.
+  const { bootstrapTenantRuntime } = require("./tenant-runtime-bootstrap") as typeof import("./tenant-runtime-bootstrap");
+  bootstrapTenantRuntime();
   if (!installedExecutor) throw new BrokerDeniedError("TENANT_CONNECTION_AUTHORITY_UNCONFIGURED");
   return installedExecutor;
 }
