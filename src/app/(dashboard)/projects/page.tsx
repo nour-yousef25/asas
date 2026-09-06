@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 import { financialRepository } from "@/lib/financial-repository";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -20,7 +20,7 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 };
 
 export default async function ProjectsPage() {
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "project.read");
   const projects = await financialRepository.listProjects(context);
 

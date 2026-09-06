@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { memberKpiRepository } from "@/lib/member-kpi-repository";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ const statusMap: Record<string, { label: string; variant: any }> = {
 
 export default async function MemberDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "member.read");
   const member = await memberKpiRepository.getMember(context, id);
   if (!member) return notFound();

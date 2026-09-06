@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 import { financialRepository } from "@/lib/financial-repository";
 import { PrintButton } from "@/components/print/print-report";
@@ -9,7 +9,7 @@ import { formatDate, formatCurrency } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function InvoicePage({ params }: { params: Promise<{ id: string }> }) {
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "donation.read");
   const { id } = await params;
   const donation = await financialRepository.getDonationById(context, id);

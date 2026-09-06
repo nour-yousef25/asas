@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import type { PrismaClient } from "@prisma/client";
+import { redirect } from "next/navigation";
+import { Role } from "@prisma/client";
+import { auth } from "@/lib/auth";
 import {
+  hasActiveTenantMembership,
   requireTenantContext,
   TenantAuthorizationError,
   type ResolvedTenantContext,
@@ -17,16 +21,42 @@ import { requireTenantBoundPrismaExecutor } from "@/lib/tenant-bound-prisma-auth
  * RLS organization are all derived from context.organizationId.
  */
 
+/**
+ * Resolves the tenant context for a dashboard page. A tenant-less platform
+ * SUPER_ADMIN is redirected to /platform before any tenant lookup runs, so
+ * the strict resolver below never emits a spurious NO_ACTIVE_MEMBERSHIP
+ * exception for that account. All other users keep fail-closed semantics.
+ */
+export async function requirePageTenantContext(): Promise<ResolvedTenantContext> {
+  const session = await auth();
+  if (
+    session?.user?.role === Role.SUPER_ADMIN &&
+    !(await hasActiveTenantMembership(session.user.id))
+  ) {
+    redirect("/platform");
+  }
+  return requireTenantContext();
+}
+
+/** Runs an operation against a pre-resolved tenant context. */
+export async function queryTenantWith<T>(
+  context: ResolvedTenantContext,
+  operation: (db: PrismaClient, context: ResolvedTenantContext) => Promise<T>,
+  permission?: string,
+): Promise<T> {
+  if (permission) await requirePermission(context, permission);
+  return requireTenantBoundPrismaExecutor().execute(context, (db) =>
+    operation(db, context),
+  );
+}
+
 /** Server Component path: fails closed by throwing on missing tenant context. */
 export async function queryTenant<T>(
   operation: (db: PrismaClient, context: ResolvedTenantContext) => Promise<T>,
   permission?: string,
 ): Promise<T> {
-  const context = await requireTenantContext();
-  if (permission) await requirePermission(context, permission);
-  return requireTenantBoundPrismaExecutor().execute(context, (db) =>
-    operation(db, context),
-  );
+  const context = await requirePageTenantContext();
+  return queryTenantWith(context, operation, permission);
 }
 
 /**

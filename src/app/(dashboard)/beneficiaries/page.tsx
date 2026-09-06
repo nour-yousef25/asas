@@ -3,14 +3,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/data-table";
 import { beneficiaryRepository } from "@/lib/beneficiary-repository";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 import { BeneficiariesTable, type BeneficiaryRow } from "./_components/beneficiaries-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function BeneficiariesPage() {
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "beneficiary.read");
   const { data: beneficiaries } = await beneficiaryRepository.list(context, { skip: 0, take: 200 });
 

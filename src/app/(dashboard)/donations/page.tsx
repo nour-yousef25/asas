@@ -3,14 +3,14 @@ import { StatCard } from "@/components/dashboard/stat-card";
 import { PageHeader } from "@/components/shared/data-table";
 import { formatCurrency } from "@/lib/format";
 import { financialRepository } from "@/lib/financial-repository";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 import { DonationsTable, type DonationRow } from "./_components/donations-table";
 
 export const dynamic = "force-dynamic";
 
 export default async function DonationsPage() {
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "donation.read");
   const { data: donations } = (await financialRepository.listDonations(context, { skip: 0, take: 200 })) as { data: DonationRow[]; total: number };
 

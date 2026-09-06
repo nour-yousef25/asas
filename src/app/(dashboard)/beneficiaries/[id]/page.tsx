@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/shared/data-table";
 import { formatDate } from "@/lib/format";
 import { beneficiaryRepository } from "@/lib/beneficiary-repository";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 
 const statusMap: Record<string, { label: string; variant: any }> = {
@@ -19,7 +19,7 @@ const genderMap: Record<string, string> = { MALE: "ذكر", FEMALE: "أنثى" }
 
 export default async function BeneficiaryDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "beneficiary.read");
   const b = await beneficiaryRepository.getById(context, id);
   if (!b) return notFound();

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { requireTenantContext } from "@/lib/tenant-context";
+import { requirePageTenantContext } from "@/lib/tenant-query";
 import { requirePermission } from "@/lib/policy";
 import { financialRepository } from "@/lib/financial-repository";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 const typeMap: Record<string, string> = { INDIVIDUAL: "فردي", CORPORATE: "مؤسسي", GOVERNMENT: "حكومي" };
 
 export default async function DonorDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const context = await requireTenantContext();
+  const context = await requirePageTenantContext();
   await requirePermission(context, "donor.read");
   const { id } = await params;
   const donor = await financialRepository.getDonorById(context, id);
